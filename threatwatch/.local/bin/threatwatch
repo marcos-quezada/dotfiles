@@ -1,0 +1,1137 @@
+#!/bin/sh
+# threatwatch — geopolitical threat statusbar widget for Germany / Central Europe
+# focused on earthquakes, military flights, disasters, prediction markets.
+# inspired by https://github.com/BreadOnPenguins/scripts/blob/master/statusbar/aurora
+
+# urls!
+EMSC_URL="https://www.seismicportal.eu/fdsnws/event/1/query"
+USGS_URL="https://earthquake.usgs.gov/fdsnws/event/1/query"
+GDACS_URL="https://www.gdacs.org/xml/rss.xml"
+OPENSKY_URL="https://opensky-network.org/api/states/all"
+POLYMARKET_URL="https://gamma-api.polymarket.com/events?limit=30&closed=false&tag_slug=politics"
+MAPBOX_BASE="https://api.mapbox.com/styles/v1/mapbox/dark-v11/static"
+
+# mapbox token — free tier at https://account.mapbox.com, no credit card needed
+# set via env: export MAPBOX_TOKEN="pk.eyJ1..."
+MAPBOX_TOKEN="${MAPBOX_TOKEN:-}"
+
+# bounding box — Germany + Central Europe + Northern Italy
+# 45.0°N captures Como, Dizzasco, Lombardia, Slovenia, northern Adriatic seismic zone
+BBOX_MINLAT="45.0"
+BBOX_MAXLAT="55.5"
+BBOX_MINLON="5.5"
+BBOX_MAXLON="16.0"
+
+# broader box for GDACS — cast wider so we catch Atlantic/Mediterranean disasters
+GDACS_MINLAT="40.0"
+GDACS_MAXLAT="60.0"
+GDACS_MINLON="-5.0"
+GDACS_MAXLON="30.0"
+
+# map viewport — empirically calibrated with pin-l markers + imagemagick pixel scan.
+# zoom 5 at 800x780, center 50.609°N: flensburg lands at 4.9% from top, como at 88.6%.
+# zoom 6 was tried but cut both cities off entirely — the math looked right, it wasn't.
+MAP_CENTER_LON="10.45"
+MAP_CENTER_LAT="50.609"
+MAP_ZOOM="5"
+MAP_SIZE="800x780"
+
+# rate limiting — default 6h between fetches = ~120 req/month running 24/7.
+# override: MAP_MIN_INTERVAL=0 to force, MAP_MIN_INTERVAL=86400 to go daily.
+MAP_MIN_INTERVAL="${MAP_MIN_INTERVAL:-21600}"
+
+# usage thresholds — warn at 80%, hard-stop at 96% to leave headroom for manual runs
+MAP_COUNT_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/threatwatch/mapbox_count.json"
+MAP_WARN_THRESHOLD=40000
+MAP_SKIP_THRESHOLD=48000
+
+# threat thresholds
+QUAKE_MED_MAG="3.5"
+QUAKE_HIGH_MAG="4.5"
+QUAKE_CRIT_MAG="5.5"
+
+# military callsign prefixes — GAF=german AF, RCH/REACH/DUKE=US military transports
+MIL_PREFIXES="GAF|RCH|DUKE|REACH|ATLAS|MAGMA|ROCKY|NATO|USAF|CTAM|ARMY|NAVY"
+
+# emergency squawk codes
+EMERG_SQUAWKS="7700|7600|7500"
+
+# file locations
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/threatwatch"
+QUAKES_FILE="$CACHE_DIR/quakes.json"
+EMSC_FILE="$CACHE_DIR/emsc.json"
+GDACS_FILE="$CACHE_DIR/gdacs.xml"
+FLIGHTS_FILE="$CACHE_DIR/flights.json"
+POLY_FILE="$CACHE_DIR/polymarket.json"
+MAP_FILE="$CACHE_DIR/germany.png"
+SUMMARY_FILE="$CACHE_DIR/summary.json"
+PINS_FILE="$CACHE_DIR/pins.json"
+
+# ── helpers ───────────────────────────────────────────────────────────────────
+
+has_cmd() { command -v "$1" >/dev/null 2>&1; }
+
+# tries homebrew paths first so macOS dev machine works without PATH hacks
+_find_magick() {
+    for _b in magick convert \
+               /opt/homebrew/bin/magick /usr/local/bin/magick \
+               /opt/homebrew/bin/convert /usr/local/bin/convert; do
+        command -v "$_b" >/dev/null 2>&1 && { echo "$_b"; return 0; }
+    done
+    return 1
+}
+
+# direct TTF path is most portable across imagemagick versions and distros
+_find_font() {
+    for _f in \
+        /Library/Fonts/JetBrainsMonoNerdFont-Regular.ttf \
+        /Library/Fonts/JetBrainsMonoNLNerdFont-Regular.ttf \
+        /usr/local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf \
+        /usr/share/fonts/truetype/jetbrains-mono/JetBrainsMonoNerdFont-Regular.ttf \
+        /System/Library/Fonts/SFNSMono.ttf \
+        /usr/share/fonts/liberation/LiberationMono-Regular.ttf \
+        /usr/local/share/fonts/LiberationMono-Regular.ttf; do
+        [ -f "$_f" ] && { echo "$_f"; return 0; }
+    done
+    return 1
+}
+
+# rank: info=0 low=1 medium=2 high=3 critical=4
+level_rank() {
+    case "$1" in
+        critical) echo 4 ;;
+        high)     echo 3 ;;
+        medium)   echo 2 ;;
+        low)      echo 1 ;;
+        *)        echo 0 ;;
+    esac
+}
+
+# prints whichever of $1 (current) or $2 (candidate) is higher
+upgrade_level() {
+    if [ "$(level_rank "$2")" -gt "$(level_rank "$1")" ]; then
+        echo "$2"
+    else
+        echo "$1"
+    fi
+}
+
+# ── fetch: earthquakes ────────────────────────────────────────────────────────
+
+fetch_earthquakes() {
+    # EMSC is primary — far better Central Europe coverage than USGS.
+    # USGS only called when EMSC returns fewer than 5 events (quiet period or outage).
+    printf 'Fetching earthquakes (EMSC — primary)...\n'
+    curl -sf --max-time 15 \
+        "${EMSC_URL}?limit=20&minmag=${QUAKE_MED_MAG}&minlat=${BBOX_MINLAT}&maxlat=${BBOX_MAXLAT}&minlon=${BBOX_MINLON}&maxlon=${BBOX_MAXLON}&format=json&orderby=time-asc" \
+        -o "$QUAKES_FILE" 2>/dev/null \
+        && printf '  EMSC: %d events\n' "$(jq '.features | length' "$QUAKES_FILE" 2>/dev/null || echo '?')" \
+        || printf '  EMSC: fetch failed\n'
+
+    EMSC_COUNT=$(jq '.features | length' "$QUAKES_FILE" 2>/dev/null || echo 0)
+    if [ "$EMSC_COUNT" -lt 5 ]; then
+        # EMSC is sparse — pull USGS to fill gaps
+        printf 'Fetching earthquakes (USGS — supplementary, EMSC only had %d events)...\n' "$EMSC_COUNT"
+        curl -sf --max-time 15 \
+            "${USGS_URL}?format=geojson&minmagnitude=${QUAKE_MED_MAG}&minlatitude=${BBOX_MINLAT}&maxlatitude=${BBOX_MAXLAT}&minlongitude=${BBOX_MINLON}&maxlongitude=${BBOX_MAXLON}&limit=20&orderby=time" \
+            -o "$EMSC_FILE" 2>/dev/null \
+            && printf '  USGS: %d events\n' "$(jq '.features | length' "$EMSC_FILE" 2>/dev/null || echo '?')" \
+            || printf '  USGS: fetch failed\n'
+
+        # merge both geojson feature arrays, sort by magnitude, drop duplicates within 0.4°
+        jq -sc '
+            [ .[0].features // [], .[1].features // [] ]
+            | add
+            | sort_by(
+                -( .properties.mag // .properties.ml // 0 )
+              )
+            | reduce .[] as $f (
+                [];
+                . as $acc
+                | ($f.geometry.coordinates[0] // 0) as $lon
+                | ($f.geometry.coordinates[1] // 0) as $lat
+                | if ($acc | any(
+                      ((.geometry.coordinates[0] - $lon) | fabs) < 0.4 and
+                      ((.geometry.coordinates[1] - $lat) | fabs) < 0.4
+                  )) then $acc
+                  else $acc + [$f]
+                  end
+              )
+            | { features: ., type: "FeatureCollection" }
+        ' "$QUAKES_FILE" "$EMSC_FILE" > "$QUAKES_FILE.merged" 2>/dev/null \
+            && mv "$QUAKES_FILE.merged" "$QUAKES_FILE" \
+            && printf '  Merged: %d unique events\n' "$(jq '.features | length' "$QUAKES_FILE" 2>/dev/null || echo '?')" \
+            || printf '  Merge: skipped (using primary source only)\n'
+    else
+        printf '  USGS: skipped — EMSC has sufficient coverage (%d events)\n' "$EMSC_COUNT"
+    fi
+}
+
+# ── fetch: gdacs ──────────────────────────────────────────────────────────────
+
+fetch_gdacs() {
+    printf 'Fetching GDACS disaster alerts...\n'
+    curl -sf --max-time 15 \
+        "$GDACS_URL" \
+        -o "$GDACS_FILE" 2>/dev/null \
+        && printf '  GDACS: OK\n' \
+        || printf '  GDACS: fetch failed\n'
+}
+
+# ── fetch: aircraft ───────────────────────────────────────────────────────────
+
+fetch_flights() {
+    printf 'Fetching aircraft over Germany (OpenSky)...\n'
+    # anonymous opensky — ~400 req/day. state vector index:
+    # 0=icao24 1=callsign 2=origin_country 5=lon 6=lat 7=baro_alt(m)
+    # 9=velocity(m/s) 10=heading 14=squawk
+    curl -sf --max-time 20 \
+        "${OPENSKY_URL}?lamin=${BBOX_MINLAT}&lomin=${BBOX_MINLON}&lamax=${BBOX_MAXLAT}&lomax=${BBOX_MAXLON}" \
+        -o "$FLIGHTS_FILE" 2>/dev/null \
+        && printf '  OpenSky: %d aircraft\n' "$(jq '[.states // [] | length] | .[0]' "$FLIGHTS_FILE" 2>/dev/null || echo '?')" \
+        || printf '  OpenSky: fetch failed (rate limit?)\n'
+}
+
+# ── fetch: polymarket ─────────────────────────────────────────────────────────
+
+fetch_polymarket() {
+    printf 'Fetching Polymarket geopolitical odds...\n'
+    # politics tag — we filter for nato/europe/war keywords in build_summary
+    curl -sf --max-time 15 \
+        "$POLYMARKET_URL" \
+        -o "$POLY_FILE" 2>/dev/null \
+        && printf '  Polymarket: OK\n' \
+        || printf '  Polymarket: fetch failed\n'
+}
+
+# ── mapbox usage counter ──────────────────────────────────────────────────────
+# rolling monthly counter so we never blow the 50k free tier by accident
+
+_map_count_get() {
+    # returns this month's count, resets to 0 if the month has rolled over
+    THIS_MONTH=$(date +%Y-%m)
+    if [ -f "$MAP_COUNT_FILE" ]; then
+        # one jq call reads both fields
+        _mc=$(jq -r '(.month // "") + " " + ((.count // 0) | tostring)' \
+            "$MAP_COUNT_FILE" 2>/dev/null || echo " 0")
+        FILE_MONTH=$(printf '%s' "$_mc" | awk '{print $1}')
+        COUNT=$(printf '%s' "$_mc"      | awk '{print $2}')
+        if [ "$FILE_MONTH" != "$THIS_MONTH" ]; then
+            COUNT=0
+        fi
+    else
+        COUNT=0
+    fi
+    echo "$COUNT"
+}
+
+_map_count_bump() {
+    THIS_MONTH=$(date +%Y-%m)
+    NEW=$(( $(_map_count_get) + 1 ))
+    jq -n --arg month "$THIS_MONTH" --argjson count "$NEW" \
+        '{ month: $month, count: $count }' > "$MAP_COUNT_FILE"
+    echo "$NEW"
+}
+
+# ── fetch: map ────────────────────────────────────────────────────────────────
+
+fetch_map() {
+    if [ -z "$MAPBOX_TOKEN" ]; then
+        printf '  Map: skipped — set MAPBOX_TOKEN env var\n'
+        printf '       Free token: https://account.mapbox.com\n'
+        return 0
+    fi
+
+    # hard-stop if we're near the monthly ceiling
+    CURRENT_COUNT=$(_map_count_get)
+    if [ "$CURRENT_COUNT" -ge "$MAP_SKIP_THRESHOLD" ]; then
+        printf '  Map: SKIPPED — monthly request count (%d) at/above hard limit (%d/50000 free).\n' \
+            "$CURRENT_COUNT" "$MAP_SKIP_THRESHOLD"
+        printf '       Increase MAP_MIN_INTERVAL or wait for next month.\n'
+        return 0
+    fi
+
+    # skip if the cached map is still fresh enough
+    if [ -f "$MAP_FILE" ]; then
+        # stat -f %m on BSD/macOS, stat -c %Y on Linux
+        if stat -f %m "$MAP_FILE" >/dev/null 2>&1; then
+            MTIME=$(stat -f %m "$MAP_FILE" 2>/dev/null || echo 0)
+        else
+            MTIME=$(stat -c %Y "$MAP_FILE" 2>/dev/null || echo 0)
+        fi
+        NOW=$(date +%s)
+        AGE=$(( NOW - MTIME ))
+        if [ "$AGE" -lt "$MAP_MIN_INTERVAL" ]; then
+            REMAINING=$(( MAP_MIN_INTERVAL - AGE ))
+            printf '  Map: skipped — cached map is %ds old (min interval %ds, %ds remaining).\n' \
+                "$AGE" "$MAP_MIN_INTERVAL" "$REMAINING"
+            printf '       Use MAP_MIN_INTERVAL=0 to force a refresh.\n'
+            return 0
+        fi
+    fi
+
+    printf 'Generating map snapshot: Germany + N.Italy (this month: %d requests used)...\n' "$CURRENT_COUNT"
+
+    # ── pin slot budget ───────────────────────────────────────────────────────
+    # mapbox caps at 10 pins total. we pre-reserve slots so military/squawk
+    # always appear even when there are 10+ quakes in the bbox.
+    #   emergency squawks : up to 2  (cyan)
+    #   military aircraft : up to 3  (purple)
+    #   GDACS in-region   : up to 1  (star)
+    #   earthquakes       : whatever's left
+    PINS=""
+    MAX_PINS=10
+
+    # emergency squawk pins — cyan, max 2
+    EMERG_PINS=""
+    if [ -f "$FLIGHTS_FILE" ]; then
+        EMERG_PINS=$(jq -r --arg sq "$EMERG_SQUAWKS" '
+            .states // []
+            | map(select(. != null))
+            | map(select( (.[14] // "") | test($sq) ))
+            | map(select( .[5] != null and .[6] != null ))
+            | .[:2][]
+            | "pin-s-airfield+00ffff(\(.[5] | tostring),\(.[6] | tostring))"
+        ' "$FLIGHTS_FILE" 2>/dev/null | tr '\n' ',')
+    fi
+
+    # military aircraft pins — purple, max 3
+    MIL_PINS=""
+    if [ -f "$FLIGHTS_FILE" ]; then
+        MIL_PINS=$(jq -r --arg pats "$MIL_PREFIXES" '
+            .states // []
+            | map(select(. != null))
+            | map(select( (.[1] // "" | ltrimstr(" ") | rtrimstr(" ") | ascii_upcase) | test($pats) ))
+            | map(select( .[5] != null and .[6] != null ))
+            | .[:3][]
+            | "pin-s-airfield+aa44ff(\(.[5] | tostring),\(.[6] | tostring))"
+        ' "$FLIGHTS_FILE" 2>/dev/null | tr '\n' ',')
+    fi
+
+    # GDACS in-region alerts — star pin, max 1
+    GDACS_PINS=""
+    if [ -f "$SUMMARY_FILE" ]; then
+        GDACS_PINS=$(jq -r '
+            .gdacs_alerts // []
+            | map(select(.in_region == true and .lat != null and .lon != null))
+            | map(select(.level == "red" or .level == "orange"))
+            | .[:1][]
+            | (.lon | tostring) as $lon
+            | (.lat | tostring) as $lat
+            | if .level == "red" then "pin-s-star+ff0000(\($lon),\($lat))"
+              else "pin-s-star+ff8800(\($lon),\($lat))"
+              end
+        ' "$SUMMARY_FILE" 2>/dev/null | tr '\n' ',')
+    fi
+
+    # count reserved pins by prefix — counting commas is wrong because
+    # each pin URL already contains commas inside the coordinate pair
+    _count_pins() {
+        _cp=$(printf '%s' "$1" | tr ',' '\n' | grep -c '^pin-' 2>/dev/null) || _cp=0
+        printf '%d' "${_cp:-0}"
+    }
+    RESERVED=$(( $(_count_pins "$EMERG_PINS") + $(_count_pins "$MIL_PINS") + $(_count_pins "$GDACS_PINS") ))
+    QUAKE_SLOTS=$(( MAX_PINS - RESERVED ))
+    [ "$QUAKE_SLOTS" -lt 0 ] && QUAKE_SLOTS=0
+
+    # earthquake pins — fill remaining slots, highest magnitude first
+    QUAKE_PINS=""
+    if [ -f "$QUAKES_FILE" ] && [ "$QUAKE_SLOTS" -gt 0 ]; then
+        QUAKE_PINS=$(jq -r '
+            .features // []
+            | sort_by(-( .properties.mag // .properties.ml // 0 ))
+            | .[:'"$QUAKE_SLOTS"'][]
+            | (.properties.mag // .properties.ml // 0) as $m
+            | (.geometry.coordinates[0] | tostring) as $lon
+            | (.geometry.coordinates[1] | tostring) as $lat
+            | if $m >= '"$QUAKE_CRIT_MAG"' then "pin-l-danger+ff2222(\($lon),\($lat))"
+              elif $m >= '"$QUAKE_HIGH_MAG"' then "pin-m-danger+ff8800(\($lon),\($lat))"
+              elif $m >= 4.0 then "pin-s-danger+ffaa00(\($lon),\($lat))"
+              else "pin-s-danger+ffdd44(\($lon),\($lat))"
+              end
+        ' "$QUAKES_FILE" 2>/dev/null | tr '\n' ',')
+    fi
+
+    # assemble — emergency first, then military, gdacs, quakes
+    PINS="${EMERG_PINS}${MIL_PINS}${GDACS_PINS}${QUAKE_PINS}"
+    PINS=$(printf '%s' "$PINS" | sed 's/,$//')
+
+    if [ -z "$PINS" ]; then
+        MAP_URL="${MAPBOX_BASE}/${MAP_CENTER_LON},${MAP_CENTER_LAT},${MAP_ZOOM},0/${MAP_SIZE}@2x?access_token=${MAPBOX_TOKEN}"
+    else
+        MAP_URL="${MAPBOX_BASE}/${PINS}/${MAP_CENTER_LON},${MAP_CENTER_LAT},${MAP_ZOOM},0/${MAP_SIZE}@2x?access_token=${MAPBOX_TOKEN}"
+    fi
+
+    MAP_RAW="$CACHE_DIR/germany_raw.png"
+    if curl -sf --max-time 30 "$MAP_URL" -o "$MAP_RAW" 2>/dev/null; then
+        NEW_COUNT=$(_map_count_bump)
+        printf '  Map: fetched — %d/%d free requests used this month.\n' \
+            "$NEW_COUNT" "$MAP_WARN_THRESHOLD"
+        if [ "$NEW_COUNT" -ge "$MAP_WARN_THRESHOLD" ]; then
+            printf '  Map: WARNING — approaching Mapbox free tier limit (%d/50000).\n' "$NEW_COUNT"
+            printf '       Set MAP_MIN_INTERVAL=86400 (daily) to reduce usage.\n'
+        fi
+        _map_overlay "$MAP_RAW" "$MAP_FILE" \
+            && printf '  Map: overlay applied → %s\n' "$MAP_FILE" \
+            || { cp "$MAP_RAW" "$MAP_FILE"; printf '  Map: overlay skipped (no magick), raw map saved.\n'; }
+    else
+        printf '  Map: fetch failed (check MAPBOX_TOKEN or network).\n'
+    fi
+}
+
+# ── map overlay ───────────────────────────────────────────────────────────────
+# composites a top-left HUD + bottom-right legend onto the raw mapbox png.
+# HUD is narrow so it doesn't cover southern pins — the old full-width bar did.
+# layout at @2x (1600×1560px):
+#   top-left HUD:        0..620, 0..265  — threat level, counts, refresh time
+#   bottom-right legend: 1260..1600, 1340..1560 — pin colour key
+
+_map_overlay() {
+    SRC="$1"
+    DST="$2"
+    [ -f "$SUMMARY_FILE" ] || { cp "$SRC" "$DST"; return 0; }
+    IM=$(_find_magick) || { cp "$SRC" "$DST"; return 1; }
+    FONT=$(_find_font) || FONT=""
+
+    # pull values from summary.json
+    LEVEL=$(jq -r '.threat_level // "info"'           "$SUMMARY_FILE")
+    QCOUNT=$(jq -r '.quake_count // 0'                "$SUMMARY_FILE")
+    TOPQ=$(jq -r '
+        .top_quake
+        | if . == null then "none"
+          else "M\(.mag) \(.place[:24])"
+          end' "$SUMMARY_FILE" 2>/dev/null || echo "none")
+    MIL=$(jq -r '.mil_count // 0'                     "$SUMMARY_FILE")
+    EMERG=$(jq -r '.emerg_count // 0'                 "$SUMMARY_FILE")
+    MAPUSE=$(jq -r '.mapbox.requests_this_month // 0' "$SUMMARY_FILE")
+    UPDATED=$(jq -r '.updated_at // ""' "$SUMMARY_FILE" \
+        | sed 's/T/ /; s/Z/ UTC/' | cut -c1-16)
+
+    POLY_TOP=$(jq -r '
+        .poly_markets[0]
+        | if . == null then "—"
+          else "\(.prob_yes | floor)%  \(.title[:38])"
+          end' "$SUMMARY_FILE" 2>/dev/null || echo "—")
+
+    GDACS_RGN=$(jq '[.gdacs_alerts[] | select(.in_region==true)] | length' \
+        "$SUMMARY_FILE" 2>/dev/null || echo 0)
+
+    # accent bar colour matches threat level
+    case "$LEVEL" in
+        critical) LCOL="#ff3333" ;;
+        high)     LCOL="#ff8800" ;;
+        medium)   LCOL="#ffcc00" ;;
+        low)      LCOL="#66cc44" ;;
+        *)        LCOL="#888888" ;;
+    esac
+    LEVEL_UP=$(printf '%s' "$LEVEL" | tr '[:lower:]' '[:upper:]')
+
+    # geometry — all values in @2x pixels (1600×1560 output)
+    IMG_W=1600
+    IMG_H=1560
+
+    HUD_X2=620
+    HUD_Y2=265
+    ACCENT=6          # coloured left accent bar width
+    PAD=18            # text left padding inside panel
+    TEXT_X=$(( ACCENT + PAD ))
+
+    FONT_LG=28        # threat level line
+    FONT_MD=22        # quake / flight lines
+    FONT_SM=19        # market line
+    FONT_XS=16        # timestamp / mapbox line
+
+    # line Y positions — imagemagick annotate Y is baseline, not top-of-glyph
+    L1Y=40
+    L2Y=85
+    L3Y=128
+    L4Y=168
+    L5Y=207
+    L6Y=248
+
+    LEG_X1=$(( IMG_W - 340 ))
+    LEG_Y1=$(( IMG_H - 220 ))
+    LEG_X2=$IMG_W
+    LEG_Y2=$IMG_H
+    LEG_PAD=12
+    LEG_DOT=18
+    LEG_ROW=32
+    LEG_TXT_X=$(( LEG_X1 + LEG_PAD + LEG_DOT + 10 ))
+    LEG_FONT=18
+
+    FONT_ARG=""
+    [ -n "$FONT" ] && FONT_ARG="-font ${FONT}"
+
+    # HUD text lines
+    L1="${LEVEL_UP}  ${TOPQ}"
+    L2="Quakes: ${QCOUNT}  in bbox"
+    if [ "$EMERG" -gt 0 ]; then
+        L3="Flights: ${MIL} mil  ${EMERG} EMERGENCY squawk"
+    else
+        L3="Flights: ${MIL} military  GDACS rgn: ${GDACS_RGN}"
+    fi
+    L4="Mkt: ${POLY_TOP}"
+    REFRESH_TIME=$(jq -r '.updated_at // ""' "$SUMMARY_FILE" 2>/dev/null \
+        | sed 's/.*T\([0-9][0-9]:[0-9][0-9]\).*/\1/')
+    REFRESH_DATE=$(jq -r '.updated_at // ""' "$SUMMARY_FILE" 2>/dev/null \
+        | sed 's/T.*//')
+    L5="Last refresh: ${REFRESH_DATE}  ${REFRESH_TIME} UTC"
+    L6="Mapbox: ${MAPUSE}/50000 req this month"
+
+    # legend row baselines
+    R1=$(( LEG_Y1 + LEG_PAD + LEG_DOT ))
+    R2=$(( R1 + LEG_ROW ))
+    R3=$(( R2 + LEG_ROW ))
+    R4=$(( R3 + LEG_ROW ))
+    R5=$(( R4 + LEG_ROW ))
+    R6=$(( R5 + LEG_ROW ))
+
+    SW_X1=$(( LEG_X1 + LEG_PAD ))
+    SW_X2=$(( SW_X1 + LEG_DOT ))
+
+    "$IM" "$SRC" \
+        \
+        -fill "rgba(6,8,14,0.84)" \
+        -draw "roundrectangle 0,0 ${HUD_X2},${HUD_Y2} 0,0" \
+        \
+        -fill "${LCOL}" \
+        -draw "rectangle 0,0 ${ACCENT},${HUD_Y2}" \
+        \
+        ${FONT_ARG} -pointsize "${FONT_LG}" \
+        -fill "${LCOL}"   -annotate "+${TEXT_X}+${L1Y}" "${L1}" \
+        ${FONT_ARG} -pointsize "${FONT_MD}" \
+        -fill "#e0e0e0"   -annotate "+${TEXT_X}+${L2Y}" "${L2}" \
+        -fill "#e0e0e0"   -annotate "+${TEXT_X}+${L3Y}" "${L3}" \
+        ${FONT_ARG} -pointsize "${FONT_SM}" \
+        -fill "#bbbbbb"   -annotate "+${TEXT_X}+${L4Y}" "${L4}" \
+        ${FONT_ARG} -pointsize "${FONT_XS}" \
+        -fill "#aaaaaa"   -annotate "+${TEXT_X}+${L5Y}" "${L5}" \
+        -fill "#606060"   -annotate "+${TEXT_X}+${L6Y}" "${L6}" \
+        \
+        -fill "rgba(6,8,14,0.80)" \
+        -draw "rectangle ${LEG_X1},${LEG_Y1} ${LEG_X2},${LEG_Y2}" \
+        \
+        -fill "#ff3333" \
+        -draw "rectangle ${SW_X1},$(( R1 - LEG_DOT )) ${SW_X2},${R1}" \
+        ${FONT_ARG} -pointsize "${LEG_FONT}" \
+        -fill "#dddddd" -annotate "+${LEG_TXT_X}+${R1}" "Crit quake (M5.5+)" \
+        \
+        -fill "#ff8800" \
+        -draw "rectangle ${SW_X1},$(( R2 - LEG_DOT )) ${SW_X2},${R2}" \
+        -fill "#dddddd" -annotate "+${LEG_TXT_X}+${R2}" "High quake (M4.5+)" \
+        \
+        -fill "#ffaa00" \
+        -draw "rectangle ${SW_X1},$(( R3 - LEG_DOT )) ${SW_X2},${R3}" \
+        -fill "#dddddd" -annotate "+${LEG_TXT_X}+${R3}" "Med quake (M4.0+)" \
+        \
+        -fill "#ffdd44" \
+        -draw "rectangle ${SW_X1},$(( R4 - LEG_DOT )) ${SW_X2},${R4}" \
+        -fill "#dddddd" -annotate "+${LEG_TXT_X}+${R4}" "Low quake (M3.0+)" \
+        \
+        -fill "#00ffff" \
+        -draw "rectangle ${SW_X1},$(( R5 - LEG_DOT )) ${SW_X2},${R5}" \
+        -fill "#dddddd" -annotate "+${LEG_TXT_X}+${R5}" "Emergency squawk" \
+        \
+        -fill "#aa44ff" \
+        -draw "rectangle ${SW_X1},$(( R6 - LEG_DOT )) ${SW_X2},${R6}" \
+        -fill "#dddddd" -annotate "+${LEG_TXT_X}+${R6}" "Military aircraft" \
+        \
+        "$DST" 2>/dev/null
+}
+
+# ── build summary ─────────────────────────────────────────────────────────────
+
+build_summary() {
+    printf 'Building summary...\n'
+
+    LEVEL="info"
+    THREATS='[]'
+    QUAKE_COUNT=0
+    TOP_QUAKE="null"
+    MIL_COUNT=0
+    EMERG_COUNT=0
+    GDACS_JSON='[]'
+    POLY_JSON='[]'
+
+    # earthquakes
+    if [ -f "$QUAKES_FILE" ]; then
+        QUAKE_COUNT=$(jq '.features | length' "$QUAKES_FILE" 2>/dev/null || echo 0)
+
+        # .properties.place (USGS) or .properties.flynn_region (EMSC)
+        TOP_QUAKE=$(jq '
+            .features // []
+            | sort_by(-( .properties.mag // .properties.ml // 0 ))
+            | .[0]
+            | if . == null then null else {
+                mag:   (.properties.mag // .properties.ml // 0),
+                place: (.properties.place // .properties.flynn_region // "Unknown"),
+                lat:   .geometry.coordinates[1],
+                lon:   .geometry.coordinates[0],
+                url:   (.properties.url // (.properties.unid // "" | "https://www.seismicportal.eu/eventdetails.html?unid=\(.)") ),
+                tsunami: ((.properties.tsunami // 0) == 1)
+              } end
+        ' "$QUAKES_FILE" 2>/dev/null || echo "null")
+
+        TOP_MAG=$(printf '%s' "$TOP_QUAKE" | jq -r '.mag // 0' 2>/dev/null || echo 0)
+
+        if awk "BEGIN{exit !($TOP_MAG >= $QUAKE_CRIT_MAG)}"; then
+            LEVEL=$(upgrade_level "$LEVEL" "critical")
+        elif awk "BEGIN{exit !($TOP_MAG >= $QUAKE_HIGH_MAG)}"; then
+            LEVEL=$(upgrade_level "$LEVEL" "high")
+        elif awk "BEGIN{exit !($TOP_MAG >= $QUAKE_MED_MAG)}"; then
+            LEVEL=$(upgrade_level "$LEVEL" "medium")
+        fi
+
+        QUAKE_THREATS=$(jq -r '
+            .features // []
+            | sort_by(-( .properties.mag // .properties.ml // 0 ))
+            | .[:5][]
+            | (.properties.mag // .properties.ml // 0) as $m
+            | (.properties.place // .properties.flynn_region // "Unknown") as $place
+            | if $m >= '"$QUAKE_CRIT_MAG"' then "CRIT EQ M\($m) \($place)"
+              elif $m >= '"$QUAKE_HIGH_MAG"' then "HIGH EQ M\($m) \($place)"
+              else "MED  EQ M\($m) \($place)"
+              end
+        ' "$QUAKES_FILE" 2>/dev/null)
+    fi
+
+    # flights
+    if [ -f "$FLIGHTS_FILE" ]; then
+        MIL_COUNT=$(jq --arg pats "$MIL_PREFIXES" '
+            .states // []
+            | map(select(. != null))
+            | map(select( (.[1] // "" | ltrimstr(" ") | rtrimstr(" ") | ascii_upcase) | test($pats) ))
+            | length
+        ' "$FLIGHTS_FILE" 2>/dev/null || echo 0)
+
+        EMERG_COUNT=$(jq --arg sq "$EMERG_SQUAWKS" '
+            .states // []
+            | map(select(. != null))
+            | map(select( (.[14] // "") | test($sq) ))
+            | length
+        ' "$FLIGHTS_FILE" 2>/dev/null || echo 0)
+
+        if [ "$EMERG_COUNT" -gt 0 ]; then
+            LEVEL=$(upgrade_level "$LEVEL" "critical")
+        fi
+        # military presence alone doesn't upgrade level — it's monitoring, not threat
+    fi
+
+    # GDACS — awk splits on <item so each event stays in one block.
+    # we tried splitting on '<' and it broke field extraction across boundaries.
+    if [ -f "$GDACS_FILE" ]; then
+        GDACS_JSON=$(awk '
+            BEGIN {
+                RS="<item"
+                GDACS_MINLAT='"$GDACS_MINLAT"'
+                GDACS_MAXLAT='"$GDACS_MAXLAT"'
+                GDACS_MINLON='"$GDACS_MINLON"'
+                GDACS_MAXLON='"$GDACS_MAXLON"'
+            }
+            NR == 1 { next }
+            {
+                block = $0
+                alert = ""; title = ""; lat = ""; lon = ""
+
+                n = split(block, a, /<\/?gdacs:alertlevel>/)
+                if (n >= 2) alert = a[2]
+
+                n = split(block, a, /<\/?title>/)
+                if (n >= 2) title = a[2]
+
+                n = split(block, a, /<\/?geo:lat>/)
+                if (n >= 2) lat = a[2]
+
+                n = split(block, a, /<\/?geo:long>/)
+                if (n >= 2) lon = a[2]
+
+                if (alert == "") next
+
+                gsub(/^[ \t\n]+|[ \t\n]+$/, "", alert)
+                gsub(/^[ \t\n]+|[ \t\n]+$/, "", title)
+                gsub(/^[ \t\n]+|[ \t\n]+$/, "", lat)
+                gsub(/^[ \t\n]+|[ \t\n]+$/, "", lon)
+
+                in_region = "false"
+                if (lat != "" && lon != "") {
+                    if (lat+0 >= GDACS_MINLAT && lat+0 <= GDACS_MAXLAT &&
+                        lon+0 >= GDACS_MINLON && lon+0 <= GDACS_MAXLON)
+                        in_region = "true"
+                }
+
+                gsub(/"/, "\\\"", title)
+                lat_val = (lat == "" ? "null" : lat)
+                lon_val = (lon == "" ? "null" : lon)
+                printf "{\"level\":\"%s\",\"title\":\"%s\",\"lat\":%s,\"lon\":%s,\"in_region\":%s}\n",
+                    tolower(alert), title, lat_val, lon_val, in_region
+            }
+        ' "$GDACS_FILE" 2>/dev/null | jq -sc '.')
+
+        # one jq pass extracts all three counts we need
+        _gdacs_counts=$(printf '%s' "$GDACS_JSON" | jq -r '
+            ([.[] | select(.level=="red"    and .in_region==true)] | length | tostring) + " " +
+            ([.[] | select(.level=="orange" and .in_region==true)] | length | tostring) + " " +
+            ([.[] | select(.level=="red")]                         | length | tostring)
+        ' 2>/dev/null || echo "0 0 0")
+        RED_IN_REGION=$(printf '%s' "$_gdacs_counts"    | awk '{print $1}')
+        ORANGE_IN_REGION=$(printf '%s' "$_gdacs_counts" | awk '{print $2}')
+        RED_GLOBAL=$(printf '%s' "$_gdacs_counts"       | awk '{print $3}')
+
+        if [ "$RED_IN_REGION" -gt 0 ]; then
+            LEVEL=$(upgrade_level "$LEVEL" "critical")
+        elif [ "$ORANGE_IN_REGION" -gt 0 ]; then
+            LEVEL=$(upgrade_level "$LEVEL" "high")
+        elif [ "$RED_GLOBAL" -gt 0 ]; then
+            LEVEL=$(upgrade_level "$LEVEL" "medium")
+        fi
+    fi
+
+    # polymarket — filter for geopolitically relevant keywords
+    if [ -f "$POLY_FILE" ]; then
+        KEYWORDS='nato|russia|ukraine|war|nuclear|germany|europe|military|attack|conflict|troops|invasion|missile|ceasefire|escalat'
+
+        POLY_JSON=$(jq --arg kw "$KEYWORDS" '
+            . as $events
+            | if type == "array" then $events else [] end
+            | map(select(.active == true))
+            | map(
+                . as $ev
+                | ($ev.title // "" | ascii_downcase) as $title
+                | select($title | test($kw))
+                | {
+                    title: $ev.title,
+                    slug:  $ev.slug,
+                    # best "yes" probability across sub-markets
+                    prob_yes: (
+                        [ $ev.markets // []
+                          | .[]
+                          | .outcomePrices // "[]"
+                          | if type == "string" then (. | fromjson? // []) else . end
+                          | .[0] // "0"
+                          | tonumber * 100
+                        ] | max // 0 | . * 10 | round / 10
+                    ),
+                    volume: ($ev.volume // 0),
+                  }
+              )
+            | sort_by(-.prob_yes)
+            | .[:8]
+        ' "$POLY_FILE" 2>/dev/null || echo '[]')
+
+        HIGH_PROB=$(printf '%s' "$POLY_JSON" | jq '[.[] | select(.prob_yes >= 40)] | length' 2>/dev/null || echo 0)
+        MED_PROB=$(printf '%s' "$POLY_JSON" | jq '[.[] | select(.prob_yes >= 20 and .prob_yes < 40)] | length' 2>/dev/null || echo 0)
+
+        if [ "$HIGH_PROB" -gt 0 ]; then
+            LEVEL=$(upgrade_level "$LEVEL" "high")
+        elif [ "$MED_PROB" -gt 0 ]; then
+            LEVEL=$(upgrade_level "$LEVEL" "medium")
+        fi
+    fi
+
+    # write summary.json
+    QUAKE_THREATS_JSON=$(printf '%s\n' "$QUAKE_THREATS" | jq -Rsc 'split("\n") | map(select(. != ""))' 2>/dev/null || echo '[]')
+
+    MAP_REQUESTS=$(_map_count_get 2>/dev/null || echo 0)
+    MAP_WARN=false
+    [ "$MAP_REQUESTS" -ge "$MAP_WARN_THRESHOLD" ] && MAP_WARN=true
+
+    jq -n \
+        --arg     level          "$LEVEL" \
+        --argjson quake_count    "${QUAKE_COUNT:-0}" \
+        --argjson top_quake      "${TOP_QUAKE:-null}" \
+        --argjson mil_count      "${MIL_COUNT:-0}" \
+        --argjson emerg_count    "${EMERG_COUNT:-0}" \
+        --argjson gdacs          "${GDACS_JSON:-[]}" \
+        --argjson poly           "${POLY_JSON:-[]}" \
+        --argjson quake_threats  "$QUAKE_THREATS_JSON" \
+        --argjson map_requests   "${MAP_REQUESTS:-0}" \
+        --argjson map_warn       "$MAP_WARN" \
+        --argjson map_limit      "50000" \
+        '{
+            threat_level:  $level,
+            quake_count:   $quake_count,
+            top_quake:     $top_quake,
+            mil_count:     $mil_count,
+            emerg_count:   $emerg_count,
+            gdacs_alerts:  $gdacs,
+            poly_markets:  $poly,
+            quake_threats: $quake_threats,
+            mapbox: {
+                requests_this_month: $map_requests,
+                free_tier_limit:     $map_limit,
+                warn:                $map_warn,
+            },
+            updated_at:    (now | todate),
+        }' > "$SUMMARY_FILE" 2>/dev/null \
+        && printf '  Summary: level=%s quakes=%d mil=%d mapbox=%d/50000\n' \
+            "$LEVEL" "${QUAKE_COUNT:-0}" "${MIL_COUNT:-0}" "${MAP_REQUESTS:-0}" \
+        || printf '  Summary: write failed\n'
+
+    # touch trigger file — quickshell FileView watches this to know when to re-read
+    touch "$CACHE_DIR/.updated"
+}
+
+# ── tobar ─────────────────────────────────────────────────────────────────────
+
+tobar() {
+    [ -f "$SUMMARY_FILE" ] || return
+
+    jq -r '
+        . as $s
+        | $s.threat_level as $level
+        | $s.mil_count    as $mil
+        | $s.emerg_count  as $emerg
+        | $s.top_quake    as $q
+
+        # nerd font icons (md- set); plain ASCII fallbacks if your font lacks them
+        | {critical:"󱡶", high:"󰒙", medium:"󱇎", low:"󰒘", info:"󰒘"} as $icons
+        | ($icons[$level] // "!") as $icon
+
+        | [
+            if $level == "critical" then "CRIT" elif $level == "high" then "HIGH" else empty end,
+            if $emerg > 0 then "✈!\($emerg)" elif $mil > 0 then "✈\($mil)" else empty end,
+            if $q != null and ($q.mag >= 3.5) then "M\($q.mag)" else empty end,
+            ( [ $s.gdacs_alerts[] | select(.level=="red"   and .in_region==true) ] | length ) as $red
+            | ( [ $s.gdacs_alerts[] | select(.level=="orange" and .in_region==true) ] | length ) as $org
+            | if $red  > 0 then "!\($red)"   else empty end,
+            if ( ( [ $s.gdacs_alerts[] | select(.level=="orange" and .in_region==true) ] | length ) > 0
+                 and ( [ $s.gdacs_alerts[] | select(.level=="red" and .in_region==true) ] | length ) == 0 )
+               then "△\( [ $s.gdacs_alerts[] | select(.level=="orange" and .in_region==true) ] | length )"
+               else empty end
+          ] as $parts
+
+        # emit nothing when level is info and there is nothing else to show
+        | if ($level == "info" and ($parts | length) == 0) then ""
+          else "\($icon) \($parts | join(" "))" | rtrimstr(" ")
+          end
+    ' "$SUMMARY_FILE" 2>/dev/null
+}
+
+# ── notify ────────────────────────────────────────────────────────────────────
+
+notify() {
+    [ -f "$SUMMARY_FILE" ] || { printf 'No data — run: threatwatch update\n'; return 1; }
+
+    URGENCY=$(jq -r '
+        if .threat_level == "critical" then "critical"
+        elif .threat_level == "high"   then "normal"
+        else "low" end
+    ' "$SUMMARY_FILE" 2>/dev/null || echo "low")
+
+    BODY=$(jq -r '
+        . as $s
+        | ["Threat Level: \($s.threat_level | ascii_upcase)", ""]
+
+        + if $s.top_quake != null then
+            ["Top Quake: M\($s.top_quake.mag) — \($s.top_quake.place)"]
+          else [] end
+
+        + if $s.emerg_count > 0 then
+            ["EMERGENCY: \($s.emerg_count) aircraft with emergency squawk over Germany!"]
+          else [] end
+
+        + if $s.mil_count > 0 then
+            ["Military flights over Germany: \($s.mil_count)"]
+          else [] end
+
+        + ( [ $s.gdacs_alerts[]
+              | select(.level == "red" or .level == "orange")
+              | "[\(.level | ascii_upcase | .[0:6])] \(.title[:70])"
+            ] | .[:4] )
+
+        + if ($s.poly_markets | length) > 0 then
+            ["", "Prediction Markets:"]
+            + [ $s.poly_markets[] | select(.prob_yes > 0)
+                | "  \(.title[:60]) (\(.prob_yes)%)" ][:4]
+          else [] end
+
+        | join("\n")
+    ' "$SUMMARY_FILE" 2>/dev/null)
+
+    ICON_ARG=""
+    [ -f "$MAP_FILE" ] && ICON_ARG="-i $MAP_FILE"
+
+    if has_cmd notify-send; then
+        # shellcheck disable=SC2086
+        notify-send -t 30000 -u "$URGENCY" $ICON_ARG \
+            "ThreatWatch — Central Europe" "$BODY"
+    else
+        printf 'ThreatWatch — Central Europe\n\n%s\n' "$BODY"
+    fi
+}
+
+# ── data ──────────────────────────────────────────────────────────────────────
+
+data() {
+    [ -f "$SUMMARY_FILE" ] || { printf 'No data — run: threatwatch update\n'; return 1; }
+
+    jq -r '
+        "=== ThreatWatch Summary [\(.updated_at)] ===",
+        "Threat Level : \(.threat_level | ascii_upcase)",
+        "Earthquakes  : \(.quake_count)",
+        "Military A/C : \(.mil_count)  (\(.emerg_count) emergency squawk)",
+        "",
+        "Earthquake threats:",
+        ( .quake_threats[] | "  \(.)"),
+        "",
+        "GDACS Alerts (in broader Europe region):",
+        ( [ .gdacs_alerts[]
+            | select(.in_region == true)
+            | "  [\(.level | ascii_upcase | .[0:6])] ! \(.title[:80])" ] | .[] ),
+        ( [ .gdacs_alerts[]
+            | select(.in_region == false and (.level == "red" or .level == "orange"))
+            | "  [\(.level | ascii_upcase | .[0:6])]   \(.title[:80])" ] | .[:5] | .[] ),
+        "",
+        "Polymarket geopolitical markets:",
+        ( .poly_markets[]
+          | "  \(.prob_yes)%  \(.title[:70])" )
+    ' "$SUMMARY_FILE" 2>/dev/null
+}
+
+# ── flights ───────────────────────────────────────────────────────────────────
+
+flights() {
+    [ -f "$FLIGHTS_FILE" ] || { printf 'No flight data — run: threatwatch update\n'; return 1; }
+
+    jq -r --arg pats "$MIL_PREFIXES" --arg sq "$EMERG_SQUAWKS" '
+        .states // [] | map(select(. != null)) as $all
+        | ($all | length) as $total
+        | ($all | map(select( (.[1] // "" | ltrimstr(" ") | rtrimstr(" ") | ascii_upcase) | test($pats) ))) as $mil
+        | ($all | map(select( (.[14] // "") | test($sq) ))) as $emerg
+
+        | "Aircraft over Germany: \($total) total",
+          "Military callsigns   : \($mil | length)",
+          (if ($emerg | length) > 0 then
+            "EMERGENCY SQUAWK     : \($emerg | length) aircraft",
+            ( $emerg[] | "  !! \(.[1] | ltrimstr(" ") | rtrimstr(" "))  sq=\(.[14])  (\(.[2]))  lat=\(.[6])  lon=\(.[5])" )
+          else empty end),
+          "",
+          "Military aircraft:",
+          ( $mil[]
+            | ( .[1] | ltrimstr(" ") | rtrimstr(" ") ) as $cs
+            | ( (.[7] // 0) * 3.28084 | floor ) as $alt_ft
+            | ( (.[9] // 0) * 1.94384 | floor ) as $spd_kts
+            | "  \($cs | .[0:12] | . + (" " * (12 - length)))  sq=\(.[14] // "----")  \(.[2] | .[0:20])  \($alt_ft)ft  \($spd_kts)kts  hdg=\(.[10] // 0 | floor)°"
+          )
+    ' "$FLIGHTS_FILE" 2>/dev/null
+}
+
+# ── map only ──────────────────────────────────────────────────────────────────
+
+map_only() {
+    mkdir -p "$CACHE_DIR"
+    # --force bypasses the interval guard — useful for one-off test fetches
+    if [ "${1:-}" = "--force" ]; then
+        MAP_MIN_INTERVAL=0
+    fi
+    fetch_map
+}
+
+# ── mapbox usage ──────────────────────────────────────────────────────────────
+
+mapbox_usage() {
+    COUNT=$(_map_count_get)
+    PCT=$(awk "BEGIN{printf \"%.1f\", ${COUNT}/50000*100}")
+    WARN_PCT=$(awk "BEGIN{printf \"%.0f\", ${MAP_WARN_THRESHOLD}/50000*100}")
+    SKIP_PCT=$(awk "BEGIN{printf \"%.0f\", ${MAP_SKIP_THRESHOLD}/50000*100}")
+    printf 'Mapbox Static Images usage this month:\n'
+    printf '  Requests : %d / 50,000 (free tier)\n' "$COUNT"
+    printf '  Used     : %s%%\n' "$PCT"
+    printf '  Warn at  : %d (%s%%)\n' "$MAP_WARN_THRESHOLD" "$WARN_PCT"
+    printf '  Stop at  : %d (%s%%)\n' "$MAP_SKIP_THRESHOLD" "$SKIP_PCT"
+    printf '  Interval : %ds (MAP_MIN_INTERVAL)\n' "$MAP_MIN_INTERVAL"
+    printf '\n'
+    if [ "$COUNT" -ge "$MAP_SKIP_THRESHOLD" ]; then
+        printf '  STATUS: HARD LIMIT REACHED — map fetches are paused until next month.\n'
+    elif [ "$COUNT" -ge "$MAP_WARN_THRESHOLD" ]; then
+        printf '  STATUS: WARNING — approaching free tier limit.\n'
+        printf '          Consider: export MAP_MIN_INTERVAL=86400  # daily\n'
+    else
+        REMAINING=$(( 50000 - COUNT ))
+        printf '  STATUS: OK — %d requests remaining.\n' "$REMAINING"
+    fi
+}
+
+# ── build pins json ───────────────────────────────────────────────────────────
+# reads quakes, flights, and gdacs from summary.json and converts each pin's
+# lat/lon into x/y pixel coordinates on the 800x780 QML image using Web Mercator.
+# result written to pins.json — quickshell reads this to overlay tooltip zones.
+#
+# mercator math (512px base tile, zoom 5):
+#   global_x = ((lon + 180) / 360) * 512 * 2^5
+#   global_y = (1 - ln(tan(lat_rad) + 1/cos(lat_rad)) / pi) * 256 * 2^5
+#   image_x  = 400 + (global_x - center_global_x)
+#   image_y  = 390 + (global_y - center_global_y)
+
+build_pins_json() {
+    [ -f "$SUMMARY_FILE" ] || return 0
+
+    printf 'Building pins.json...\n'
+
+    # raw pin list — one JSON object per line, extracted from summary + flights
+    RAW_PINS=""
+
+    # earthquake pins — top 9 by magnitude (leaves slot for military/squawk/gdacs)
+    if [ -f "$QUAKES_FILE" ]; then
+        QUAKE_PINS_RAW=$(jq -r '
+            .features // []
+            | sort_by(-( .properties.mag // .properties.ml // 0 ))
+            | .[:9][]
+            | {
+                type:  "quake",
+                lon:   .geometry.coordinates[0],
+                lat:   .geometry.coordinates[1],
+                title: (
+                    "M\(.properties.mag // .properties.ml // 0 | . * 10 | round / 10) — \(.properties.place // .properties.flynn_region // "Unknown")"
+                ),
+                mag: (.properties.mag // .properties.ml // 0)
+              }
+            | @json
+        ' "$QUAKES_FILE" 2>/dev/null)
+        RAW_PINS=$(printf '%s\n%s' "$RAW_PINS" "$QUAKE_PINS_RAW")
+    fi
+
+    # military aircraft pins — top 3 matching callsign prefixes
+    if [ -f "$FLIGHTS_FILE" ]; then
+        MIL_PINS_RAW=$(jq -r --arg pats "$MIL_PREFIXES" '
+            .states // []
+            | map(select(. != null))
+            | map(select(
+                (.[1] // "" | ltrimstr(" ") | rtrimstr(" ") | ascii_upcase) | test($pats)
+              ))
+            | map(select(.[5] != null and .[6] != null))
+            | .[:3][]
+            | {
+                type:  "military",
+                lon:   .[5],
+                lat:   .[6],
+                title: (
+                    (.[1] | ltrimstr(" ") | rtrimstr(" ")) + " — " +
+                    (.[2] // "Unknown") +
+                    if .[7] != null then
+                        " — " + (.[7] * 3.28084 | floor | tostring) + "ft"
+                    else "" end
+                )
+              }
+            | @json
+        ' "$FLIGHTS_FILE" 2>/dev/null)
+        RAW_PINS=$(printf '%s\n%s' "$RAW_PINS" "$MIL_PINS_RAW")
+
+        # emergency squawk pins — top 2
+        EMERG_PINS_RAW=$(jq -r --arg sq "$EMERG_SQUAWKS" '
+            .states // []
+            | map(select(. != null))
+            | map(select((.[14] // "") | test($sq)))
+            | map(select(.[5] != null and .[6] != null))
+            | .[:2][]
+            | {
+                type:  "emergency",
+                lon:   .[5],
+                lat:   .[6],
+                title: (
+                    "EMERGENCY sq=" + (.[14] // "?") + " — " +
+                    (.[1] | ltrimstr(" ") | rtrimstr(" ")) +
+                    " (" + (.[2] // "Unknown") + ")"
+                )
+              }
+            | @json
+        ' "$FLIGHTS_FILE" 2>/dev/null)
+        RAW_PINS=$(printf '%s\n%s' "$RAW_PINS" "$EMERG_PINS_RAW")
+    fi
+
+    # GDACS in-region red/orange pins — top 1
+    GDACS_PINS_RAW=$(jq -r '
+        .gdacs_alerts // []
+        | map(select(.in_region == true and .lat != null and .lon != null))
+        | map(select(.level == "red" or .level == "orange"))
+        | .[:1][]
+        | {
+            type:  "gdacs",
+            lon:   .lon,
+            lat:   .lat,
+            title: (.level | ascii_upcase) + " GDACS — " + .title
+          }
+        | @json
+    ' "$SUMMARY_FILE" 2>/dev/null)
+    RAW_PINS=$(printf '%s\n%s' "$RAW_PINS" "$GDACS_PINS_RAW")
+
+    # strip blank lines, collect into a JSON array, apply Mercator projection
+    PINS_ARRAY=$(printf '%s\n' "$RAW_PINS" \
+        | grep -v '^$' \
+        | jq -sc '
+            def pi:    3.141592653589793;
+            def clon:  10.45;
+            def clat:  50.609;
+            def zoom:  5;
+            def iw:    800;
+            def ih:    780;
+
+            # Web Mercator global pixel (512px base tile)
+            def gx(lon): ((lon + 180) / 360) * 512 * pow(2; zoom);
+            def gy(lat):
+                (lat * pi / 180) as $r
+                | (1 - ( ((1 + ($r|sin)) / (1 - ($r|sin)) | log) / 2 / pi))
+                  * 256 * pow(2; zoom);
+
+            # center anchor in global pixels
+            gx(clon) as $cx | gy(clat) as $cy
+
+            | map(
+                . as $p
+                | (iw / 2 + (gx($p.lon) - $cx) | round) as $ix
+                | (ih / 2 + (gy($p.lat) - $cy) | round) as $iy
+                | $p + { x: $ix, y: $iy }
+              )
+        ' 2>/dev/null || echo '[]')
+
+    printf '%s\n' "$PINS_ARRAY" > "$PINS_FILE"
+    printf '  pins.json: %d pins written\n' \
+        "$(jq 'length' "$PINS_FILE" 2>/dev/null || echo '?')"
+}
+
+# ── update ────────────────────────────────────────────────────────────────────
+
+update() {
+    mkdir -p "$CACHE_DIR"
+    printf '=== ThreatWatch Update ===\n'
+    fetch_earthquakes
+    fetch_gdacs
+    fetch_flights
+    fetch_polymarket
+    fetch_map
+    build_summary
+    build_pins_json
+    printf '=== Done ===\n'
+}
+
+# ── main ──────────────────────────────────────────────────────────────────────
+
+case "${1:-}" in
+    u|update)   update   ;;
+    n|notify)   notify   ;;
+    d|data)     data     ;;
+    f|flights)  flights  ;;
+    m|map)      map_only "${2:-}" ;;
+    mb|mapbox)  mapbox_usage ;;
+    h|help)
+        printf 'Usage: threatwatch [command]\n\n'
+        printf 'Commands:\n'
+        printf '  (none)        Statusbar text — threat level + counts\n'
+        printf '  update        Fetch all sources and update cache\n'
+        printf '  notify        Send desktop notification with summary\n'
+        printf '  data          Print full cached summary\n'
+        printf '  flights       Print military aircraft currently over Germany\n'
+        printf '  map           Regenerate map PNG (respects rate limit)\n'
+        printf '  map --force   Regenerate map PNG, bypass interval guard\n'
+        printf '  mapbox        Show Mapbox free-tier usage for this month\n'
+        printf '  help          This help\n\n'
+        printf 'Config (env vars):\n'
+        printf '  MAPBOX_TOKEN       Free token from https://account.mapbox.com\n'
+        printf '  MAP_MIN_INTERVAL   Min seconds between map fetches (default: 21600 = 6h)\n'
+        printf '                     Set to 0 to always fetch, 86400 for daily.\n\n'
+        printf 'Free tier: 50,000 Static Image requests/month.\n'
+        printf 'Default 6h interval = ~120 req/month (24/7). Warns at 40,000.\n\n'
+        printf 'Cache: %s\n' "$CACHE_DIR"
+        ;;
+    *)          tobar    ;;
+esac

@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 
 import "taskbar" as Taskbar
+import "threatwatch" as ThreatWatch
 
 Scope {
   id: root
@@ -18,5 +19,6 @@ Scope {
       source: "fonts/Charcoal.ttf"
   }
   Taskbar.Bar {}
+  ThreatWatch.ThreatWatch {}
 
 }
