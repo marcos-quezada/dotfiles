@@ -152,15 +152,36 @@ DO_THREATWATCH=1
 DO_QUICKSHELL=0
 [ "$PLATFORM" = "freebsd" ] && DO_QUICKSHELL=1
 
+# core packages — available everywhere
+DO_GIT=1
+DO_VIM=1
+DO_INPUTRC=1
+
+# macOS-only packages
+DO_ZSH=0
+DO_NVIM=0
+DO_SKETCHYBAR=0
+[ "$PLATFORM" = "macos" ] && DO_ZSH=1
+[ "$PLATFORM" = "macos" ] && DO_NVIM=1
+[ "$PLATFORM" = "macos" ] && DO_SKETCHYBAR=1
+
 if [ "$YES" = "0" ]; then
-    if prompt_yn "stow threatwatch (threat monitor script + config)?" y; then
-        DO_THREATWATCH=1
-    else
-        DO_THREATWATCH=0
+    printf '\n  core packages (all platforms):\n\n'
+    prompt_yn "stow git (.gitconfig + .color.gitconfig)?" y && DO_GIT=1 || DO_GIT=0
+    prompt_yn "stow vim (.vimrc)?" y                         && DO_VIM=1 || DO_VIM=0
+    prompt_yn "stow inputrc (.inputrc)?" y                   && DO_INPUTRC=1 || DO_INPUTRC=0
+    prompt_yn "stow threatwatch (threat monitor)?" y         && DO_THREATWATCH=1 || DO_THREATWATCH=0
+
+    if [ "$PLATFORM" = "macos" ]; then
+        printf '\n  macOS packages:\n\n'
+        prompt_yn "stow zsh (.zshrc + git-worktree helpers)?" y && DO_ZSH=1 || DO_ZSH=0
+        prompt_yn "stow nvim (.config/nvim/)?" y                && DO_NVIM=1 || DO_NVIM=0
+        prompt_yn "stow sketchybar (.config/sketchybar/)?" y    && DO_SKETCHYBAR=1 || DO_SKETCHYBAR=0
     fi
 
     if [ "$PLATFORM" = "freebsd" ]; then
-        if prompt_yn "stow quickshell (sway statusbar — FreeBSD/Wayland only)?" y; then
+        printf '\n  FreeBSD packages:\n\n'
+        if prompt_yn "stow quickshell (sway statusbar — Wayland only)?" y; then
             DO_QUICKSHELL=1
         else
             DO_QUICKSHELL=0
@@ -184,6 +205,12 @@ stow_pkg() {
     fi
 }
 
+[ "$DO_GIT"        = "1" ] && stow_pkg git
+[ "$DO_VIM"        = "1" ] && stow_pkg vim
+[ "$DO_INPUTRC"    = "1" ] && stow_pkg inputrc
+[ "$DO_ZSH"        = "1" ] && stow_pkg zsh
+[ "$DO_NVIM"       = "1" ] && stow_pkg nvim
+[ "$DO_SKETCHYBAR" = "1" ] && stow_pkg sketchybar
 [ "$DO_THREATWATCH" = "1" ] && stow_pkg threatwatch
 [ "$DO_QUICKSHELL"  = "1" ] && stow_pkg quickshell
 
