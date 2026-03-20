@@ -1,2 +1,12 @@
+// threatwatch module — registered types
+//
+// ThreatWatchModel  singleton — background data fetching, file watchers, state
+// ThreatWatchWidget bar item  — drop into SysTray.qml RowLayout
+// ThreatWatchPopup  overlay   — mount once in shell.qml at root scope
+//
+// architectural overview: see ThreatWatchModel.qml and ThreatWatchPopup.qml
+
 module ThreatWatch
-ThreatWatch 1.0 ThreatWatch.qml
+singleton ThreatWatchModel 1.0 ThreatWatchModel.qml
+ThreatWatchWidget 1.0 ThreatWatchWidget.qml
+ThreatWatchPopup  1.0 ThreatWatchPopup.qml

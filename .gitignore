@@ -1,0 +1,3 @@
+# secrets — never commit real tokens or keys
+# the template (config.env.template) is safe to commit; the live file is not
+config.env

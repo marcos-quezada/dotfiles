@@ -67,6 +67,15 @@ MAP_FILE="$CACHE_DIR/germany.png"
 SUMMARY_FILE="$CACHE_DIR/summary.json"
 PINS_FILE="$CACHE_DIR/pins.json"
 
+# load secrets — never commit config.env, only config.env.template.
+# sourced after variable declarations so MAPBOX_TOKEN overrides the default "" above.
+# the script works without config.env — map fetches are simply skipped.
+_conf="${XDG_CONFIG_HOME:-$HOME/.config}/threatwatch/config.env"
+if [ -f "$_conf" ]; then
+    . "$_conf"
+fi
+unset _conf
+
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 has_cmd() { command -v "$1" >/dev/null 2>&1; }
