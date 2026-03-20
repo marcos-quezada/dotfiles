@@ -1,3 +1,24 @@
 # secrets — never commit real tokens or keys
 # the template (config.env.template) is safe to commit; the live file is not
 config.env
+
+# macos
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# editor state
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.#*
+\#*\#
+
+# stow internals
+.stow-local-ignore
+
+# compiled / generated
+*.pyc
+__pycache__/
