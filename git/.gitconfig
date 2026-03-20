@@ -46,7 +46,7 @@
   lool = log --pretty=format:"%C(33)%h%C(reset) %C(194)%s%C(224)%d%C(reset) [%an]" --graph --date=short
 	lol = log --graph --date=short --oneline --abbrev-commit --all --graph --decorate -1
   ll = log --graph --date=short --oneline --abbrev-commit --all --graph --decorate -10
-  cfw = "!sh $HOME/scripts/git-clone-bare-for-worktrees.sh"
+  cfw = "!git-clone-bare-for-worktrees"
 
 [include]
   path = ~/.color.gitconfig
