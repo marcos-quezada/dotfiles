@@ -1,4 +1,4 @@
-#!/bin/sh 
+#!/bin/sh
 
 function icon_map() {
   case "$1" in

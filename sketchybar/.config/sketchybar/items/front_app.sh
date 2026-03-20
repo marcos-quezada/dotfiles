@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 sketchybar --add item front_app left \
            --set front_app       background.color=$ACCENT_COLOR \
