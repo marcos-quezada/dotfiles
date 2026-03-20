@@ -25,7 +25,7 @@ Scope {
         }
         implicitHeight: 35
 
-        /*=== Taskbar Background (colors & shading) ===*/
+        // taskbar background — double NewBorder layers produce the shadow/highlight bevel
         color: Config.colors.base
         Item {
           id: taskbarBackground
@@ -50,29 +50,27 @@ Scope {
           }
         }
 
-        /*=== ===================================== ===*/
-
-        /*=== Workspaces & Background for it ===*/
+        // workspaces panel — shadow-backed container for the workspace switcher
         Item {
-            id: test2
+            id: workspacesPanel
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
             height: parent.height - 8
             anchors.leftMargin: 11
             width: workspaces.width + 5
             Rectangle {
-                id: background2
-                anchors.fill: test2
+                id: workspacesBg
+                anchors.fill: workspacesPanel
 
                 anchors.bottomMargin: -2
                 color: "transparent"
                 Rectangle {
-                    anchors.fill: background2
+                    anchors.fill: workspacesBg
                     border.width: 0
                     color: Config.colors.shadow
                 }
                 Rectangle {
-                    anchors.fill: background2
+                    anchors.fill: workspacesBg
                     color: "transparent"
                     border.width: 1
                     z: -5
@@ -86,29 +84,28 @@ Scope {
                 anchors.rightMargin: 0
             }
         }
-        /*=== ============================== ===*/
 
-        /*=== System Tray & Background for it ===*/
+        // system tray panel — same shadow treatment, anchored right for clock + widgets
         Item {
-            id: test
+            id: trayPanel
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
             anchors.rightMargin: 12
             height: parent.height - 8
             width: sysTray.width + 18
             Rectangle {
-                id: background
-                anchors.fill: test
+                id: trayBg
+                anchors.fill: trayPanel
 
                 anchors.bottomMargin: -2
                 color: "transparent"
                 Rectangle {
-                    anchors.fill: background
+                    anchors.fill: trayBg
                     border.width: 0
                     color: Config.colors.shadow
                 }
                 Rectangle {
-                    anchors.fill: background
+                    anchors.fill: trayBg
                     color: "transparent"
                     border.width: 1
                     z: -5
@@ -120,7 +117,6 @@ Scope {
                 id: sysTray
             }
         }
-        /*=== =============================== ===*/
       }
     }
   }

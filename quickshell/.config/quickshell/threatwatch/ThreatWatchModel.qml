@@ -1,32 +1,5 @@
-// ThreatWatchModel.qml
-// ─────────────────────────────────────────────────────────────────────────────
-// ARCHITECTURAL DECISION: Singleton data layer
-//
-// This file is the *only* place that runs Processes, Timers, and FileView
-// watchers. Making it a Singleton (pragma Singleton) means:
-//
-//   1. One timer. One set of file watchers. One update cycle — regardless of
-//      how many UI components import this module. Without Singleton, every
-//      instantiation of ThreatWatchWidget would spawn its own Process objects
-//      and the threatwatch script would run N times in parallel.
-//
-//   2. Shared reactive state. Both ThreatWatchWidget (bar button) and
-//      ThreatWatchPopup (map overlay) read the same properties via QML's
-//      reactive binding system. Change a property here → both UIs update
-//      instantly, zero coordination required.
-//
-//   3. Follows Quickshell idioms. The Quickshell docs and the linux-retroism
-//      reference config (Config.qml, Time.qml) both use pragma Singleton for
-//      exactly this pattern — background state that multiple widgets share.
-//      See: https://quickshell.org/docs/v0.2.1/guide/qml-language/#singletons
-//
-//   4. Singleton root must be Quickshell's Singleton type (not plain Item or
-//      QtObject) so Quickshell can manage its lifetime correctly inside the
-//      Wayland event loop.
-//
-// What lives here:   Process, Timer, FileView, parsed state, helper functions
-// What does NOT live here: any Rectangle, Text, PanelWindow, or visual item
-// ─────────────────────────────────────────────────────────────────────────────
+// ThreatWatchModel.qml — singleton data layer: all processes, timers, file watchers, shared state.
+// no visual items live here. see docs/architecture.md for the full design rationale.
 
 pragma Singleton
 
@@ -37,35 +10,28 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    // ── configuration — public, override from shell.qml if needed ────────────
+    // ── configuration ─────────────────────────────────────────────────────────
 
-    // full path to the threatwatch shell script.
-    // stow places it at ~/.local/bin/threatwatch.
-    // the script sources ~/.config/threatwatch/config.env for secrets at runtime.
+    // full path to the threatwatch shell script — stow places it at ~/.local/bin/threatwatch
     property string scriptPath: Quickshell.env("HOME") + "/.local/bin/threatwatch"
 
-    // auto-refresh interval in milliseconds (default 6 hours).
-    // mapbox free tier is 50,000 req/month. at 6h = ~120 req/month — very safe.
-    //   21600000  → every 6h  (~120/month)   ← default
-    //   3600000   → every 1h  (~720/month)
-    //   86400000  → daily     (~30/month)
+    // auto-refresh interval — default 6h keeps mapbox usage at ~120 req/month
+    //   21600000 = 6h (default) · 3600000 = 1h · 86400000 = daily
     property int refreshInterval: 6 * 60 * 60 * 1000
 
-    // ── derived paths — all based on XDG_CACHE_HOME ──────────────────────────
+    // ── derived paths ─────────────────────────────────────────────────────────
 
     readonly property string cacheDir: Quickshell.env("HOME") + "/.cache/threatwatch"
 
-    // ── threat data — consumed by ThreatWatchWidget and ThreatWatchPopup ─────
+    // ── threat state — consumed by ThreatWatchWidget and ThreatWatchPopup ─────
 
-    // text shown on the bar button (e.g. "DE  M3.8 ●●○  GAF123")
+    // one-line bar string, e.g. "󰒙 HIGH M4.2 ✈3"
     property string barText: ""
 
-    // current threat level: "info" | "low" | "medium" | "high" | "critical"
+    // current level: "info" | "low" | "medium" | "high" | "critical"
     property string level: "info"
 
-    // colour map keyed by level — widgets read this, do not hardcode colours
-    // ARCHITECTURAL DECISION: centralising colours here means a single edit
-    // propagates to the bar label, the popup border, and any future widget.
+    // level → colour map — all widgets read this; never hardcode colours elsewhere
     readonly property var levelColors: ({
         "critical": "#ff4444",
         "high":     "#ff8800",
@@ -74,22 +40,19 @@ Singleton {
         "info":     "#aaaaaa",
     })
 
-    // mapbox usage — drives the warning badge in ThreatWatchWidget
-    property bool mapWarn:      false   // true when usage >= 40,000 this month
-    property bool mapHardLimit: false   // true when usage >= 48,000 (fetches pause)
-    property int  mapRequests:  0       // raw count for tooltip display
+    property bool mapWarn:      false   // usage >= 40,000 this month
+    property bool mapHardLimit: false   // usage >= 48,000; fetches paused
+    property int  mapRequests:  0       // raw monthly count for tooltip
 
-    // interactive pins for ThreatWatchPopup — [{type,lon,lat,title,x,y}, ...]
-    // x/y are Web Mercator pixel coords pre-computed by the shell script.
-    // see build_pins_json() in the threatwatch script for the projection math.
+    // pre-computed Web Mercator pin coords — [{type,lon,lat,title,x,y}, ...]
     property var pins: []
 
-    // toggle — ThreatWatchWidget sets this; ThreatWatchPopup reads it
+    // popup visibility — widget writes, popup reads
     property bool mapExpanded: false
 
     // ── processes ─────────────────────────────────────────────────────────────
 
-    // "threatwatch" (no args) — fast path: reads cache, emits one line of text
+    // fast path — reads cache, emits one bar text line
     Process {
         id: tobarProc
         command: [root.scriptPath]
@@ -101,8 +64,7 @@ Singleton {
         }
     }
 
-    // "threatwatch update" — full fetch cycle: all APIs + map render
-    // onExited re-runs tobarProc so the label reflects the new data immediately
+    // full fetch — all APIs + map render; re-runs tobarProc on exit
     Process {
         id: updateProc
         command: [root.scriptPath, "update"]
@@ -112,7 +74,7 @@ Singleton {
         }
     }
 
-    // "threatwatch data" — full JSON dump, useful for debugging (middle-click)
+    // debug dump — prints full summary JSON to stdout (right-click)
     Process {
         id: dataProc
         command: [root.scriptPath, "data"]
@@ -125,19 +87,9 @@ Singleton {
     }
 
     // ── file watchers ─────────────────────────────────────────────────────────
-    //
-    // ARCHITECTURAL DECISION: file watchers vs polling
-    // FileView in Quickshell uses inotify (Linux) / kqueue (FreeBSD/macOS) to
-    // react to file changes without busy-polling. We watch three files:
-    //
-    //   .updated     — zero-byte sentinel, touched by the script after every run.
-    //                  most reliable trigger: catches all update cycles.
-    //   summary.json — parsed for level + mapbox usage counts.
-    //   pins.json    — parsed for map pin coordinates.
-    //
-    // .updated is the master trigger. summary.json and pins.json watchers exist
-    // so that manual edits or external tools can also drive a UI refresh.
+    // inotify/kqueue — no busy-polling. see docs/architecture.md for watcher rationale.
 
+    // .updated is touched by the script after every run — master trigger
     FileView {
         id: updatedWatcher
         path: root.cacheDir + "/.updated"
@@ -148,12 +100,14 @@ Singleton {
         }
     }
 
+    // summary.json — direct watcher so manual edits also refresh level/badge
     FileView {
         id: summaryWatcher
         path: root.cacheDir + "/summary.json"
         onTextChanged: root._refreshFromSummary()
     }
 
+    // pins.json — written by build_pins_json() after every update
     FileView {
         id: pinsWatcher
         path: root.cacheDir + "/pins.json"
@@ -172,7 +126,7 @@ Singleton {
 
     // ── public functions ──────────────────────────────────────────────────────
 
-    // kick off a full update — safe to call any time, guards against overlap
+    // start a full update — no-op if one is already running
     function triggerUpdate() {
         if (!updateProc.running) {
             updateProc.running = true
@@ -184,7 +138,7 @@ Singleton {
         dataProc.running = true
     }
 
-    // human-readable label for pin tooltips — called by ThreatWatchPopup
+    // human-readable pin category — used by ThreatWatchPopup tooltips
     function pinTypeLabel(type) {
         if (type === "quake")     return "Earthquake"
         if (type === "military")  return "Military aircraft"
@@ -195,10 +149,7 @@ Singleton {
 
     // ── private helpers ───────────────────────────────────────────────────────
 
-    // parse key fields out of summary.json text using lightweight regex.
-    // ARCHITECTURAL DECISION: we do not use JSON.parse on the full summary here
-    // because summary.json can be ~18 KB and is parsed frequently. Regex on
-    // specific known keys is far cheaper than a full parse + GC cycle.
+    // regex on raw JSON text — cheaper than JSON.parse on an 18 KB file called frequently
     function _refreshFromSummary() {
         var raw = summaryWatcher.text
         if (!raw) return
@@ -220,17 +171,14 @@ Singleton {
             var parsed = JSON.parse(pinsWatcher.text)
             if (Array.isArray(parsed)) root.pins = parsed
         } catch (e) {
-            // partial write in progress — keep previous pins, try again next cycle
+            // partial write in progress — keep previous pins, retry next cycle
         }
     }
 
     // ── init ──────────────────────────────────────────────────────────────────
 
     Component.onCompleted: {
-        // seed bar text and state from whatever is in cache right now.
-        // the timer will schedule the first real update at refreshInterval.
-        // if cache is cold (fresh install) the bar will be blank until the
-        // first update cycle completes — that is expected and acceptable.
+        // seed from cache immediately; timer handles first real update at refreshInterval
         tobarProc.running = true
         root._refreshFromSummary()
         root._refreshPins()

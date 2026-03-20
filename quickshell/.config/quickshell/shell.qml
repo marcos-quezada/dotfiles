@@ -19,9 +19,7 @@ Scope {
       source: "fonts/Charcoal.ttf"
   }
   Taskbar.Bar {}
-  // ThreatWatchPopup is a PanelWindow — must live here at root scope.
-  // Wayland protocol forbids nesting WlrLayershell surfaces inside another
-  // PanelWindow, so it cannot go inside Bar.qml or SysTray.qml.
+  // popup must live at root scope — WlrLayershell surfaces cannot be nested inside Bar's PanelWindow
   ThreatWatch.ThreatWatchPopup {}
 
 }
