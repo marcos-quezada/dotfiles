@@ -77,25 +77,22 @@ RowLayout {
         HoverHandler { id: warnHover }
     }
 
-    // click handler — covers the full widget row
-    // propagateComposedEvents keeps child HoverHandlers firing for tooltips/cursors
-    MouseArea {
-        anchors.fill: parent
+    // click handler on the layout root itself — TapHandler avoids the
+    // anchors-in-layout problem and fires reliably regardless of child geometry
+    TapHandler {
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
-        propagateComposedEvents: true
 
-        onClicked: mouse => {
-            if (mouse.button === Qt.LeftButton) {
+        onTapped: tap => {
+            if (tap.button === Qt.LeftButton) {
                 // left: toggle map overlay
                 ThreatWatchModel.mapExpanded = !ThreatWatchModel.mapExpanded
-            } else if (mouse.button === Qt.MiddleButton) {
+            } else if (tap.button === Qt.MiddleButton) {
                 // middle: force update now
                 ThreatWatchModel.triggerUpdate()
-            } else if (mouse.button === Qt.RightButton) {
+            } else if (tap.button === Qt.RightButton) {
                 // right: dump summary to stdout for debugging
                 ThreatWatchModel.dumpData()
             }
-            mouse.accepted = true
         }
     }
 }
