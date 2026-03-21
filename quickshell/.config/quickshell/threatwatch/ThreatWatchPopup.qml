@@ -21,8 +21,8 @@ PanelWindow {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
     // germany.png is rendered at 1600×1560 @2x — display at half size, bottom-left
-    width:  800
-    height: 780
+    width:          800
+    implicitHeight: 780
     anchors {
         top:    false
         bottom: true
@@ -54,10 +54,10 @@ PanelWindow {
         }
     }
 
-    // click background to close; TapHandler attaches to PanelWindow directly,
-    // no anchors needed, more reliable on Wayland layer surfaces than MouseArea
-    TapHandler {
-        onTapped: ThreatWatchModel.mapExpanded = false
+    // click background to close; pin hitboxes below absorb their own clicks
+    MouseArea {
+        anchors.fill: parent
+        onClicked: ThreatWatchModel.mapExpanded = false
     }
 
     // ── interactive pin overlay ───────────────────────────────────────────────
@@ -75,9 +75,12 @@ PanelWindow {
             height: 30
             z:      10
 
-            // absorb tap so the background TapHandler does not close the popup
-            TapHandler {
-                onTapped: tap => { tap.accepted = true }
+            // absorb click so background MouseArea does not close the popup;
+            // explicit width/height instead of anchors.fill avoids layout warning
+            MouseArea {
+                width:  parent.width
+                height: parent.height
+                onClicked: mouse => { mouse.accepted = true }
             }
 
             HoverHandler { id: pinHover }
