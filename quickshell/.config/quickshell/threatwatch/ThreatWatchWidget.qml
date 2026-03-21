@@ -23,18 +23,16 @@ RowLayout {
         font.family:    fontMonaco.name
         verticalAlignment: Text.AlignVCenter
 
+        ToolTip.visible: iconHover.hovered
+        ToolTip.delay:   600
+        ToolTip.timeout: 8000
+        ToolTip.text:    ThreatWatchModel.barText !== ""
+            ? ThreatWatchModel.barText
+            : "threatwatch — no data yet.\nmiddle-click to fetch."
+
         HoverHandler {
             id: iconHover
             cursorShape: Qt.PointingHandCursor
-        }
-
-        ToolTip {
-            visible: iconHover.hovered
-            delay:   600
-            timeout: 8000
-            text: ThreatWatchModel.barText !== ""
-                ? ThreatWatchModel.barText
-                : "threatwatch — no data yet.\nmiddle-click to fetch."
         }
     }
 
@@ -60,25 +58,23 @@ RowLayout {
         font.family:    fontMonaco.name
         verticalAlignment: Text.AlignVCenter
 
-        HoverHandler { id: warnHover }
+        ToolTip.visible: warnHover.hovered
+        ToolTip.delay:   400
+        ToolTip.timeout: 12000
+        ToolTip.text:    ThreatWatchModel.mapHardLimit
+            ? "Mapbox hard limit reached (" + ThreatWatchModel.mapRequests + "/50,000).\n" +
+              "Map fetches paused until next month.\n" +
+              "To keep maps updating, increase MAP_MIN_INTERVAL in config.env\n" +
+              "or rotate to a fresh free token."
+            : "Mapbox approaching free tier (" + ThreatWatchModel.mapRequests + "/50,000 this month).\n" +
+              "Default: 6h interval = ~120 req/month (well within limits).\n" +
+              "If you see this, you may have run many manual tests.\n\n" +
+              "To reduce usage, set in config.env:\n" +
+              "  MAP_MIN_INTERVAL=86400   # daily = ~30 req/month\n\n" +
+              "To check usage:  threatwatch mapbox\n" +
+              "To force a map:  threatwatch map --force"
 
-        ToolTip {
-            visible: warnHover.hovered
-            delay:   400
-            timeout: 12000
-            text: ThreatWatchModel.mapHardLimit
-                ? "Mapbox hard limit reached (" + ThreatWatchModel.mapRequests + "/50,000).\n" +
-                  "Map fetches paused until next month.\n" +
-                  "To keep maps updating, increase MAP_MIN_INTERVAL in config.env\n" +
-                  "or rotate to a fresh free token."
-                : "Mapbox approaching free tier (" + ThreatWatchModel.mapRequests + "/50,000 this month).\n" +
-                  "Default: 6h interval = ~120 req/month (well within limits).\n" +
-                  "If you see this, you may have run many manual tests.\n\n" +
-                  "To reduce usage, set in config.env:\n" +
-                  "  MAP_MIN_INTERVAL=86400   # daily = ~30 req/month\n\n" +
-                  "To check usage:  threatwatch mapbox\n" +
-                  "To force a map:  threatwatch map --force"
-        }
+        HoverHandler { id: warnHover }
     }
 
     // click handler — covers the full widget row
