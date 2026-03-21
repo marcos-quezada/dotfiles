@@ -3,6 +3,7 @@
 // see docs/architecture.md for the Wayland layer constraint explanation.
 
 import QtQuick
+import QtQuick.Controls
 import Quickshell
 import Quickshell.Wayland
 
@@ -82,12 +83,10 @@ PanelWindow {
 
             HoverHandler { id: pinHover }
 
-            ToolTip {
-                visible: pinHover.hovered
-                delay:   200
-                timeout: 15000
-                text:    modelData.title + "\n" + ThreatWatchModel.pinTypeLabel(modelData.type)
-            }
+            ToolTip.visible: pinHover.hovered
+            ToolTip.delay:   200
+            ToolTip.timeout: 15000
+            ToolTip.text:    modelData.title + "\n" + ThreatWatchModel.pinTypeLabel(modelData.type)
         }
     }
 }
