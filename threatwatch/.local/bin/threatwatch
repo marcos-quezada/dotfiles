@@ -97,9 +97,14 @@ _find_font() {
         /Library/Fonts/JetBrainsMonoNLNerdFont-Regular.ttf \
         /usr/local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf \
         /usr/share/fonts/truetype/jetbrains-mono/JetBrainsMonoNerdFont-Regular.ttf \
+        /usr/local/share/fonts/nerd-fonts/JetBrainsMonoNerdFont-Regular.ttf \
+        /usr/local/share/fonts/dejavu/DejaVuSansMono.ttf \
+        /usr/share/fonts/dejavu/DejaVuSansMono.ttf \
+        /usr/local/share/fonts/DejaVuSansMono.ttf \
         /System/Library/Fonts/SFNSMono.ttf \
         /usr/share/fonts/liberation/LiberationMono-Regular.ttf \
-        /usr/local/share/fonts/LiberationMono-Regular.ttf; do
+        /usr/local/share/fonts/LiberationMono-Regular.ttf \
+        /usr/local/share/fonts/liberation/LiberationMono-Regular.ttf; do
         [ -f "$_f" ] && { echo "$_f"; return 0; }
     done
     return 1

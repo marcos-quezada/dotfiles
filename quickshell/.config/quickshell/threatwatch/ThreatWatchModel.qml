@@ -31,6 +31,10 @@ Singleton {
     // current level: "info" | "low" | "medium" | "high" | "critical"
     property string level: "info"
 
+    // top-5 geopolitical market headlines — shown in icon tooltip
+    // each entry: "<prob>%  <title>", joined with newlines
+    property string headlines: ""
+
     // level → colour map — all widgets read this; never hardcode colours elsewhere
     // colours chosen for legibility on the light (#d8d8d8) default bar base
     readonly property var levelColors: ({
@@ -150,21 +154,29 @@ Singleton {
 
     // ── private helpers ───────────────────────────────────────────────────────
 
-    // regex on raw JSON text — cheaper than JSON.parse on an 18 KB file called frequently
     function _refreshFromSummary() {
         var raw = String(summaryWatcher.text)
         if (!raw) return
+        var s
+        try { s = JSON.parse(raw) } catch(e) { return }
 
-        var ml = raw.match(/"threat_level"\s*:\s*"([^"]+)"/)
-        if (ml) root.level = ml[1]
+        if (s.threat_level) root.level = s.threat_level
 
-        var mw = raw.match(/"warn"\s*:\s*(true|false)/)
-        if (mw) root.mapWarn = (mw[1] === "true")
+        var mb = s.mapbox || {}
+        root.mapRequests  = mb.requests_this_month || 0
+        root.mapWarn      = mb.warn || false
+        root.mapHardLimit = root.mapRequests >= 48000
 
-        var mr = raw.match(/"requests_this_month"\s*:\s*(\d+)/)
-        if (mr) root.mapRequests = parseInt(mr[1])
-
-        root.mapHardLimit = (root.mapRequests >= 48000)
+        // top-5 geopolitical market headlines for the icon tooltip
+        var markets = s.poly_markets || []
+        var lines = []
+        for (var i = 0; i < Math.min(5, markets.length); i++) {
+            var m = markets[i]
+            lines.push(Math.round(m.prob_yes) + "%  " + m.title)
+        }
+        root.headlines = lines.length > 0
+            ? "Geopolitical markets:\n" + lines.join("\n")
+            : ""
     }
 
     function _refreshPins() {
