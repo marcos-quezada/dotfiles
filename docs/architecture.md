@@ -36,6 +36,29 @@ solution: instantiate `ThreatWatchPopup` once at root scope in `shell.qml`,
 alongside `Taskbar.Bar`. visibility is driven by `ThreatWatchModel.mapExpanded`
 so the widget in the bar can still toggle it with a single property write.
 
+### popup position: top-right, just below the bar
+
+the popup is anchored to the top-right corner of the screen using:
+
+```qml
+anchors { top: true; right: true }
+margins.top: 35
+```
+
+`margins` is a grouped property on `PanelWindow` (sub-properties `left`, `top`,
+`right`, `bottom`). per the Quickshell docs, **margins only apply to anchored
+edges** — `margins.top` is effective because `top: true` is set.
+
+`ExclusionMode.Ignore` means the compositor does not shift the popup's top anchor
+down for the bar's exclusive zone — the bar occupies the top 35 px, and the popup
+must add that offset manually via `margins.top: 35` (matching `Bar.qml`'s
+`implicitHeight`).
+
+**pin coordinate safety**: `margins.top` shifts the window surface on screen but
+does not affect the coordinate space inside the surface. the map image fills the
+full 800×780 surface via `anchors.fill: parent`, so all pin hitbox `x`/`y`
+values from `pins.json` remain pixel-accurate relative to the image.
+
 ---
 
 ## threatwatch MVC split
@@ -61,7 +84,7 @@ base config. see https://quickshell.org/docs/v0.2.1/guide/qml-language/#singleto
 | model (`ThreatWatchModel`) | view (`ThreatWatchWidget`, `ThreatWatchPopup`) |
 |---|---|
 | `Process`, `Timer`, `FileView` | `Text`, `Rectangle`, `Image` |
-| parsed state (`level`, `barText`, `pins`) | layout, colours, click handlers |
+| parsed state (`level`, `barText`, `pins`, `headlines`, `updatedAt`) | layout, colours, click handlers |
 | `triggerUpdate()`, `dumpData()` | reads model properties via QML binding |
 | no visual items whatsoever | no network/process/timer logic |
 
@@ -79,15 +102,28 @@ no busy-polling. three files are watched:
 `.updated` is the primary trigger. the other two exist so external tools or
 manual `threatwatch update` calls also drive a UI refresh without the QML timer.
 
-### why _refreshFromSummary uses regex, not JSON.parse
+### _refreshFromSummary and _refreshPins
 
-`summary.json` is ~18 KB and `_refreshFromSummary` is called on every file
-change. a full `JSON.parse` on 18 KB triggers a V8 GC cycle on each call.
-regex extraction of three known keys (`threat_level`, `warn`,
-`requests_this_month`) is cheap and deterministic.
+both helpers use `JSON.parse`. a single parse call is simpler, handles nested
+objects (`mapbox.*`) correctly, and avoids the class of bugs where regex silently
+misses a key when the JSON is pretty-printed or field order changes.
 
-`_refreshPins` uses `JSON.parse` because `pins.json` is small (< 1 KB) and the
-data is an array that cannot be safely extracted with a regex.
+`_refreshFromSummary` extracts:
+
+| field | target property | notes |
+|---|---|---|
+| `threat_level` | `root.level` | |
+| `updated_at` | `root.updatedAt` | ISO `"2025-01-15T14:32:00Z"` → `"2025-01-15 14:32 UTC"` (16 chars + suffix) |
+| `mapbox.requests_this_month` | `root.mapRequests` | |
+| `mapbox.warn` | `root.mapWarn` | |
+| `poly_markets` (top 5) | `root.headlines` | formatted as `"<prob>%  <title>"`, joined with `\n`, prefixed `"Geopolitical markets:\n"` |
+
+`mapHardLimit` is derived: `root.mapRequests >= 48000` (no field in JSON —
+computed locally to avoid a stale value if the script resets the counter).
+
+`_refreshPins` uses `JSON.parse` on `pins.json` (< 1 KB) and replaces
+`root.pins` only when the result is a valid array — partial writes during a
+script run silently keep the previous value.
 
 ### levelColors centralisation
 
@@ -198,6 +234,20 @@ Mapbox caps static image overlays at 10 pins. slots are pre-reserved:
 | GDACS in-region | 1 | red/orange star |
 | earthquakes | remaining (up to 4) | magnitude-keyed red→yellow |
 
+### map overlay font
+
+`_find_font()` resolves a TTF path for ImageMagick's `-font` argument. the
+bundled Monaco font is checked first:
+
+```
+${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/fonts/Monaco.ttf
+```
+
+this ensures the map HUD uses the same typeface as the bar text. fallbacks cover
+JetBrains Mono (Nerd Font), DejaVu Sans Mono, Liberation Mono, and SF Mono — in
+that order. if none are found, ImageMagick uses its built-in default font and
+the overlay is still applied.
+
 ### secrets handling
 
 `MAPBOX_TOKEN` must never be committed. the script sources
@@ -205,6 +255,85 @@ Mapbox caps static image overlays at 10 pins. slots are pre-reserved:
 overriding the default empty string. the stow package includes
 `config.env.template` — copy, fill in, chmod 600. `config.env` is in
 `.gitignore`.
+
+---
+
+## QML / Quickshell gotchas
+
+hard-won lessons from debugging the bar. recorded here so we never re-discover
+them the slow way.
+
+### ToolTip: attached property form required on non-Control items
+
+`ToolTip { }` as a **child element** only works inside `Control`-derived types
+(Button, ComboBox, etc.). `Text` and `Item` are plain `QtQuick` items — placing
+a `ToolTip {}` child inside them silently does nothing.
+
+correct form for `Text`, `Item`, `Rectangle`:
+
+```qml
+import QtQuick.Controls
+
+Text {
+    ToolTip.visible: someHover.hovered
+    ToolTip.delay:   600
+    ToolTip.timeout: 12000
+    ToolTip.text:    "..."
+}
+```
+
+`QtQuick.Controls` must be imported for the attached properties to resolve.
+
+### MouseArea inside a RowLayout sibling gets zero geometry
+
+a `MouseArea` placed as a **sibling** to other children inside a `RowLayout`
+gets zero width and height from the layout — clicks never register.
+
+correct pattern: wrap the `RowLayout` in a plain `Item`, mirror the layout's
+`implicitWidth`/`implicitHeight` on the `Item`, and put the `MouseArea` as a
+sibling to the `RowLayout` inside that `Item`:
+
+```qml
+Item {
+    id: widget
+    implicitWidth:  row.implicitWidth
+    implicitHeight: row.implicitHeight
+
+    RowLayout { id: row; anchors.fill: parent; ... }
+
+    MouseArea { anchors.fill: parent; ... }   // gets correct geometry
+}
+```
+
+### TapHandler on a PanelWindow is unreliable on Wayland
+
+`TapHandler` placed on the root `PanelWindow` does not receive pointer events
+reliably on Wayland layer surfaces. `MouseArea { anchors.fill: parent }` works.
+the `anchors` layout warning Qt emits is a false positive — `PanelWindow` is not
+a layout manager.
+
+### anchors.* on RowLayout-managed items is undefined
+
+setting `anchors.left`, `anchors.centerIn`, etc. on a direct child of a
+`RowLayout` is undefined behaviour in Qt (the layout and the anchor system fight
+over geometry). use `Layout.alignment` instead:
+
+```qml
+RowLayout {
+    Text { Layout.alignment: Qt.AlignVCenter }
+}
+```
+
+### PanelWindow: use implicitHeight / implicitWidth, not height / width
+
+Quickshell deprecates setting `height` and `width` directly on `PanelWindow`.
+use `implicitHeight` and `implicitWidth` — the compositor reads these to size
+the surface correctly.
+
+### qmldir comment syntax
+
+`qmldir` files use `#` for comments. `//` causes a "too many parameters" parse
+error in the Quickshell module loader. all other `.qml` files use `//`.
 
 ---
 

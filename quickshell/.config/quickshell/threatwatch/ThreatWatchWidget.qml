@@ -34,11 +34,16 @@ Item {
             ToolTip.visible: iconHover.hovered
             ToolTip.delay:   600
             ToolTip.timeout: 12000
-            ToolTip.text:    ThreatWatchModel.headlines !== ""
-                ? ThreatWatchModel.headlines
-                : (ThreatWatchModel.barText !== ""
-                    ? ThreatWatchModel.barText
-                    : "threatwatch — no data yet.\nmiddle-click to fetch.")
+            ToolTip.text: {
+                var body = ThreatWatchModel.headlines !== ""
+                    ? ThreatWatchModel.headlines
+                    : (ThreatWatchModel.barText !== ""
+                        ? ThreatWatchModel.barText
+                        : "threatwatch — no data yet.\nmiddle-click to fetch.")
+                return ThreatWatchModel.updatedAt !== ""
+                    ? body + "\nUpdated: " + ThreatWatchModel.updatedAt
+                    : body
+            }
 
             HoverHandler {
                 id: iconHover

@@ -35,6 +35,9 @@ Singleton {
     // each entry: "<prob>%  <title>", joined with newlines
     property string headlines: ""
 
+    // last update timestamp from summary.json — shown in icon tooltip
+    property string updatedAt: ""
+
     // level → colour map — all widgets read this; never hardcode colours elsewhere
     // colours chosen for legibility on the light (#d8d8d8) default bar base
     readonly property var levelColors: ({
@@ -161,6 +164,12 @@ Singleton {
         try { s = JSON.parse(raw) } catch(e) { return }
 
         if (s.threat_level) root.level = s.threat_level
+
+        // format "2025-01-15T14:32:00Z" → "2025-01-15 14:32 UTC"
+        if (s.updated_at) {
+            var ts = s.updated_at.replace("T", " ").replace("Z", " UTC")
+            root.updatedAt = ts.substring(0, 16) + " UTC"
+        }
 
         var mb = s.mapbox || {}
         root.mapRequests  = mb.requests_this_month || 0

@@ -93,6 +93,7 @@ _find_magick() {
 # direct TTF path is most portable across imagemagick versions and distros
 _find_font() {
     for _f in \
+        "${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/fonts/Monaco.ttf" \
         /Library/Fonts/JetBrainsMonoNerdFont-Regular.ttf \
         /Library/Fonts/JetBrainsMonoNLNerdFont-Regular.ttf \
         /usr/local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf \

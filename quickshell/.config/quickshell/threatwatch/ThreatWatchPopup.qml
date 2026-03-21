@@ -20,15 +20,20 @@ PanelWindow {
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
-    // germany.png is rendered at 1600×1560 @2x — display at half size, bottom-left
+    // germany.png is rendered at 1600×1560 @2x — display at half size.
+    // anchored top-right so the popup sits flush to the right edge just below the bar.
+    // topMargin: 35 matches Bar.qml's implicitHeight so it clears the bar surface.
+    // ExclusionMode.Ignore means the compositor does not adjust our top anchor for the
+    // bar's exclusive zone — we must add the bar height manually.
     implicitWidth:  800
     implicitHeight: 780
     anchors {
-        top:    false
-        bottom: true
-        left:   true
-        right:  false
+        top:    true
+        bottom: false
+        left:   false
+        right:  true
     }
+    margins.top: 35
 
     color: "transparent"
 
