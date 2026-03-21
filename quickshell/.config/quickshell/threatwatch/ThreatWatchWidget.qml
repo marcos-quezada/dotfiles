@@ -95,10 +95,13 @@ Item {
 
         onClicked: mouse => {
             if (mouse.button === Qt.LeftButton) {
+                console.log("[ThreatWatch] left click — toggling mapExpanded:", !ThreatWatchModel.mapExpanded)
                 ThreatWatchModel.mapExpanded = !ThreatWatchModel.mapExpanded
             } else if (mouse.button === Qt.MiddleButton) {
+                console.log("[ThreatWatch] middle click — triggering update")
                 ThreatWatchModel.triggerUpdate()
             } else if (mouse.button === Qt.RightButton) {
+                console.log("[ThreatWatch] right click — dumping data")
                 ThreatWatchModel.dumpData()
             }
             mouse.accepted = true
