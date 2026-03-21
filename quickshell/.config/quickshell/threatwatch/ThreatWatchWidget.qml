@@ -10,89 +10,98 @@ import Quickshell
 import ".."
 import "."
 
-RowLayout {
+// outer Item owns the geometry the parent RowLayout allocates; the MouseArea
+// fills it freely without being a layout-managed sibling of the Text items.
+Item {
     id: widget
-    spacing: 3
+    implicitWidth:  row.implicitWidth
+    implicitHeight: row.implicitHeight
 
-    // radar icon — always visible, coloured by threat level
-    Text {
-        id: icon
-        text: "󱡣"
-        color: ThreatWatchModel.levelColors[ThreatWatchModel.level] ?? Config.colors.text
-        font.pixelSize: Config.settings.bar.fontSize
-        font.family:    fontMonaco.name
-        verticalAlignment: Text.AlignVCenter
+    RowLayout {
+        id: row
+        anchors.fill: parent
+        spacing: 3
 
-        ToolTip.visible: iconHover.hovered
-        ToolTip.delay:   600
-        ToolTip.timeout: 8000
-        ToolTip.text:    ThreatWatchModel.barText !== ""
-            ? ThreatWatchModel.barText
-            : "threatwatch — no data yet.\nmiddle-click to fetch."
+        // radar icon — always visible, coloured by threat level
+        Text {
+            id: icon
+            text: "󱡣"
+            color: ThreatWatchModel.levelColors[ThreatWatchModel.level] ?? Config.colors.text
+            font.pixelSize: Config.settings.bar.fontSize
+            font.family:    fontMonaco.name
+            verticalAlignment: Text.AlignVCenter
 
-        HoverHandler {
-            id: iconHover
-            cursorShape: Qt.PointingHandCursor
+            ToolTip.visible: iconHover.hovered
+            ToolTip.delay:   600
+            ToolTip.timeout: 8000
+            ToolTip.text:    ThreatWatchModel.barText !== ""
+                ? ThreatWatchModel.barText
+                : "threatwatch — no data yet.\nmiddle-click to fetch."
+
+            HoverHandler {
+                id: iconHover
+                cursorShape: Qt.PointingHandCursor
+            }
+        }
+
+        // threat label — hidden when cache is cold; colour tracks level via binding
+        Text {
+            id: label
+            visible: ThreatWatchModel.barText !== ""
+            text:    ThreatWatchModel.barText
+            color:   ThreatWatchModel.levelColors[ThreatWatchModel.level] ?? Config.colors.text
+            font.pixelSize: Config.settings.bar.fontSize
+            font.family:    fontMonaco.name
+            verticalAlignment: Text.AlignVCenter
+        }
+
+        // mapbox usage badge — only shown when approaching/at the free tier limit
+        // 󰋮 = hard limit (red), 󰴱 = soft warn (orange)
+        Text {
+            id: mapWarnBadge
+            visible: ThreatWatchModel.mapWarn
+            text:    ThreatWatchModel.mapHardLimit ? "󰋮" : "󰴱"
+            color:   ThreatWatchModel.mapHardLimit ? "#ff4444" : "#ff8800"
+            font.pixelSize: Config.settings.bar.fontSize
+            font.family:    fontMonaco.name
+            verticalAlignment: Text.AlignVCenter
+
+            ToolTip.visible: warnHover.hovered
+            ToolTip.delay:   400
+            ToolTip.timeout: 12000
+            ToolTip.text:    ThreatWatchModel.mapHardLimit
+                ? "Mapbox hard limit reached (" + ThreatWatchModel.mapRequests + "/50,000).\n" +
+                  "Map fetches paused until next month.\n" +
+                  "To keep maps updating, increase MAP_MIN_INTERVAL in config.env\n" +
+                  "or rotate to a fresh free token."
+                : "Mapbox approaching free tier (" + ThreatWatchModel.mapRequests + "/50,000 this month).\n" +
+                  "Default: 6h interval = ~120 req/month (well within limits).\n" +
+                  "If you see this, you may have run many manual tests.\n\n" +
+                  "To reduce usage, set in config.env:\n" +
+                  "  MAP_MIN_INTERVAL=86400   # daily = ~30 req/month\n\n" +
+                  "To check usage:  threatwatch mapbox\n" +
+                  "To force a map:  threatwatch map --force"
+
+            HoverHandler { id: warnHover }
         }
     }
 
-    // threat label — hidden when cache is cold; colour tracks level via binding
-    Text {
-        id: label
-        visible: ThreatWatchModel.barText !== ""
-        text:    ThreatWatchModel.barText
-        color:   ThreatWatchModel.levelColors[ThreatWatchModel.level] ?? Config.colors.text
-        font.pixelSize: Config.settings.bar.fontSize
-        font.family:    fontMonaco.name
-        verticalAlignment: Text.AlignVCenter
-    }
-
-    // mapbox usage badge — only shown when approaching/at the free tier limit
-    // 󰋮 = hard limit (red), 󰴱 = soft warn (orange)
-    Text {
-        id: mapWarnBadge
-        visible: ThreatWatchModel.mapWarn
-        text:    ThreatWatchModel.mapHardLimit ? "󰋮" : "󰴱"
-        color:   ThreatWatchModel.mapHardLimit ? "#ff4444" : "#ff8800"
-        font.pixelSize: Config.settings.bar.fontSize
-        font.family:    fontMonaco.name
-        verticalAlignment: Text.AlignVCenter
-
-        ToolTip.visible: warnHover.hovered
-        ToolTip.delay:   400
-        ToolTip.timeout: 12000
-        ToolTip.text:    ThreatWatchModel.mapHardLimit
-            ? "Mapbox hard limit reached (" + ThreatWatchModel.mapRequests + "/50,000).\n" +
-              "Map fetches paused until next month.\n" +
-              "To keep maps updating, increase MAP_MIN_INTERVAL in config.env\n" +
-              "or rotate to a fresh free token."
-            : "Mapbox approaching free tier (" + ThreatWatchModel.mapRequests + "/50,000 this month).\n" +
-              "Default: 6h interval = ~120 req/month (well within limits).\n" +
-              "If you see this, you may have run many manual tests.\n\n" +
-              "To reduce usage, set in config.env:\n" +
-              "  MAP_MIN_INTERVAL=86400   # daily = ~30 req/month\n\n" +
-              "To check usage:  threatwatch mapbox\n" +
-              "To force a map:  threatwatch map --force"
-
-        HoverHandler { id: warnHover }
-    }
-
-    // click handler on the layout root itself — TapHandler avoids the
-    // anchors-in-layout problem and fires reliably regardless of child geometry
-    TapHandler {
+    // click handler — fills the outer Item, not a layout sibling, so it gets
+    // the correct geometry. propagateComposedEvents lets child HoverHandlers fire.
+    MouseArea {
+        anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+        propagateComposedEvents: true
 
-        onTapped: tap => {
-            if (tap.button === Qt.LeftButton) {
-                // left: toggle map overlay
+        onClicked: mouse => {
+            if (mouse.button === Qt.LeftButton) {
                 ThreatWatchModel.mapExpanded = !ThreatWatchModel.mapExpanded
-            } else if (tap.button === Qt.MiddleButton) {
-                // middle: force update now
+            } else if (mouse.button === Qt.MiddleButton) {
                 ThreatWatchModel.triggerUpdate()
-            } else if (tap.button === Qt.RightButton) {
-                // right: dump summary to stdout for debugging
+            } else if (mouse.button === Qt.RightButton) {
                 ThreatWatchModel.dumpData()
             }
+            mouse.accepted = true
         }
     }
 }

@@ -21,7 +21,7 @@ PanelWindow {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
     // germany.png is rendered at 1600×1560 @2x — display at half size, bottom-left
-    width:          800
+    implicitWidth:  800
     implicitHeight: 780
     anchors {
         top:    false
