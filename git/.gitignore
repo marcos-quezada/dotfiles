@@ -1,0 +1,32 @@
+# global gitignore
+
+# macOS
+.DS_Store
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# thumbnails
+Thumbs.db
+
+# editor
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+*~
+
+# ruby / bundler
+.bundle
+vendor/bundle
+
+# node
+node_modules/
+
+# logs / temp
+*.log
+*.tmp
