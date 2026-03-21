@@ -32,12 +32,13 @@ Singleton {
     property string level: "info"
 
     // level → colour map — all widgets read this; never hardcode colours elsewhere
+    // colours chosen for legibility on the light (#d8d8d8) default bar base
     readonly property var levelColors: ({
-        "critical": "#ff4444",
-        "high":     "#ff8800",
-        "medium":   "#ffcc00",
-        "low":      "#88cc44",
-        "info":     "#aaaaaa",
+        "critical": "#cc0000",
+        "high":     "#cc5500",
+        "medium":   "#997700",
+        "low":      "#336600",
+        "info":     "#444444",
     })
 
     property bool mapWarn:      false   // usage >= 40,000 this month
@@ -151,7 +152,7 @@ Singleton {
 
     // regex on raw JSON text — cheaper than JSON.parse on an 18 KB file called frequently
     function _refreshFromSummary() {
-        var raw = summaryWatcher.text
+        var raw = String(summaryWatcher.text)
         if (!raw) return
 
         var ml = raw.match(/"threat_level"\s*:\s*"([^"]+)"/)

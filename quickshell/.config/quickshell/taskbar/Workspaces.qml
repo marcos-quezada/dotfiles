@@ -9,8 +9,7 @@ import ".."
 RowLayout {
     id: workspaces
     spacing: 3
-    anchors.left: parent.left
-    anchors.verticalCenter: parent.verticalCenter
+    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
 
     property var currentWorkspaces: I3.workspaces.values.filter(w => w.monitor.name == taskbar.screen.name)
 
@@ -19,8 +18,7 @@ RowLayout {
         model: parent.currentWorkspaces
         Button {
             id: control
-
-            anchors.centerIn: parent.centerIn
+            Layout.alignment: Qt.AlignVCenter
             contentItem: Text {
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
