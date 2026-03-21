@@ -54,10 +54,10 @@ PanelWindow {
         }
     }
 
-    // click background to close; pin hitboxes below absorb their own clicks
-    MouseArea {
-        anchors.fill: parent
-        onClicked: ThreatWatchModel.mapExpanded = false
+    // click background to close; TapHandler attaches to PanelWindow directly,
+    // no anchors needed, more reliable on Wayland layer surfaces than MouseArea
+    TapHandler {
+        onTapped: ThreatWatchModel.mapExpanded = false
     }
 
     // ── interactive pin overlay ───────────────────────────────────────────────
@@ -75,10 +75,9 @@ PanelWindow {
             height: 30
             z:      10
 
-            // absorb click so background MouseArea does not close the popup
-            MouseArea {
-                anchors.fill: parent
-                onClicked: mouse => { mouse.accepted = true }
+            // absorb tap so the background TapHandler does not close the popup
+            TapHandler {
+                onTapped: tap => { tap.accepted = true }
             }
 
             HoverHandler { id: pinHover }
