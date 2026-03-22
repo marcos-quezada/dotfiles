@@ -154,9 +154,6 @@ Singleton {
         root.mapRequests  = mb.requests_this_month || 0
         root.mapWarn      = mb.warn || false
         root.mapHardLimit = root.mapRequests >= 48000
-
-        // store raw markets array for ThreatWatchMarketsPopup
-        root.markets = s.poly_markets || []
     }
 
     function _refreshPins() {
