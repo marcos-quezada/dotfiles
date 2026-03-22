@@ -84,7 +84,7 @@ base config. see https://quickshell.org/docs/v0.2.1/guide/qml-language/#singleto
 | model (`ThreatWatchModel`) | view (`ThreatWatchWidget`, `ThreatWatchPopup`) |
 |---|---|
 | `Process`, `Timer`, `FileView` | `Text`, `Rectangle`, `Image` |
-| parsed state (`level`, `barText`, `pins`, `headlines`, `updatedAt`) | layout, colours, click handlers |
+| parsed state (`level`, `barText`, `pins`, `tooltipText`, `updatedAt`) | layout, colours, click handlers |
 | `triggerUpdate()`, `dumpData()` | reads model properties via QML binding |
 | no visual items whatsoever | no network/process/timer logic |
 
@@ -116,7 +116,13 @@ misses a key when the JSON is pretty-printed or field order changes.
 | `updated_at` | `root.updatedAt` | ISO `"2025-01-15T14:32:00Z"` → `"2025-01-15 14:32 UTC"` (16 chars + suffix) |
 | `mapbox.requests_this_month` | `root.mapRequests` | |
 | `mapbox.warn` | `root.mapWarn` | |
-| `poly_markets` (top 5) | `root.headlines` | formatted as `"<prob>%  <title>"`, joined with `\n`, prefixed `"Geopolitical markets:\n"` |
+| `quake_count`, `top_quake` | `root.tooltipText` (partial) | quake line: `"Quakes: N — top MX.X Place"` |
+| `mil_count`, `emerg_count` | `root.tooltipText` (partial) | flight line: `"Flights: N military[, N EMERGENCY squawk]"` |
+| `gdacs_alerts` (in-region red/orange, top 3) | `root.tooltipText` (partial) | GDACS block with level tags |
+| `poly_markets` (top 5) | `root.tooltipText` (partial) | formatted as `"  <prob>%  <title>"`, under `"Prediction markets:"` header |
+
+`_refreshFromSummary` assembles all sections into `root.tooltipText` (newline-joined), replacing the former
+`root.headlines` + `root.updatedAt` separate tooltip composition that was done inline in `ThreatWatchWidget`.
 
 `mapHardLimit` is derived: `root.mapRequests >= 48000` (no field in JSON —
 computed locally to avoid a stale value if the script resets the counter).
@@ -145,14 +151,37 @@ every 6h (or on middle-click):
   ├── fetch_gdacs()         GDACS RSS → gdacs.xml
   ├── fetch_flights()       OpenSky state vectors → flights.json
   ├── fetch_polymarket()    Polymarket politics tag → polymarket.json
-  ├── fetch_map()           Mapbox Static Image → germany_raw.png
-  │   └── _map_overlay()   ImageMagick HUD + legend composite → germany.png
+  ├── fetch_map()           Mapbox Static Image → germany_raw.png   (raw only)
   ├── build_summary()       all sources → summary.json + touch .updated
+  ├── apply_map_overlay()   ImageMagick HUD + legend composite → germany.png
   └── build_pins_json()     quakes + flights + gdacs → Web Mercator pixel coords → pins.json
 
 on .updated change (FileView):
   threatwatch (no args) → tobar() → one-line bar string
 ```
+
+### tobar format
+
+`tobar()` emits a single line consumed by `ThreatWatchModel` as `barText`:
+
+```
+<level-icon> <quake-icon><count> <flight-icon><count> <gdacs-icon><count>
+```
+
+each category token is only included when its count is > 0. emergency squawks
+prefix the flight token with `!` (e.g. `✈!2`). when level is `info` and all
+counts are zero, an empty string is emitted so the widget hides the label.
+
+icons (Nerd Font md- set):
+
+| category | icon | notes |
+|---|---|---|
+| level critical | `󱡶` | |
+| level high | `󰒙` | |
+| level medium/low/info | `󱇎` / `󰒘` | |
+| earthquake | `󰈌` | seismograph waveform |
+| flight | `✈` | U+2708, universally present |
+| GDACS in-region alert | `󱠕` | alert triangle outline |
 
 ### earthquake source priority
 
@@ -334,6 +363,30 @@ the surface correctly.
 
 `qmldir` files use `#` for comments. `//` causes a "too many parameters" parse
 error in the Quickshell module loader. all other `.qml` files use `//`.
+
+### ToolTip attached properties don't render inside PanelWindow
+
+`ToolTip.visible` / `ToolTip.text` attached properties rely on
+`ApplicationWindow`'s overlay layer to render the floating tooltip surface.
+`PanelWindow` has no `ApplicationWindow` — the overlay layer does not exist, so
+the tooltip is silently never drawn.
+
+fix: use an inline `Rectangle` + `Text` as a shared tooltip, positioned manually
+near the hovered item. `ThreatWatchPopup` uses a single `pinTooltip` Rectangle at
+`z: 20` shared by all pin hitboxes via `onContainsMouseChanged`.
+
+`ThreatWatchWidget` lives inside `Bar.qml`, which is itself inside a `PanelWindow`
+— but `ToolTip` attached properties work there because Quickshell wraps the bar
+content in an implicit `ApplicationWindow`-compatible context. the rule applies
+only to the *root* `PanelWindow` scene (the popup).
+
+### HoverHandler blocked by sibling MouseArea
+
+a `HoverHandler` nested inside an `Item` that also has a sibling `MouseArea`
+never fires — `MouseArea` swallows all pointer events including hover by default.
+
+fix: set `hoverEnabled: true` on the `MouseArea` and drive tooltip visibility from
+`containsMouse`. do not use a separate `HoverHandler`.
 
 ---
 

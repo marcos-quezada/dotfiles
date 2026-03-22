@@ -25,17 +25,17 @@ Singleton {
 
     // ── threat state — consumed by ThreatWatchWidget and ThreatWatchPopup ─────
 
-    // one-line bar string, e.g. "󰒙 HIGH M4.2 ✈3"
+    // one-line bar string, e.g. "󰒙 󰈌3 ✈2"
     property string barText: ""
 
     // current level: "info" | "low" | "medium" | "high" | "critical"
     property string level: "info"
 
-    // top-5 geopolitical market headlines — shown in icon tooltip
-    // each entry: "<prob>%  <title>", joined with newlines
-    property string headlines: ""
+    // full tooltip summary shown on bar hover — built by _refreshFromSummary()
+    // sections: level · quakes · flights · gdacs · markets · updated
+    property string tooltipText: "threatwatch — no data yet.\nmiddle-click to fetch."
 
-    // last update timestamp from summary.json — shown in icon tooltip
+    // last update timestamp from summary.json — "YYYY-MM-DD HH:MM UTC"
     property string updatedAt: ""
 
     // level → colour map — all widgets read this; never hardcode colours elsewhere
@@ -167,7 +167,7 @@ Singleton {
 
         // format "2025-01-15T14:32:00Z" → "2025-01-15 14:32 UTC"
         if (s.updated_at) {
-            var ts = s.updated_at.replace("T", " ").replace("Z", " UTC")
+            var ts = s.updated_at.replace("T", " ").replace("Z", "")
             root.updatedAt = ts.substring(0, 16) + " UTC"
         }
 
@@ -176,16 +176,61 @@ Singleton {
         root.mapWarn      = mb.warn || false
         root.mapHardLimit = root.mapRequests >= 48000
 
-        // top-5 geopolitical market headlines for the icon tooltip
-        var markets = s.poly_markets || []
-        var lines = []
-        for (var i = 0; i < Math.min(5, markets.length); i++) {
-            var m = markets[i]
-            lines.push(Math.round(m.prob_yes) + "%  " + m.title)
+        // ── build tooltip body ─────────────────────────────────────────────────
+        var parts = []
+
+        // level line
+        parts.push("Level: " + (s.threat_level || "info").toUpperCase())
+
+        // earthquakes — top quake + total count
+        var qcount = s.quake_count || 0
+        var tq = s.top_quake
+        if (qcount > 0 && tq) {
+            parts.push("Quakes: " + qcount + " — top M" + tq.mag + " " + tq.place)
+        } else if (qcount > 0) {
+            parts.push("Quakes: " + qcount)
         }
-        root.headlines = lines.length > 0
-            ? "Geopolitical markets:\n" + lines.join("\n")
-            : ""
+
+        // flights
+        var mil   = s.mil_count   || 0
+        var emerg = s.emerg_count || 0
+        if (emerg > 0) {
+            parts.push("Flights: " + mil + " military, " + emerg + " EMERGENCY squawk")
+        } else if (mil > 0) {
+            parts.push("Flights: " + mil + " military")
+        }
+
+        // GDACS in-region alerts
+        var gdacs = s.gdacs_alerts || []
+        var gdacsInRegion = gdacs.filter(function(a) {
+            return a.in_region && (a.level === "red" || a.level === "orange")
+        })
+        if (gdacsInRegion.length > 0) {
+            var gdacsLines = ["GDACS alerts in region:"]
+            for (var g = 0; g < Math.min(3, gdacsInRegion.length); g++) {
+                var a = gdacsInRegion[g]
+                gdacsLines.push("  [" + a.level.toUpperCase() + "] " + a.title)
+            }
+            parts.push(gdacsLines.join("\n"))
+        }
+
+        // geopolitical markets — top 5
+        var markets = s.poly_markets || []
+        if (markets.length > 0) {
+            var mktLines = ["Prediction markets:"]
+            for (var i = 0; i < Math.min(5, markets.length); i++) {
+                var m = markets[i]
+                mktLines.push("  " + Math.round(m.prob_yes) + "%  " + m.title)
+            }
+            parts.push(mktLines.join("\n"))
+        }
+
+        // updated timestamp
+        if (root.updatedAt !== "") {
+            parts.push("Updated: " + root.updatedAt)
+        }
+
+        root.tooltipText = parts.join("\n")
     }
 
     function _refreshPins() {

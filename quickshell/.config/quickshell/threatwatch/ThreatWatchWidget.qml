@@ -83,17 +83,8 @@ Item {
     // suppressed when warnZone is hovered so the two tooltips don't overlap.
     ToolTip.visible: widgetMouse.containsMouse && !warnZone.containsMouse
     ToolTip.delay:   600
-    ToolTip.timeout: 12000
-    ToolTip.text: {
-        var body = ThreatWatchModel.headlines !== ""
-            ? ThreatWatchModel.headlines
-            : (ThreatWatchModel.barText !== ""
-                ? ThreatWatchModel.barText
-                : "threatwatch — no data yet.\nmiddle-click to fetch.")
-        return ThreatWatchModel.updatedAt !== ""
-            ? body + "\nUpdated: " + ThreatWatchModel.updatedAt
-            : body
-    }
+    ToolTip.timeout: 15000
+    ToolTip.text:    ThreatWatchModel.tooltipText
 
     // warn badge hover zone — separate Item so it carries its own ToolTip.
     // sits over mapWarnBadge; inactive when the badge is hidden.

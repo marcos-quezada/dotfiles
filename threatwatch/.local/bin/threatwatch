@@ -800,6 +800,16 @@ build_summary() {
 }
 
 # ── tobar ─────────────────────────────────────────────────────────────────────
+# format: <level-icon> <quake-icon><count> <flight-icon><count> <gdacs-icon><count>
+# each category token only shown when count > 0.
+# emergency squawks prefix the flight token with ! e.g. ✈!2
+# silent (info, no events) emits empty string so the widget hides its label.
+#
+# icons used (nerd font md- set):
+#   level  : 󱡶 crit  󰒙 high  󱇎 med  󰒘 low/info
+#   quake  : 󰈌  (seismograph waveform)
+#   flight : ✈  (U+2708, universally present)
+#   gdacs  : 󱠕  (alert triangle outline)
 
 tobar() {
     [ -f "$SUMMARY_FILE" ] || return
@@ -807,28 +817,23 @@ tobar() {
     jq -r '
         . as $s
         | $s.threat_level as $level
+        | $s.quake_count  as $qcount
         | $s.mil_count    as $mil
         | $s.emerg_count  as $emerg
-        | $s.top_quake    as $q
 
-        # nerd font icons (md- set); plain ASCII fallbacks if your font lacks them
+        | ( [ $s.gdacs_alerts[] | select(.in_region==true and (.level=="red" or .level=="orange")) ] | length ) as $gdacs
+
         | {critical:"󱡶", high:"󰒙", medium:"󱇎", low:"󰒘", info:"󰒘"} as $icons
         | ($icons[$level] // "!") as $icon
 
         | [
-            if $level == "critical" then "CRIT" elif $level == "high" then "HIGH" else empty end,
-            if $emerg > 0 then "✈!\($emerg)" elif $mil > 0 then "✈\($mil)" else empty end,
-            if $q != null and ($q.mag >= 3.5) then "M\($q.mag)" else empty end,
-            ( [ $s.gdacs_alerts[] | select(.level=="red"   and .in_region==true) ] | length ) as $red
-            | ( [ $s.gdacs_alerts[] | select(.level=="orange" and .in_region==true) ] | length ) as $org
-            | if $red  > 0 then "!\($red)"   else empty end,
-            if ( ( [ $s.gdacs_alerts[] | select(.level=="orange" and .in_region==true) ] | length ) > 0
-                 and ( [ $s.gdacs_alerts[] | select(.level=="red" and .in_region==true) ] | length ) == 0 )
-               then "△\( [ $s.gdacs_alerts[] | select(.level=="orange" and .in_region==true) ] | length )"
-               else empty end
+            if $qcount  > 0 then "󰈌\($qcount)"  else empty end,
+            if $emerg   > 0 then "✈!\($emerg)"
+              elif $mil > 0 then "✈\($mil)"
+              else empty end,
+            if $gdacs   > 0 then "󱠕\($gdacs)"   else empty end
           ] as $parts
 
-        # emit nothing when level is info and there is nothing else to show
         | if ($level == "info" and ($parts | length) == 0) then ""
           else "\($icon) \($parts | join(" "))" | rtrimstr(" ")
           end

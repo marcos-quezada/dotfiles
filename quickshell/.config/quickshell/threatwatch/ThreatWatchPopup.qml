@@ -68,6 +68,41 @@ PanelWindow {
     // ── interactive pin overlay ───────────────────────────────────────────────
     // invisible hitboxes at pre-computed Web Mercator pixel positions from pins.json.
     // offset: left = x-12, top = y-30 so the hitbox bottom-centre sits on the pin tip.
+    //
+    // ToolTip attached properties don't render inside PanelWindow (no ApplicationWindow
+    // overlay layer). instead we use a single shared inline Rectangle tooltip that
+    // positions itself near whichever pin is currently hovered.
+
+    // shared pin tooltip — rendered above everything at z:20
+    Rectangle {
+        id: pinTooltip
+        visible: false
+        z:       20
+        color:   "#e8e8e8"
+        radius:  4
+        border.color: "#888888"
+        border.width: 1
+
+        property string tipText: ""
+        property real   pinX:    0
+        property real   pinY:    0
+
+        // position: prefer above the pin; clamp to popup bounds
+        x: Math.min(Math.max(pinX - width / 2, 4), popup.implicitWidth  - width  - 4)
+        y: Math.max(pinY - height - 6, 4)
+
+        width:  tipLabel.implicitWidth  + 16
+        height: tipLabel.implicitHeight + 10
+
+        Text {
+            id:          tipLabel
+            anchors.centerIn: parent
+            text:        pinTooltip.tipText
+            color:       "#1a1a1a"
+            font.pixelSize: 12
+            wrapMode:    Text.NoWrap
+        }
+    }
 
     Repeater {
         model: ThreatWatchModel.pins
@@ -82,19 +117,26 @@ PanelWindow {
 
             // single MouseArea handles both hover and click absorption.
             // hoverEnabled is required — without it containsMouse is always false.
-            // a separate HoverHandler would be blocked by this MouseArea anyway.
             MouseArea {
                 id:           pinMouse
                 width:        parent.width
                 height:       parent.height
                 hoverEnabled: true
-                onClicked:    mouse => { mouse.accepted = true }
-            }
 
-            ToolTip.visible: pinMouse.containsMouse
-            ToolTip.delay:   200
-            ToolTip.timeout: 15000
-            ToolTip.text:    modelData.title + "\n" + ThreatWatchModel.pinTypeLabel(modelData.type)
+                onContainsMouseChanged: {
+                    if (containsMouse) {
+                        pinTooltip.tipText  = modelData.title + "\n" + ThreatWatchModel.pinTypeLabel(modelData.type)
+                        // tip anchors to pin tip: centre of hitbox bottom, in popup coords
+                        pinTooltip.pinX = pinZone.x + pinZone.width  / 2
+                        pinTooltip.pinY = pinZone.y + pinZone.height
+                        pinTooltip.visible = true
+                    } else {
+                        pinTooltip.visible = false
+                    }
+                }
+
+                onClicked: mouse => { mouse.accepted = true }
+            }
         }
     }
 }
