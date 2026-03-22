@@ -1,6 +1,12 @@
 // ThreatWatchPopup.qml — map overlay panel with retroism win95 chrome.
 // must be instantiated at shell.qml root scope — cannot nest inside Bar's PanelWindow.
 // see docs/architecture.md for the Wayland layer constraint explanation.
+//
+// chrome modelled directly on PopupWindowFrame.qml from diinki/linux-retroism:
+//   - title bar: ColumnLayout of 4× horizontal 2px gradient lines flanking icon + label
+//   - border stack: 6 NewBorder/Rectangle layers replicating the win95 raised bevel
+//   - title bar height: 20px (matching retroism's hard-coded 20 offset throughout)
+//   - no accent-colour title bar — frame stays Config.colors.base throughout
 
 import QtQuick
 import QtQuick.Layouts
@@ -22,13 +28,11 @@ PanelWindow {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
     // germany.png is rendered at 1600×1560 @2x — display at half size.
-    // total height: 18 top margin + 22 title bar + 18 bottom margin + 780 map = 838.
-    // total width:  18 left margin + 800 map + 18 right margin = 836.
     // anchored top-right so the popup sits flush to the right edge just below the bar.
     // topMargin: 35 matches Bar.qml implicitHeight so it clears the bar surface.
     // ExclusionMode.Ignore means we must add the bar height manually.
-    implicitWidth:  836
-    implicitHeight: 838
+    implicitWidth:  800
+    implicitHeight: 820
     anchors {
         top:    true
         bottom: false
@@ -40,6 +44,8 @@ PanelWindow {
     color: "transparent"
 
     // ── retroism frame ────────────────────────────────────────────────────────
+    // modelled on PopupWindowFrame.qml. titleBarHeight matches the 20px offset
+    // used throughout that file's NewBorder stack.
 
     Rectangle {
         id: frame
@@ -68,119 +74,155 @@ PanelWindow {
             easing.type: Easing.InOutQuad
         }
 
-        // outer shadow border — bottom-right dark edge (win95 sunken outer rim)
-        NewBorder {
-            commonBorderWidth: 1
-            borderColor: Config.colors.shadow
-            zValue: 2
-        }
-
-        // outer highlight border — top-left light edge (win95 raised outer rim)
-        NewBorder {
-            commonBorder: false
-            lBorderwidth: 1
-            tBorderwidth: 1
-            rBorderwidth: 0
-            bBorderwidth: 0
-            borderColor: Config.colors.highlight
-            zValue: 3
-        }
-
-        // inner outline — 1px black rect inset 1px inside the outer bevel
-        Rectangle {
-            anchors.fill: parent
-            anchors.margins: 1
-            color: "transparent"
-            border.color: Config.colors.outline
-            border.width: 1
-            z: 1
-        }
+        // title bar height — must match the '20' literal in NewBorder top offsets below
+        readonly property int titleBarHeight: 20
 
         // ── title bar ─────────────────────────────────────────────────────────
+        // direct port of PopupWindowFrame.qml top-bar section.
+        // horizontal gradient lines (ColumnLayout of 4 rows) flank icon + label.
 
-        property int titleBarHeight: 22
-
-        Rectangle {
+        Item {
             id: titleBar
-            anchors.top:   parent.top
             anchors.left:  parent.left
             anchors.right: parent.right
-            anchors.margins: 4
-            height: frame.titleBarHeight
-            color: Config.colors.accent
+            anchors.top:   parent.top
+            implicitHeight: frame.titleBarHeight
 
-            // inner border on title bar — slight highlight top-left
-            NewBorder {
-                commonBorder: false
-                lBorderwidth: 1
-                tBorderwidth: 1
-                rBorderwidth: 0
-                bBorderwidth: 0
-                borderColor: Config.colors.highlight
-                zValue: 2
-            }
-            NewBorder {
-                commonBorder: false
-                lBorderwidth: 0
-                tBorderwidth: 0
-                rBorderwidth: 1
-                bBorderwidth: 1
-                borderColor: Config.colors.shadow
-                zValue: 2
-            }
+            RowLayout {
+                id: panelName
+                anchors.centerIn: parent
 
-            // centred title content
-            Item {
-                anchors.fill: parent
-                anchors.leftMargin:  6
-                anchors.rightMargin: 6
-
-                RowLayout {
-                    id:      titleRow
-                    anchors.centerIn: parent
-                    spacing: 4
-
-                    // left decorative bars — 4× 2px vertical lines
+                // left decorative column — 4× horizontal 2px lines with gradient
+                ColumnLayout {
+                    spacing: 1
                     Repeater {
                         model: 4
                         Rectangle {
-                            width:  2
-                            height: frame.titleBarHeight - 8
-                            color:  index < 2 ? Config.colors.highlight : Config.colors.shadow
+                            implicitHeight: 2
+                            implicitWidth:  100
+                            gradient: Gradient {
+                                orientation: Gradient.Horizontal
+                                GradientStop { position: 0.0; color: Config.colors.highlight }
+                                GradientStop { position: 0.5; color: Config.colors.highlight }
+                                GradientStop { position: 1.0; color: Config.colors.outline   }
+                            }
                         }
                     }
+                }
 
-                    // radar icon
-                    Text {
-                        text: "󱡣"
-                        color: Config.colors.base
-                        font.pixelSize: 12
-                        font.family:    fontMonaco.name
-                        verticalAlignment: Text.AlignVCenter
-                        Layout.alignment: Qt.AlignVCenter
-                    }
+                // radar icon
+                Text {
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment:   Text.AlignVCenter
+                    font.family:    fontMonaco.name
+                    font.pixelSize: 18
+                    opacity: 0.8
+                    text:  "󱡣"
+                    color: Config.colors.text
+                }
 
-                    // title label
-                    Text {
-                        text: "THREATWATCH"
-                        color: Config.colors.base
-                        font.pixelSize: 12
-                        font.family:    fontCharcoal.name
-                        verticalAlignment: Text.AlignVCenter
-                        Layout.alignment: Qt.AlignVCenter
-                    }
+                // title label
+                Text {
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment:   Text.AlignVCenter
+                    font.family:    fontCharcoal.name
+                    font.pixelSize: 12
+                    text:  "THREATWATCH"
+                    color: Config.colors.text
+                }
 
-                    // right decorative bars — 4× 2px vertical lines (mirrored)
+                // right decorative column — mirror of left
+                ColumnLayout {
+                    spacing: 1
                     Repeater {
                         model: 4
                         Rectangle {
-                            width:  2
-                            height: frame.titleBarHeight - 8
-                            color:  index < 2 ? Config.colors.shadow : Config.colors.highlight
+                            implicitHeight: 2
+                            implicitWidth:  100
+                            gradient: Gradient {
+                                orientation: Gradient.Horizontal
+                                GradientStop { position: 0.0; color: Config.colors.highlight }
+                                GradientStop { position: 0.5; color: Config.colors.highlight }
+                                GradientStop { position: 1.0; color: Config.colors.outline   }
+                            }
                         }
                     }
                 }
             }
+        }
+
+        // ── border stack (exact retroism NewBorder pattern) ───────────────────
+        // see PopupWindowFrame.qml "Window Frame" section.
+        // the thick sides (10) bleed outside the frame rectangle via negative anchors.
+        // the inner outlines use negative borderwidth values to inset instead of bleed.
+
+        // highlight: left thin, right+top+bottom thick — raised left edge
+        NewBorder {
+            commonBorder: false
+            lBorderwidth: 1
+            rBorderwidth: 10
+            tBorderwidth: 10
+            bBorderwidth: 10
+            zValue: 0
+            borderColor: Config.colors.highlight
+        }
+
+        // shadow: left+top thick, right+bottom thin — lowered right edge
+        NewBorder {
+            commonBorder: false
+            lBorderwidth: 10
+            rBorderwidth: 1
+            tBorderwidth: 10
+            bBorderwidth: 1
+            zValue: 0
+            borderColor: Config.colors.shadow
+        }
+
+        // top-only outline strip — solid outline across the top
+        NewBorder {
+            commonBorder: false
+            lBorderwidth: 0
+            rBorderwidth: 0
+            tBorderwidth: 10
+            bBorderwidth: 0
+            zValue: 0
+            borderColor: Config.colors.outline
+        }
+
+        // inner inset outline — bleeds inside by 7px + titleBarHeight on top, 50% opacity
+        NewBorder {
+            commonBorder: false
+            lBorderwidth: -7
+            rBorderwidth: -7
+            tBorderwidth: -7 - frame.titleBarHeight
+            bBorderwidth: -7
+            zValue: 0
+            opacity: 0.5
+            borderColor: Config.colors.outline
+        }
+
+        // inner inset outline — slightly further, 20% opacity (softer halo)
+        NewBorder {
+            commonBorder: false
+            lBorderwidth: -8
+            rBorderwidth: -8
+            tBorderwidth: -8 - frame.titleBarHeight
+            bBorderwidth: -8
+            zValue: 0
+            opacity: 0.2
+            borderColor: Config.colors.outline
+        }
+
+        // innerOutline box — solid 1px border inset 6px + titleBarHeight on top
+        Rectangle {
+            anchors {
+                fill:        parent
+                margins:     6
+                topMargin:   6 + frame.titleBarHeight
+            }
+            color:        "transparent"
+            border.width: 1
+            border.color: Config.colors.outline
         }
 
         // ── map content area ──────────────────────────────────────────────────
@@ -188,14 +230,14 @@ PanelWindow {
         Item {
             id: contentArea
             anchors {
-                top:    titleBar.bottom
-                left:   parent.left
-                right:  parent.right
-                bottom: parent.bottom
-                topMargin:    4
-                leftMargin:   4
-                rightMargin:  4
-                bottomMargin: 4
+                top:         titleBar.bottom
+                left:        parent.left
+                right:       parent.right
+                bottom:      parent.bottom
+                topMargin:   6
+                leftMargin:  6
+                rightMargin: 6
+                bottomMargin: 6
             }
 
             // map image — fills the content area
@@ -215,12 +257,11 @@ PanelWindow {
             }
 
             // ── interactive pin overlay ───────────────────────────────────────
-            // invisible hitboxes at pre-computed Web Mercator pixel positions from pins.json.
+            // invisible hitboxes at pre-computed Web Mercator pixel positions.
             // offset: left = x-12, top = y-30 so the hitbox bottom-centre sits on the pin tip.
             //
             // ToolTip attached properties don't render inside PanelWindow (no ApplicationWindow
-            // overlay layer). instead we use a single shared inline Rectangle tooltip that
-            // positions itself near whichever pin is currently hovered.
+            // overlay layer). instead we use a single shared inline Rectangle tooltip.
 
             // shared pin tooltip — rendered above everything at z:20
             Rectangle {
@@ -274,7 +315,7 @@ PanelWindow {
 
                         onContainsMouseChanged: {
                             if (containsMouse) {
-                                pinTooltip.tipText  = modelData.title + "\n" + ThreatWatchModel.pinTypeLabel(modelData.type)
+                                pinTooltip.tipText = modelData.title + "\n" + ThreatWatchModel.pinTypeLabel(modelData.type)
                                 // tip anchors to pin tip: centre of hitbox bottom, in content area coords
                                 pinTooltip.pinX = pinZone.x + pinZone.width  / 2
                                 pinTooltip.pinY = pinZone.y + pinZone.height
@@ -288,21 +329,6 @@ PanelWindow {
                     }
                 }
             }
-        }
-
-        // inner outline at content boundary — subtle inset border below title bar
-        Rectangle {
-            anchors {
-                top:    titleBar.bottom
-                left:   parent.left
-                right:  parent.right
-                bottom: parent.bottom
-                margins: 4
-            }
-            color: "transparent"
-            border.color: Qt.rgba(0, 0, 0, 0.25)
-            border.width: 1
-            z: 5
         }
     }
 
