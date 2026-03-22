@@ -19,7 +19,8 @@ Scope {
       source: "fonts/Charcoal.ttf"
   }
   Taskbar.Bar {}
-  // popup must live at root scope — WlrLayershell surfaces cannot be nested inside Bar's PanelWindow
+  // popups must live at root scope — WlrLayershell surfaces cannot be nested inside Bar's PanelWindow
   ThreatWatch.ThreatWatchPopup {}
+  ThreatWatch.ThreatWatchMarketsPopup {}
 
 }

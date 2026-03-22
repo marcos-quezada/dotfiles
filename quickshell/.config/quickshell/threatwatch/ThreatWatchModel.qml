@@ -31,12 +31,14 @@ Singleton {
     // current level: "info" | "low" | "medium" | "high" | "critical"
     property string level: "info"
 
-    // full tooltip summary shown on bar hover — built by _refreshFromSummary()
-    // sections: level · quakes · flights · gdacs · markets · updated
-    property string tooltipText: "threatwatch — no data yet.\nmiddle-click to fetch."
-
     // last update timestamp from summary.json — "YYYY-MM-DD HH:MM UTC"
     property string updatedAt: ""
+
+    // parsed poly_markets array — [{prob_yes, title}, …] — consumed by ThreatWatchMarketsPopup
+    property var markets: []
+
+    // markets popup visibility — widget writes, popup reads
+    property bool marketsExpanded: false
 
     // level → colour map — all widgets read this; never hardcode colours elsewhere
     // colours chosen for legibility on the light (#d8d8d8) default bar base
@@ -79,18 +81,6 @@ Singleton {
 
         onExited: (code, signal) => {
             tobarProc.running = true
-        }
-    }
-
-    // debug dump — prints full summary JSON to stdout (right-click)
-    Process {
-        id: dataProc
-        command: [root.scriptPath, "data"]
-
-        stdout: SplitParser {
-            onRead: data => {
-                console.log("[ThreatWatch data]", data)
-            }
         }
     }
 
@@ -141,12 +131,7 @@ Singleton {
         }
     }
 
-    // dump full summary JSON to stdout (right-click / debug)
-    function dumpData() {
-        dataProc.running = true
-    }
-
-    // human-readable pin category — used by ThreatWatchPopup tooltips
+    // human-readable pin category — used by ThreatWatchPopup pin labels
     function pinTypeLabel(type) {
         if (type === "quake")     return "Earthquake"
         if (type === "military")  return "Military aircraft"
@@ -176,61 +161,8 @@ Singleton {
         root.mapWarn      = mb.warn || false
         root.mapHardLimit = root.mapRequests >= 48000
 
-        // ── build tooltip body ─────────────────────────────────────────────────
-        var parts = []
-
-        // level line
-        parts.push("Level: " + (s.threat_level || "info").toUpperCase())
-
-        // earthquakes — top quake + total count
-        var qcount = s.quake_count || 0
-        var tq = s.top_quake
-        if (qcount > 0 && tq) {
-            parts.push("Quakes: " + qcount + " — top M" + tq.mag + " " + tq.place)
-        } else if (qcount > 0) {
-            parts.push("Quakes: " + qcount)
-        }
-
-        // flights
-        var mil   = s.mil_count   || 0
-        var emerg = s.emerg_count || 0
-        if (emerg > 0) {
-            parts.push("Flights: " + mil + " military, " + emerg + " EMERGENCY squawk")
-        } else if (mil > 0) {
-            parts.push("Flights: " + mil + " military")
-        }
-
-        // GDACS in-region alerts
-        var gdacs = s.gdacs_alerts || []
-        var gdacsInRegion = gdacs.filter(function(a) {
-            return a.in_region && (a.level === "red" || a.level === "orange")
-        })
-        if (gdacsInRegion.length > 0) {
-            var gdacsLines = ["GDACS alerts in region:"]
-            for (var g = 0; g < Math.min(3, gdacsInRegion.length); g++) {
-                var a = gdacsInRegion[g]
-                gdacsLines.push("  [" + a.level.toUpperCase() + "] " + a.title)
-            }
-            parts.push(gdacsLines.join("\n"))
-        }
-
-        // geopolitical markets — top 5
-        var markets = s.poly_markets || []
-        if (markets.length > 0) {
-            var mktLines = ["Prediction markets:"]
-            for (var i = 0; i < Math.min(5, markets.length); i++) {
-                var m = markets[i]
-                mktLines.push("  " + Math.round(m.prob_yes) + "%  " + m.title)
-            }
-            parts.push(mktLines.join("\n"))
-        }
-
-        // updated timestamp
-        if (root.updatedAt !== "") {
-            parts.push("Updated: " + root.updatedAt)
-        }
-
-        root.tooltipText = parts.join("\n")
+        // store raw markets array for ThreatWatchMarketsPopup
+        root.markets = s.poly_markets || []
     }
 
     function _refreshPins() {
