@@ -386,12 +386,25 @@ fetch_map() {
             printf '  Map: WARNING — approaching Mapbox free tier limit (%d/50000).\n' "$NEW_COUNT"
             printf '       Set MAP_MIN_INTERVAL=86400 (daily) to reduce usage.\n'
         fi
-        _map_overlay "$MAP_RAW" "$MAP_FILE" \
-            && printf '  Map: overlay applied → %s\n' "$MAP_FILE" \
-            || { cp "$MAP_RAW" "$MAP_FILE"; printf '  Map: overlay skipped (no magick), raw map saved.\n'; }
+        # store the raw path in a flag file so apply_map_overlay knows to run
+        printf '%s\n' "$MAP_RAW" > "$CACHE_DIR/.map_raw_ready"
     else
         printf '  Map: fetch failed (check MAPBOX_TOKEN or network).\n'
     fi
+}
+
+# apply overlay onto the raw map fetched by fetch_map.
+# called after build_summary so the HUD reflects the current run's data.
+# safe to call even if no raw map was fetched this run (flag file check).
+apply_map_overlay() {
+    FLAG="$CACHE_DIR/.map_raw_ready"
+    [ -f "$FLAG" ] || return 0
+    MAP_RAW=$(cat "$FLAG")
+    rm -f "$FLAG"
+    [ -f "$MAP_RAW" ] || return 0
+    _map_overlay "$MAP_RAW" "$MAP_FILE" \
+        && printf '  Map: overlay applied → %s\n' "$MAP_FILE" \
+        || { cp "$MAP_RAW" "$MAP_FILE"; printf '  Map: overlay skipped (no magick), raw map saved.\n'; }
 }
 
 # ── map overlay ───────────────────────────────────────────────────────────────
@@ -940,6 +953,7 @@ map_only() {
         MAP_MIN_INTERVAL=0
     fi
     fetch_map
+    apply_map_overlay
 }
 
 # ── mapbox usage ──────────────────────────────────────────────────────────────
@@ -1113,8 +1127,9 @@ update() {
     fetch_gdacs
     fetch_flights
     fetch_polymarket
-    fetch_map
-    build_summary
+    fetch_map          # fetches raw PNG from Mapbox, writes .map_raw_ready flag
+    build_summary      # writes summary.json with current run's data
+    apply_map_overlay  # composites HUD onto raw PNG using the fresh summary.json
     build_pins_json
     printf '=== Done ===\n'
 }

@@ -30,25 +30,6 @@ Item {
             font.pixelSize: Config.settings.bar.fontSize
             font.family:    fontMonaco.name
             verticalAlignment: Text.AlignVCenter
-
-            ToolTip.visible: iconHover.hovered
-            ToolTip.delay:   600
-            ToolTip.timeout: 12000
-            ToolTip.text: {
-                var body = ThreatWatchModel.headlines !== ""
-                    ? ThreatWatchModel.headlines
-                    : (ThreatWatchModel.barText !== ""
-                        ? ThreatWatchModel.barText
-                        : "threatwatch — no data yet.\nmiddle-click to fetch.")
-                return ThreatWatchModel.updatedAt !== ""
-                    ? body + "\nUpdated: " + ThreatWatchModel.updatedAt
-                    : body
-            }
-
-            HoverHandler {
-                id: iconHover
-                cursorShape: Qt.PointingHandCursor
-            }
         }
 
         // threat label — hidden when cache is cold; colour tracks level via binding
@@ -72,33 +53,16 @@ Item {
             font.pixelSize: Config.settings.bar.fontSize
             font.family:    fontMonaco.name
             verticalAlignment: Text.AlignVCenter
-
-            ToolTip.visible: warnHover.hovered
-            ToolTip.delay:   400
-            ToolTip.timeout: 12000
-            ToolTip.text:    ThreatWatchModel.mapHardLimit
-                ? "Mapbox hard limit reached (" + ThreatWatchModel.mapRequests + "/50,000).\n" +
-                  "Map fetches paused until next month.\n" +
-                  "To keep maps updating, increase MAP_MIN_INTERVAL in config.env\n" +
-                  "or rotate to a fresh free token."
-                : "Mapbox approaching free tier (" + ThreatWatchModel.mapRequests + "/50,000 this month).\n" +
-                  "Default: 6h interval = ~120 req/month (well within limits).\n" +
-                  "If you see this, you may have run many manual tests.\n\n" +
-                  "To reduce usage, set in config.env:\n" +
-                  "  MAP_MIN_INTERVAL=86400   # daily = ~30 req/month\n\n" +
-                  "To check usage:  threatwatch mapbox\n" +
-                  "To force a map:  threatwatch map --force"
-
-            HoverHandler { id: warnHover }
         }
     }
 
-    // click handler — fills the outer Item, not a layout sibling, so it gets
-    // the correct geometry. propagateComposedEvents lets child HoverHandlers fire.
+    // root click + hover handler. hoverEnabled: true lets containsMouse work for
+    // the icon tooltip. no HoverHandler children — MouseArea owns pointer events.
     MouseArea {
-        anchors.fill: parent
+        id:              widgetMouse
+        anchors.fill:    parent
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
-        propagateComposedEvents: true
+        hoverEnabled:    true
 
         onClicked: mouse => {
             if (mouse.button === Qt.LeftButton) {
@@ -113,5 +77,56 @@ Item {
             }
             mouse.accepted = true
         }
+    }
+
+    // icon tooltip — shown on hover over the whole widget (except warn badge zone).
+    // suppressed when warnZone is hovered so the two tooltips don't overlap.
+    ToolTip.visible: widgetMouse.containsMouse && !warnZone.containsMouse
+    ToolTip.delay:   600
+    ToolTip.timeout: 12000
+    ToolTip.text: {
+        var body = ThreatWatchModel.headlines !== ""
+            ? ThreatWatchModel.headlines
+            : (ThreatWatchModel.barText !== ""
+                ? ThreatWatchModel.barText
+                : "threatwatch — no data yet.\nmiddle-click to fetch.")
+        return ThreatWatchModel.updatedAt !== ""
+            ? body + "\nUpdated: " + ThreatWatchModel.updatedAt
+            : body
+    }
+
+    // warn badge hover zone — separate Item so it carries its own ToolTip.
+    // sits over mapWarnBadge; inactive when the badge is hidden.
+    Item {
+        id:      warnZoneItem
+        visible: ThreatWatchModel.mapWarn
+        x:       mapWarnBadge.x
+        y:       mapWarnBadge.y
+        width:   mapWarnBadge.width
+        height:  mapWarnBadge.height
+        z:       1
+
+        MouseArea {
+            id:              warnZone
+            anchors.fill:    parent
+            hoverEnabled:    true
+            acceptedButtons: Qt.NoButton   // don't consume clicks — fall through to widgetMouse
+        }
+
+        ToolTip.visible: warnZone.containsMouse
+        ToolTip.delay:   400
+        ToolTip.timeout: 12000
+        ToolTip.text:    ThreatWatchModel.mapHardLimit
+            ? "Mapbox hard limit reached (" + ThreatWatchModel.mapRequests + "/50,000).\n" +
+              "Map fetches paused until next month.\n" +
+              "To keep maps updating, increase MAP_MIN_INTERVAL in config.env\n" +
+              "or rotate to a fresh free token."
+            : "Mapbox approaching free tier (" + ThreatWatchModel.mapRequests + "/50,000 this month).\n" +
+              "Default: 6h interval = ~120 req/month (well within limits).\n" +
+              "If you see this, you may have run many manual tests.\n\n" +
+              "To reduce usage, set in config.env:\n" +
+              "  MAP_MIN_INTERVAL=86400   # daily = ~30 req/month\n\n" +
+              "To check usage:  threatwatch mapbox\n" +
+              "To force a map:  threatwatch map --force"
     }
 }

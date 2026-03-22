@@ -80,17 +80,18 @@ PanelWindow {
             height: 30
             z:      10
 
-            // absorb click so background MouseArea does not close the popup;
-            // explicit width/height instead of anchors.fill avoids layout warning
+            // single MouseArea handles both hover and click absorption.
+            // hoverEnabled is required — without it containsMouse is always false.
+            // a separate HoverHandler would be blocked by this MouseArea anyway.
             MouseArea {
-                width:  parent.width
-                height: parent.height
-                onClicked: mouse => { mouse.accepted = true }
+                id:           pinMouse
+                width:        parent.width
+                height:       parent.height
+                hoverEnabled: true
+                onClicked:    mouse => { mouse.accepted = true }
             }
 
-            HoverHandler { id: pinHover }
-
-            ToolTip.visible: pinHover.hovered
+            ToolTip.visible: pinMouse.containsMouse
             ToolTip.delay:   200
             ToolTip.timeout: 15000
             ToolTip.text:    modelData.title + "\n" + ThreatWatchModel.pinTypeLabel(modelData.type)
