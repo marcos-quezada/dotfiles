@@ -2,11 +2,13 @@
 // must be instantiated at shell.qml root scope — cannot nest inside Bar's PanelWindow.
 // see docs/architecture.md for the Wayland layer constraint explanation.
 //
-// chrome modelled directly on PopupWindowFrame.qml from diinki/linux-retroism:
+// chrome ported from PopupWindowFrame.qml (diinki/linux-retroism) with improvements:
 //   - title bar: ColumnLayout of 4× horizontal 2px gradient lines flanking icon + label
-//   - border stack: 6 NewBorder/Rectangle layers replicating the win95 raised bevel
-//   - title bar height: 20px (matching retroism's hard-coded 20 offset throughout)
-//   - no accent-colour title bar — frame stays Config.colors.base throughout
+//   - gradient orientation: Horizontal (retroism uses Vertical which is invisible at 2px)
+//   - border stack: 6-layer NewBorder/Rectangle win95 bevel, zValue:10 (retroism uses 0,
+//     which lets content paint over the chrome — fixed here)
+//   - duplicate gradient ColumnLayout extracted to inline component GradientBars
+//   - window size: 800×780 — chrome insets into that space, map stretches to fill
 
 import QtQuick
 import QtQuick.Layouts
@@ -32,7 +34,7 @@ PanelWindow {
     // topMargin: 35 matches Bar.qml implicitHeight so it clears the bar surface.
     // ExclusionMode.Ignore means we must add the bar height manually.
     implicitWidth:  800
-    implicitHeight: 820
+    implicitHeight: 780
     anchors {
         top:    true
         bottom: false
@@ -78,8 +80,28 @@ PanelWindow {
         readonly property int titleBarHeight: 20
 
         // ── title bar ─────────────────────────────────────────────────────────
-        // direct port of PopupWindowFrame.qml top-bar section.
+        // ported from PopupWindowFrame.qml top-bar section.
         // horizontal gradient lines (ColumnLayout of 4 rows) flank icon + label.
+        // improvement over retroism: Gradient.Horizontal so the fade runs along
+        // the 100px width instead of the 2px height where it would be invisible.
+
+        // reusable gradient bar column — avoids duplicating the Repeater+Gradient block
+        component GradientBars: ColumnLayout {
+            spacing: 1
+            Repeater {
+                model: 4
+                Rectangle {
+                    implicitHeight: 2
+                    implicitWidth:  100
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop { position: 0.0; color: Config.colors.highlight }
+                        GradientStop { position: 0.5; color: Config.colors.highlight }
+                        GradientStop { position: 1.0; color: Config.colors.outline   }
+                    }
+                }
+            }
+        }
 
         Item {
             id: titleBar
@@ -92,23 +114,7 @@ PanelWindow {
                 id: panelName
                 anchors.centerIn: parent
 
-                // left decorative column — 4× horizontal 2px lines with gradient
-                ColumnLayout {
-                    spacing: 1
-                    Repeater {
-                        model: 4
-                        Rectangle {
-                            implicitHeight: 2
-                            implicitWidth:  100
-                            gradient: Gradient {
-                                orientation: Gradient.Horizontal
-                                GradientStop { position: 0.0; color: Config.colors.highlight }
-                                GradientStop { position: 0.5; color: Config.colors.highlight }
-                                GradientStop { position: 1.0; color: Config.colors.outline   }
-                            }
-                        }
-                    }
-                }
+                GradientBars {}
 
                 // radar icon
                 Text {
@@ -131,30 +137,17 @@ PanelWindow {
                     color: Config.colors.text
                 }
 
-                // right decorative column — mirror of left
-                ColumnLayout {
-                    spacing: 1
-                    Repeater {
-                        model: 4
-                        Rectangle {
-                            implicitHeight: 2
-                            implicitWidth:  100
-                            gradient: Gradient {
-                                orientation: Gradient.Horizontal
-                                GradientStop { position: 0.0; color: Config.colors.highlight }
-                                GradientStop { position: 0.5; color: Config.colors.highlight }
-                                GradientStop { position: 1.0; color: Config.colors.outline   }
-                            }
-                        }
-                    }
-                }
+                GradientBars {}
             }
         }
 
-        // ── border stack (exact retroism NewBorder pattern) ───────────────────
-        // see PopupWindowFrame.qml "Window Frame" section.
-        // the thick sides (10) bleed outside the frame rectangle via negative anchors.
-        // the inner outlines use negative borderwidth values to inset instead of bleed.
+        // ── border stack ──────────────────────────────────────────────────────
+        // ported from PopupWindowFrame.qml "Window Frame" section.
+        // thick sides (10) bleed outside frame via negative anchors in NewBorder.
+        // inner outlines use negative borderwidth values to sit inside the frame.
+        //
+        // improvement over retroism: zValue raised to 10 so the chrome always
+        // renders above the map image (contentArea is at default z:0).
 
         // highlight: left thin, right+top+bottom thick — raised left edge
         NewBorder {
@@ -163,7 +156,7 @@ PanelWindow {
             rBorderwidth: 10
             tBorderwidth: 10
             bBorderwidth: 10
-            zValue: 0
+            zValue: 10
             borderColor: Config.colors.highlight
         }
 
@@ -174,7 +167,7 @@ PanelWindow {
             rBorderwidth: 1
             tBorderwidth: 10
             bBorderwidth: 1
-            zValue: 0
+            zValue: 10
             borderColor: Config.colors.shadow
         }
 
@@ -185,36 +178,37 @@ PanelWindow {
             rBorderwidth: 0
             tBorderwidth: 10
             bBorderwidth: 0
-            zValue: 0
+            zValue: 10
             borderColor: Config.colors.outline
         }
 
-        // inner inset outline — bleeds inside by 7px + titleBarHeight on top, 50% opacity
+        // inner inset outline — sits 7px inside + titleBarHeight below top, 50% opacity
         NewBorder {
             commonBorder: false
             lBorderwidth: -7
             rBorderwidth: -7
             tBorderwidth: -7 - frame.titleBarHeight
             bBorderwidth: -7
-            zValue: 0
+            zValue: 10
             opacity: 0.5
             borderColor: Config.colors.outline
         }
 
-        // inner inset outline — slightly further, 20% opacity (softer halo)
+        // inner inset outline — 1px further in, 20% opacity (softer inner halo)
         NewBorder {
             commonBorder: false
             lBorderwidth: -8
             rBorderwidth: -8
             tBorderwidth: -8 - frame.titleBarHeight
             bBorderwidth: -8
-            zValue: 0
+            zValue: 10
             opacity: 0.2
             borderColor: Config.colors.outline
         }
 
         // innerOutline box — solid 1px border inset 6px + titleBarHeight on top
         Rectangle {
+            z: 10
             anchors {
                 fill:        parent
                 margins:     6
