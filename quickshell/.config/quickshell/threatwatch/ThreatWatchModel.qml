@@ -34,12 +34,6 @@ Singleton {
     // last update timestamp from summary.json — "YYYY-MM-DD HH:MM UTC"
     property string updatedAt: ""
 
-    // parsed poly_markets array — [{prob_yes, title}, …] — consumed by ThreatWatchMarketsPopup
-    property var markets: []
-
-    // markets popup visibility — widget writes, popup reads
-    property bool marketsExpanded: false
-
     // level → colour map — all widgets read this; never hardcode colours elsewhere
     // colours chosen for legibility on the light (#d8d8d8) default bar base
     readonly property var levelColors: ({

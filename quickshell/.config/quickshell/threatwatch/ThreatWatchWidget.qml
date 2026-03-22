@@ -1,6 +1,9 @@
 // ThreatWatchWidget.qml — bar button: icon + threat label + mapbox warn badge.
 // pure view — all state comes from ThreatWatchModel. see docs/architecture.md.
 // slots into SysTray.qml RowLayout before ClockWidget.
+//
+// interactions:
+//   left click — toggle ThreatWatchPopup (map overlay)
 
 import QtQuick
 import QtQuick.Layouts
@@ -55,24 +58,12 @@ Item {
         }
     }
 
-    // click handler.
-    //   left   — toggle map popup
-    //   middle — trigger full data + map update
-    //   right  — toggle markets popup
     MouseArea {
-        id:              widgetMouse
         anchors.fill:    parent
-        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+        acceptedButtons: Qt.LeftButton
 
-        onClicked: mouse => {
-            if (mouse.button === Qt.LeftButton) {
-                ThreatWatchModel.mapExpanded = !ThreatWatchModel.mapExpanded
-            } else if (mouse.button === Qt.MiddleButton) {
-                ThreatWatchModel.triggerUpdate()
-            } else if (mouse.button === Qt.RightButton) {
-                ThreatWatchModel.marketsExpanded = !ThreatWatchModel.marketsExpanded
-            }
-            mouse.accepted = true
+        onClicked: {
+            ThreatWatchModel.mapExpanded = !ThreatWatchModel.mapExpanded
         }
     }
 }

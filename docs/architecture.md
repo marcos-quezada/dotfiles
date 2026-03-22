@@ -14,16 +14,21 @@ Quickshell.screens }`.
 
 ```
 shell.qml
-├── Taskbar.Bar               — PanelWindow, WlrLayer.Bottom, spans all monitors
-│   ├── workspacesPanel       — left side: sway workspace switcher
-│   └── trayPanel             — right side: SysTray row
+├── Taskbar.Bar          — PanelWindow, WlrLayer.Bottom, spans all monitors
+│   ├── workspacesPanel  — left side: sway workspace switcher
+│   └── trayPanel        — right side: SysTray row
 │       ├── ThreatWatchWidget
 │       └── ClockWidget
-├── ThreatWatch.ThreatWatchPopup         — map panel (left-click)
-└── ThreatWatch.ThreatWatchMarketsPopup  — markets panel (right-click)
+└── ThreatWatch.ThreatWatchPopup  — PanelWindow, WlrLayer.Overlay (see below)
 ```
 
-### why ThreatWatchPopup and ThreatWatchMarketsPopup live in shell.qml, not Bar.qml
+### widget interactions
+
+| action | result |
+|---|---|
+| left click | toggle `ThreatWatchPopup` (map overlay with HUD) |
+
+### why ThreatWatchPopup lives in shell.qml, not Bar.qml
 
 Wayland protocol forbids nesting `WlrLayershell` surfaces. a `PanelWindow` is a
 layershell surface; you cannot place one inside another. attempting it parses
@@ -33,15 +38,13 @@ the popup also needs a different layer (`WlrLayer.Overlay`) than the bar
 (`WlrLayer.Bottom`). these are compositor-level concepts — they cannot share a
 parent object.
 
-solution: instantiate `ThreatWatchPopup` and `ThreatWatchMarketsPopup` once each
-at root scope in `shell.qml`, alongside `Taskbar.Bar`. visibility is driven by
-`ThreatWatchModel.mapExpanded` and `ThreatWatchModel.marketsExpanded` respectively,
-so the widget in the bar can still toggle either with a single property write.
+solution: instantiate `ThreatWatchPopup` once at root scope in `shell.qml`,
+alongside `Taskbar.Bar`. visibility is driven by `ThreatWatchModel.mapExpanded`
+so the widget in the bar can toggle it with a single property write.
 
 ### popup position: top-right, just below the bar
 
-both `ThreatWatchPopup` (map) and `ThreatWatchMarketsPopup` (markets) are anchored
-to the top-right corner of the screen using:
+the popup is anchored to the top-right corner of the screen:
 
 ```qml
 anchors { top: true; right: true }
@@ -84,10 +87,10 @@ base config. see https://quickshell.org/docs/v0.2.1/guide/qml-language/#singleto
 
 ### what belongs in the model vs the view
 
-| model (`ThreatWatchModel`) | view (`ThreatWatchWidget`, `ThreatWatchPopup`, `ThreatWatchMarketsPopup`) |
+| model (`ThreatWatchModel`) | view (`ThreatWatchWidget`, `ThreatWatchPopup`) |
 |---|---|
-| `Process`, `Timer`, `FileView` | `Text`, `Rectangle`, `Image`, `ListView` |
-| parsed state (`level`, `barText`, `pins`, `markets`, `updatedAt`) | layout, colours, click handlers |
+| `Process`, `Timer`, `FileView` | `Text`, `Rectangle`, `Image` |
+| parsed state (`level`, `barText`, `pins`, `updatedAt`) | layout, colours, click handlers |
 | `triggerUpdate()` | reads model properties via QML binding |
 | no visual items whatsoever | no network/process/timer logic |
 
@@ -119,10 +122,6 @@ misses a key when the JSON is pretty-printed or field order changes.
 | `updated_at` | `root.updatedAt` | ISO `"2025-01-15T14:32:00Z"` → `"2025-01-15 14:32 UTC"` (16 chars + suffix) |
 | `mapbox.requests_this_month` | `root.mapRequests` | |
 | `mapbox.warn` | `root.mapWarn` | |
-| `poly_markets` | `root.markets` | raw array `[{prob_yes, title}, …]`; rendered by `ThreatWatchMarketsPopup` |
-
-`_refreshFromSummary` stores each field directly on the singleton. `ThreatWatchMarketsPopup`
-binds to `root.markets` and builds its own `ListView` rows — no string pre-formatting in the model.
 
 `mapHardLimit` is derived: `root.mapRequests >= 48000` (no field in JSON —
 computed locally to avoid a stale value if the script resets the counter).
@@ -144,7 +143,7 @@ this one object. changing a colour requires editing exactly one line.
 ### data flow
 
 ```
-every 6h (or on middle-click):
+every 6h (or on demand via triggerUpdate()):
 
   threatwatch update
   ├── fetch_earthquakes()   EMSC primary → USGS supplementary → merge/dedup → quakes.json
@@ -159,6 +158,10 @@ every 6h (or on middle-click):
 on .updated change (FileView):
   threatwatch (no args) → tobar() → one-line bar string
 ```
+
+`threatwatch update` is the single atomic command used by both the Quickshell
+auto-refresh timer and any future manual trigger. it always runs the full sequence:
+fetch → summary → overlay → pins.
 
 ### tobar format
 
@@ -250,7 +253,8 @@ image_y  = 390 + (global_y - center_global_y)
 ```
 
 result written to `pins.json`. `ThreatWatchPopup` places invisible hitboxes at
-these coordinates for hover tooltips without requiring an interactive map.
+these coordinates that absorb clicks (preventing accidental map dismissal on pin
+areas). no tooltips — labels are baked into the map overlay by ImageMagick.
 
 ### mapbox pin slot budget
 
@@ -313,6 +317,17 @@ Text {
 
 `QtQuick.Controls` must be imported for the attached properties to resolve.
 
+### ToolTip attached properties don't render inside PanelWindow
+
+`ToolTip.visible` / `ToolTip.text` attached properties rely on
+`ApplicationWindow`'s overlay layer to render the floating tooltip surface.
+`PanelWindow` has no `ApplicationWindow` — the overlay layer does not exist, so
+the tooltip is silently never drawn.
+
+fix: use an inline `Rectangle` + `Text` as a shared tooltip, positioned manually
+near the hovered item. `ThreatWatchPopup` uses a single `pinTooltip` Rectangle at
+`z: 20` shared by all pin hitboxes via `onContainsMouseChanged`.
+
 ### MouseArea inside a RowLayout sibling gets zero geometry
 
 a `MouseArea` placed as a **sibling** to other children inside a `RowLayout`
@@ -364,41 +379,12 @@ the surface correctly.
 `qmldir` files use `#` for comments. `//` causes a "too many parameters" parse
 error in the Quickshell module loader. all other `.qml` files use `//`.
 
-### ThreatWatchWidget click interactions
-
-| button | action |
-|---|---|
-| left click | toggle map popup (`ThreatWatchModel.mapExpanded`) |
-| middle click | trigger full data + map update (`triggerUpdate()`) |
-| right click | toggle markets popup (`ThreatWatchModel.marketsExpanded`) |
-
-no `ToolTip` attached properties on the widget — the bar lives inside a
-`PanelWindow` where `ToolTip` can appear, but to keep interactions simple and
-consistent with the popup pattern, all information is surfaced through the two
-dedicated popup panels.
-
-### ToolTip attached properties don't render inside PanelWindow
-
-`ToolTip.visible` / `ToolTip.text` attached properties rely on
-`ApplicationWindow`'s overlay layer to render the floating tooltip surface.
-`PanelWindow` has no `ApplicationWindow` — the overlay layer does not exist, so
-the tooltip is silently never drawn.
-
-fix: use an inline `Rectangle` + `Text` as a shared tooltip, positioned manually
-near the hovered item. `ThreatWatchPopup` uses a single `pinTooltip` Rectangle at
-`z: 20` shared by all pin hitboxes via `onContainsMouseChanged`.
-
-`ThreatWatchWidget` lives inside `Bar.qml`, which is itself inside a `PanelWindow`
-— but `ToolTip` attached properties work there because Quickshell wraps the bar
-content in an implicit `ApplicationWindow`-compatible context. the rule applies
-only to the *root* `PanelWindow` scene (the popup).
-
 ### HoverHandler blocked by sibling MouseArea
 
 a `HoverHandler` nested inside an `Item` that also has a sibling `MouseArea`
 never fires — `MouseArea` swallows all pointer events including hover by default.
 
-fix: set `hoverEnabled: true` on the `MouseArea` and drive tooltip visibility from
+fix: set `hoverEnabled: true` on the `MouseArea` and drive visibility from
 `containsMouse`. do not use a separate `HoverHandler`.
 
 ---
