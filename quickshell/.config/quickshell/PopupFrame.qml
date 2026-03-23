@@ -13,13 +13,8 @@
 // callers animate visibility via chrome.open() / chrome.close().
 // the content area is inset: top = titleBarHeight + 6px, sides/bottom = 6px.
 //
-// gradient direction: left bars are solid highlight for the outer half, then fade
-// to outline at the inner edge (toward the icon). right bars mirror this — outline
-// at the inner edge fading out to solid highlight on the outer half.
-// the 0.5 mid-stop holds the flat colour for the first half so only the inner
-// portion tapers — matching the retroism reference title bar style.
-// using Gradient.Horizontal on 2px-tall strips — vertical (the qt default) is
-// invisible at that height because the two pixel rows end up the same colour.
+// title bar decoration: 4 × 2px solid strips either side of the icon/title,
+// filled with Config.colors.highlight for a uniform flat look.
 
 import QtQuick
 import QtQuick.Layouts
@@ -69,16 +64,13 @@ Rectangle {
         easing.type: Easing.InOutQuad
     }
 
-    // ── gradient bar component ────────────────────────────────────────────────
-    // 4 × 2px horizontal strips with a horizontal colour gradient.
-    // colorStart/colorEnd are set per-instance so left and right sides mirror.
+    // ── title bar decoration strips ───────────────────────────────────────────
+    // 4 × 2px solid horizontal strips filling the available width either side
+    // of the icon and title text.
 
-    component GradientBars: Item {
-        id: gbRoot
+    component DecoStrips: Item {
         Layout.fillWidth: true
         implicitHeight: col.implicitHeight
-        property color colorStart: Config.colors.highlight
-        property color colorEnd:   Config.colors.outline
 
         ColumnLayout {
             id: col
@@ -88,14 +80,9 @@ Rectangle {
             Repeater {
                 model: 4
                 Rectangle {
-                    Layout.fillWidth:  true
-                    implicitHeight: 2
-                    gradient: Gradient {
-                        orientation: Gradient.Horizontal
-                        GradientStop { position: 0.0; color: gbRoot.colorStart }
-                        GradientStop { position: 0.5; color: gbRoot.colorStart }
-                        GradientStop { position: 1.0; color: gbRoot.colorEnd   }
-                    }
+                    Layout.fillWidth: true
+                    implicitHeight:   2
+                    color: Config.colors.highlight
                 }
             }
         }
@@ -114,11 +101,8 @@ Rectangle {
             anchors.fill: parent
             spacing: 4
 
-            // left bars: highlight (outer-left) → outline (inner-right toward icon)
-            GradientBars {
-                colorStart: Config.colors.highlight
-                colorEnd:   Config.colors.outline
-            }
+            // left strips
+            DecoStrips {}
 
             Text {
                 horizontalAlignment: Text.AlignHCenter
@@ -139,11 +123,8 @@ Rectangle {
                 color: Config.colors.text
             }
 
-            // right bars: outline (inner-left toward icon) → highlight (outer-right)
-            GradientBars {
-                colorStart: Config.colors.outline
-                colorEnd:   Config.colors.highlight
-            }
+            // right strips
+            DecoStrips {}
         }
     }
 
