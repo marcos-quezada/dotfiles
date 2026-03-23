@@ -96,7 +96,7 @@ _resolve_theme() {
         neon)
             # neon — dark panel with vivid accent colours; pairs with retro style B.
             # L6 and soft lines use TH_TEXT_MID so the mapbox req count is readable.
-            _TH_MAPBOX_STYLE="mqu3zada/cmn36n4yr007j01r59srzb2ej"
+            _TH_MAPBOX_STYLE="mqu3zada/cmn36jwmq000b01qw6l3405n1"
             TH_PANEL_FILL="rgba(6,8,14,0.90)"
             TH_BORDER_COL="#00e5ff"
             TH_TEXT_DARK="#e8f4f8"
@@ -341,22 +341,30 @@ fetch_map() {
         return 0
     fi
 
-    # skip if the cached map is still fresh enough
+    # skip if the cached map is still fresh enough AND was fetched with the same style
+    MAP_STYLE_FILE="$CACHE_DIR/.map_style"
     if [ -f "$MAP_FILE" ]; then
-        # stat -f %m on BSD/macOS, stat -c %Y on Linux
-        if stat -f %m "$MAP_FILE" >/dev/null 2>&1; then
-            MTIME=$(stat -f %m "$MAP_FILE" 2>/dev/null || echo 0)
+        # invalidate immediately if the style has changed since the last fetch
+        CACHED_STYLE=$(cat "$MAP_STYLE_FILE" 2>/dev/null || echo "")
+        if [ "$CACHED_STYLE" != "$MAPBOX_STYLE" ]; then
+            printf '  Map: style changed (%s → %s) — cache invalidated.\n' \
+                "$CACHED_STYLE" "$MAPBOX_STYLE"
         else
-            MTIME=$(stat -c %Y "$MAP_FILE" 2>/dev/null || echo 0)
-        fi
-        NOW=$(date +%s)
-        AGE=$(( NOW - MTIME ))
-        if [ "$AGE" -lt "$MAP_MIN_INTERVAL" ]; then
-            REMAINING=$(( MAP_MIN_INTERVAL - AGE ))
-            printf '  Map: skipped — cached map is %ds old (min interval %ds, %ds remaining).\n' \
-                "$AGE" "$MAP_MIN_INTERVAL" "$REMAINING"
-            printf '       Use MAP_MIN_INTERVAL=0 to force a refresh.\n'
-            return 0
+            # stat -f %m on BSD/macOS, stat -c %Y on Linux
+            if stat -f %m "$MAP_FILE" >/dev/null 2>&1; then
+                MTIME=$(stat -f %m "$MAP_FILE" 2>/dev/null || echo 0)
+            else
+                MTIME=$(stat -c %Y "$MAP_FILE" 2>/dev/null || echo 0)
+            fi
+            NOW=$(date +%s)
+            AGE=$(( NOW - MTIME ))
+            if [ "$AGE" -lt "$MAP_MIN_INTERVAL" ]; then
+                REMAINING=$(( MAP_MIN_INTERVAL - AGE ))
+                printf '  Map: skipped — cached map is %ds old (min interval %ds, %ds remaining).\n' \
+                    "$AGE" "$MAP_MIN_INTERVAL" "$REMAINING"
+                printf '       Use MAP_MIN_INTERVAL=0 to force a refresh.\n'
+                return 0
+            fi
         fi
     fi
 
@@ -467,8 +475,10 @@ fetch_map() {
             printf '  Map: WARNING — approaching Mapbox free tier limit (%d/50000).\n' "$NEW_COUNT"
             printf '       Set MAP_MIN_INTERVAL=86400 (daily) to reduce usage.\n'
         fi
-        # store the raw path in a flag file so apply_map_overlay knows to run
+        # store the raw path in a flag file so apply_map_overlay knows to run.
+        # also write the style fingerprint so the next run can detect style changes.
         printf '%s\n' "$MAP_RAW" > "$CACHE_DIR/.map_raw_ready"
+        printf '%s' "$MAPBOX_STYLE" > "$MAP_STYLE_FILE"
     else
         printf '  Map: fetch failed (check MAPBOX_TOKEN or network).\n'
     fi
