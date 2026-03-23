@@ -44,7 +44,7 @@
 	defaultBranch = main
 
 [alias]
-  lool = log --pretty=format:"%C(bold 3)%h%C(reset) %C(7)%s%C(2)%d%C(reset) %C(1)[%an]%C(reset)" --graph --date=short
+  lool = log --pretty=format:"%C(bold)%C(3)%h%C(reset) %C(7)%s%C(2)%d%C(reset) %C(1)[%an]%C(reset)" --graph --date=short
 	lol = log --graph --date=short --oneline --abbrev-commit --all --graph --decorate -1
   ll = log --graph --date=short --oneline --abbrev-commit --all --graph --decorate -10
   cfw = "!git-clone-bare-for-worktrees"
