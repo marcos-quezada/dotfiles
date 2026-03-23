@@ -69,25 +69,23 @@ Rectangle {
 
     // ── gradient bar component ────────────────────────────────────────────────
     // 4 × 2px horizontal strips with a horizontal colour gradient.
-    // orientation is set per-instance so left and right sides can mirror each other.
+    // colorStart/colorEnd are set per-instance so left and right sides mirror.
 
     component GradientBars: ColumnLayout {
         id: gbRoot
         spacing: 1
-        // Gradient.Horizontal = 1, Gradient.Vertical = 0
-        property int   orientation: Gradient.Horizontal
-        property color colorStart:  Config.colors.highlight
-        property color colorEnd:    Config.colors.outline
+        Layout.fillWidth: true   // expand to fill available title bar space
+        property color colorStart: Config.colors.highlight
+        property color colorEnd:   Config.colors.outline
 
         Repeater {
             model: 4
             Rectangle {
                 implicitHeight: 2
-                implicitWidth:  100
+                Layout.fillWidth: true   // each strip stretches to the ColumnLayout width
                 gradient: Gradient {
-                    orientation: gbRoot.orientation
+                    orientation: Gradient.Horizontal
                     GradientStop { position: 0.0; color: gbRoot.colorStart }
-                    GradientStop { position: 0.5; color: gbRoot.colorStart }
                     GradientStop { position: 1.0; color: gbRoot.colorEnd   }
                 }
             }
@@ -109,9 +107,8 @@ Rectangle {
 
             // left bars: highlight (outer-left) → outline (inner-right toward icon)
             GradientBars {
-                orientation: Gradient.Horizontal
-                colorStart:  Config.colors.highlight
-                colorEnd:    Config.colors.outline
+                colorStart: Config.colors.highlight
+                colorEnd:   Config.colors.outline
             }
 
             // icon
@@ -137,9 +134,8 @@ Rectangle {
 
             // right bars: outline (inner-left toward icon) → highlight (outer-right)
             GradientBars {
-                orientation: Gradient.Horizontal
-                colorStart:  Config.colors.outline
-                colorEnd:    Config.colors.highlight
+                colorStart: Config.colors.outline
+                colorEnd:   Config.colors.highlight
             }
         }
     }
