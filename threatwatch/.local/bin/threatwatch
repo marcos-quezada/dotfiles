@@ -95,7 +95,17 @@ _resolve_theme() {
     case "$_t" in
         neon)
             # neon — near-black panel, vivid accent colours; pairs with the neon map style.
-            # military pins use hot magenta (ff00cc) — blue pins vanish on the blue-dominant map.
+            # map dominant colours (sampled from histogram):
+            #   land     #1f1a1d  — near-black
+            #   sea/bg   #224466  — dark navy
+            #   yellow   #bfbc0e  — dim olive-yellow roads
+            #   orange   #b34d22  — burnt orange highways
+            #   green    #639f19  — olive green labels
+            #   cyan     #0dc0ca  — teal water features
+            #   violet   #9f25c7  — bright purple rail
+            #   indigo   #553499  — dark blue rail
+            # every pin is chosen to be maximally distinct from all of the above
+            # AND from every other pin in the set.
             _TH_MAPBOX_STYLE="mqu3zada/cmn36jwmq000b01qw6l3405n1"
             TH_PANEL_FILL="rgba(6,8,14,0.90)"
             TH_BORDER_COL="#00e5ff"
@@ -108,14 +118,14 @@ _resolve_theme() {
             TH_LEVEL_MEDIUM="#ffdd00"
             TH_LEVEL_LOW="#44ff88"
             TH_LEVEL_INFO="#00e5ff"
-            TH_PIN_EMERG="00ffcc"
-            TH_PIN_MIL="ff00cc"       # hot magenta — contrasts against the blue map palette
-            TH_PIN_GDACS_RED="ff2244"
-            TH_PIN_GDACS_ORG="ff8800"
-            TH_PIN_Q_CRIT="ff2244"
-            TH_PIN_Q_HIGH="ff6600"
-            TH_PIN_Q_MED="ffaa00"
-            TH_PIN_Q_LOW="88cc44"
+            TH_PIN_EMERG="ffffff"     # white     — nothing on map is white
+            TH_PIN_MIL="ff00cc"       # hot pink  — no map element is this hue
+            TH_PIN_GDACS_RED="ff2200" # pure red  — far brighter/redder than burnt orange #b34d22
+            TH_PIN_GDACS_ORG="ff88ff" # pale orchid — distinct from magenta mil and red gdacs
+            TH_PIN_Q_CRIT="ff2200"    # pure red  — loudest, same family as gdacs red
+            TH_PIN_Q_HIGH="ffee00"    # neon yellow — far more saturated than dim olive #bfbc0e
+            TH_PIN_Q_MED="00ff88"     # neon mint  — completely different from olive green #639f19
+            TH_PIN_Q_LOW="44aaff"     # sky blue   — lighter/more saturated than navy #224466 and teal #0dc0ca
             TH_LEG_TEXT="#e8f4f8"
             ;;
         vintage|*)
@@ -1073,6 +1083,22 @@ map_only() {
     apply_map_overlay
 }
 
+# ── overlay only ─────────────────────────────────────────────────────────────
+# re-renders the HUD onto the existing raw map — no Mapbox call, no rate limit hit.
+# useful when only the theme or data has changed.
+
+overlay_only() {
+    mkdir -p "$CACHE_DIR"
+    MAP_RAW="$CACHE_DIR/germany_raw.png"
+    if [ ! -f "$MAP_RAW" ]; then
+        printf '  Overlay: no raw map found at %s — run: threatwatch map --force\n' "$MAP_RAW"
+        return 1
+    fi
+    _map_overlay "$MAP_RAW" "$MAP_FILE" \
+        && printf '  Map: overlay applied → %s\n' "$MAP_FILE" \
+        || { cp "$MAP_RAW" "$MAP_FILE"; printf '  Map: overlay skipped (no magick), raw map saved.\n'; }
+}
+
 # ── mapbox usage ──────────────────────────────────────────────────────────────
 
 mapbox_usage() {
@@ -1254,12 +1280,13 @@ update() {
 # ── main ──────────────────────────────────────────────────────────────────────
 
 case "${1:-}" in
-    u|update)   update   ;;
-    n|notify)   notify   ;;
-    d|data)     data     ;;
-    f|flights)  flights  ;;
-    m|map)      map_only "${2:-}" ;;
-    mb|mapbox)  mapbox_usage ;;
+    u|update)    update        ;;
+    n|notify)    notify        ;;
+    d|data)      data          ;;
+    f|flights)   flights       ;;
+    m|map)       map_only "${2:-}" ;;
+    o|overlay)   overlay_only  ;;
+    mb|mapbox)   mapbox_usage  ;;
     h|help)
         printf 'Usage: threatwatch [command]\n\n'
         printf 'Commands:\n'
@@ -1270,6 +1297,7 @@ case "${1:-}" in
         printf '  flights       Print military aircraft currently over Germany\n'
         printf '  map           Regenerate map PNG (respects rate limit)\n'
         printf '  map --force   Regenerate map PNG, bypass interval guard\n'
+        printf '  overlay       Re-render HUD onto cached raw map (no Mapbox call)\n'
         printf '  mapbox        Show Mapbox free-tier usage for this month\n'
         printf '  help          This help\n\n'
         printf 'Config (env vars):\n'
