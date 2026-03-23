@@ -47,7 +47,7 @@
 	defaultBranch = main
 
 [alias]
-  lool = !git -c color.ui=always log --pretty=tformat:"%Cgreen%h%Creset %s%Cblue%d%Creset [%an]" --graph --date=short
+  lool = log --color=always --pretty=tformat:"%Cgreen%h%Creset%x20%s%Cblue%d%Creset%x20[%an]" --graph --date=short
 	lol = log --graph --date=short --oneline --abbrev-commit --all --graph --decorate -1
   ll = log --graph --date=short --oneline --abbrev-commit --all --graph --decorate -10
   cfw = "!git-clone-bare-for-worktrees"
