@@ -71,22 +71,28 @@ Rectangle {
     // 4 × 2px horizontal strips with a horizontal colour gradient.
     // colorStart/colorEnd are set per-instance so left and right sides mirror.
 
-    component GradientBars: ColumnLayout {
+    component GradientBars: Item {
         id: gbRoot
-        spacing: 1
-        Layout.fillWidth: true   // expand to fill available title bar space
+        Layout.fillWidth: true
+        implicitHeight: col.implicitHeight
         property color colorStart: Config.colors.highlight
         property color colorEnd:   Config.colors.outline
 
-        Repeater {
-            model: 4
-            Rectangle {
-                implicitHeight: 2
-                Layout.fillWidth: true   // each strip stretches to the ColumnLayout width
-                gradient: Gradient {
-                    orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: gbRoot.colorStart }
-                    GradientStop { position: 1.0; color: gbRoot.colorEnd   }
+        ColumnLayout {
+            id: col
+            anchors.fill: parent
+            spacing: 1
+
+            Repeater {
+                model: 4
+                Rectangle {
+                    Layout.fillWidth:  true
+                    implicitHeight: 2
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop { position: 0.0; color: gbRoot.colorStart }
+                        GradientStop { position: 1.0; color: gbRoot.colorEnd   }
+                    }
                 }
             }
         }
@@ -102,7 +108,7 @@ Rectangle {
         implicitHeight: root.titleBarHeight
 
         RowLayout {
-            anchors.centerIn: parent
+            anchors.fill: parent
             spacing: 4
 
             // left bars: highlight (outer-left) → outline (inner-right toward icon)
