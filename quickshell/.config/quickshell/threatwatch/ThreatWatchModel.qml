@@ -168,9 +168,10 @@ Singleton {
     // ── init ──────────────────────────────────────────────────────────────────
 
     Component.onCompleted: {
-        // seed from cache immediately; timer handles first real update at refreshInterval
-        tobarProc.running = true
+        // seed from cache immediately, then kick a full update — script skips
+        // the map fetch if cache is still fresh (MAP_MIN_INTERVAL check)
         root._refreshFromSummary()
         root._refreshPins()
+        root.triggerUpdate()
     }
 }
