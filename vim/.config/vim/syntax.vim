@@ -1,36 +1,41 @@
-" configure vim syntax and colorscheme
-
-" if &t_Co == 256 "for vim only
+" ── true colour ──────────────────────────────────────────────────────────────
+" only enable termguicolors when the terminal actually supports 24-bit colour;
+" without this guard, colours break on terminals that only support 256 colours.
 if $COLORTERM == "truecolor" || $COLORTERM == "24bit"
-  set termguicolors       " enable true color support
-  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum" " tmux true color support
-  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum" " tmux true color support
+    set termguicolors                          " enable 24-bit RGB colour
+    let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"   " tmux foreground true colour sequence
+    let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"   " tmux background true colour sequence
 endif
 
-syntax on
-set background=dark     " background color (light|dark)
-let g:one_allow_italics = 1
+" ── theme ─────────────────────────────────────────────────────────────────────
+" catppuccin is managed via vim's native package system (~/.vim/pack/).
+" run vim/install.sh to fetch it on a new machine.
+set background=dark
+colorscheme catppuccin_mocha
 
+" ── lsp ───────────────────────────────────────────────────────────────────────
+" yegappan/lsp is managed via vim's native package system (~/.vim/pack/).
+" run vim/install.sh to fetch it on a new machine.
 packadd lsp
 
-" Register the qmlls server for QML files
+" register qmlls as the language server for QML files
 call LspAddServer([#{
-    \   name: 'qmlls',
+    \   name:     'qmlls',
     \   filetype: 'qml',
-    \   path: 'qmlls6',
-    \   args: ['--build-dir', 'build']
+    \   path:     'qmlls6',
+    \   args:     ['--build-dir', 'build']
     \ }])
 
-" LSP Keybindings for yegappan/lsp
-nnoremap <leader>gd :LspGotoDefinition<CR>
-nnoremap <leader>gr :LspPeekReferences<CR>
-nnoremap <leader>gi :LspPeekImplementation<CR>
-nnoremap <leader>gt :LspPeekTypedef<CR>
-nnoremap <leader>rn :LspRename<CR>
-nnoremap <leader>ca :LspCodeAction<CR>
-nnoremap K :LspHover<CR>
+" ── lsp keymaps ───────────────────────────────────────────────────────────────
+nnoremap <leader>gd :LspGotoDefinition<CR>    " go to definition
+nnoremap <leader>gr :LspPeekReferences<CR>    " peek references
+nnoremap <leader>gi :LspPeekImplementation<CR> " peek implementation
+nnoremap <leader>gt :LspPeekTypedef<CR>       " peek type definition
+nnoremap <leader>rn :LspRename<CR>            " rename symbol
+nnoremap <leader>ca :LspCodeAction<CR>        " code actions
+nnoremap K          :LspHover<CR>             " hover documentation
 
-" Diagnostic navigation
-nnoremap [d :LspDiag prev<CR>
-nnoremap ]d :LspDiag next<CR>
-nnoremap <leader>df :LspDiag show<CR>
+" ── diagnostic navigation ─────────────────────────────────────────────────────
+nnoremap [d :LspDiag prev<CR>                 " jump to previous diagnostic
+nnoremap ]d :LspDiag next<CR>                 " jump to next diagnostic
+nnoremap <leader>df :LspDiag show<CR>         " show diagnostics for current file

@@ -1,82 +1,79 @@
-""""""""""""""""""""
-" SETTINGS SECTION "
-""""""""""""""""""""
+" ── general ──────────────────────────────────────────────────────────────────
+let mapleader = " "                    " leader key: Space
+set nobackup                           " don't create backup files; use VCS instead
+set autoread                           " reload file when changed on disk
+set hidden                             " allow switching buffers without saving
+set history=5000                       " command/search history depth
+set exrc                               " load project-local .vimrc files
+set secure                             " prevent local .vimrc from running shell commands
+set sessionoptions-=options            " don't save options into session files
+set sessionoptions-=blank              " don't save empty windows into session files
+set clipboard=unnamed                  " yank/paste use the OS clipboard
 
-" General config
-let mapleader = " "                   " set leader to Space
-set ai cindent sw=2			              " indentation
-set backspace=indent,eol,start        " modern text editor bckspc h
-set expandtab				                  " convert tabs to spaces
-set exrc				                      " source .vimrc files in project dirs
-set secure                            " prevent sourced files from running shell commands
-set foldmethod=syntax			            " folding (manual, indent, syntax, expr, marker, diff)
-set hidden				                    " allow unsaved hidden buffers
-set history=5000			                " number of items to keep in history
-set hlsearch				                  " highlight search
-set listchars=tab:▸\ ,eol:¬,space:. 	" custom symbols for hidden characters
-set mouse=  				                  " disable mouse support
-set noequalalways			                " do not resize window on close
-set nu 				                        " add line numbers
-set path+=**				                  " search subfolders (find, ...)
-set ruler				                      " show cursor position
-set sessionoptions-=options		        " do not save options in session
-set sessionoptions-=blank		          " do not save empty options in buffer
-set showcmd				                    " show command in status bar
-set sm					                      " color matching braces/parenthesis
-set t_vb=				                      " no viasual bell
-set ts=2 sts=2    			              " TAB width
-set completeopt=menu,menuone,noinsert	" show only menu for completion (no preview)
-set pumheight=20			                " maximum menu height
-set fillchars+=vert:\ 			          " use space as vertical script
-set fillchars+=eob:\ 			            " use space as end of buffer (-) character
-set signcolumn=number			            " show signs in number column
-set nocursorline			                " hidecursorline highlight
+" ── ui ────────────────────────────────────────────────────────────────────────
+set number                             " line numbers
+set signcolumn=number                  " show git/lsp signs inside the number column
+set ruler                              " show cursor position in status bar
+set showcmd                            " show partial command in status bar
+set showmode                           " show current mode (INSERT, VISUAL, …)
+set scrolloff=5                        " keep at least 5 lines visible above/below cursor
+set nocursorline                       " no full-row highlight under cursor
+set noequalalways                      " don't auto-resize all splits when opening/closing one
+set fillchars+=vert:\                  " blank vertical split separator (no pipe character)
+set fillchars+=eob:\                   " blank end-of-buffer indicator (no tildes)
+set pumheight=20                       " cap autocomplete popup at 20 entries
 
-" netrw/Explore (almost) like NERDTree
-let g:netrw_banner = 0
-let g:netrw_liststyle = 3
-let g:netwr_browse_split = 4
-let g:netwr_altv = 1
-let g:netrw_winsize = 25
-
-syntax on               " enable syntax highlighting
-" set background=dark   " darker color scheme
-set nobackup            " don't create pointless backup files; Use VCS instead
-set autoread            " watch for file changes
-set showmode            " show INSERT, VISUAL, etc. mode
-set smarttab            " better backspace and tab functionality
-set scrolloff=5         " show at least 5 lines above/below
-filetype on             " enable filetype detection
-filetype indent on      " enable filetype-specific indenting
-filetype plugin on      " enable filetype-specific plugins
-" colorscheme cobalt      " requires cobalt.vim to be in ~/.vim/colors
-
-" column-width visual indication
+" column overflow guide starting at col 81
 let &colorcolumn=join(range(81,999),",")
 highlight ColorColumn ctermbg=235 guibg=#001D2F
 
-" tabs and indenting
-set tabstop=2           " 2 spaces for tabs
+" ── search ────────────────────────────────────────────────────────────────────
+set hlsearch                           " highlight all search matches
+set showmatch                          " briefly jump to matching bracket on insert
 
-" other
-set guioptions=aAace    " don't show scrollbar in MacVim
-" call pathogen#infect()  " use pathogen
+" ── indentation ───────────────────────────────────────────────────────────────
+set expandtab                          " use spaces instead of tab characters
+set ts=2 sts=2 sw=2                    " tab width / soft tab / shift width: all 2 spaces
+set ai si                              " autoindent + smartindent
+set smarttab                           " backspace over indent in multiples of shiftwidth
 
-" clipboard
-set clipboard=unnamed   " allow yy, etc. to interact with OS X clipboard
+" ── editing ───────────────────────────────────────────────────────────────────
+set backspace=indent,eol,start         " backspace works across indent, line breaks, and insert start
+set path+=**                           " recursive file search (powers :find)
+set foldmethod=syntax                  " fold blocks using language syntax rules
+set completeopt=menu,menuone,noinsert  " autocomplete: show menu, don't auto-insert
+set mouse=                             " disable mouse (keep terminal copy/paste behaviour)
 
-" shortcuts
-map <F2> :NERDTreeToggle<CR>
+" ── visual helpers ────────────────────────────────────────────────────────────
+set listchars=tab:▸\ ,trail:-,extends:>,precedes:<,nbsp:+
+                                       " symbols for invisible characters (active with :set list)
 
-" remapped keys
-inoremap {      {}<Left>
-inoremap {<CR>  {<CR>}<Esc>O
-inoremap {{     {
-inoremap {}     {}
+" ── filetypes ─────────────────────────────────────────────────────────────────
+filetype on                            " enable filetype detection
+filetype indent on                     " filetype-specific indentation rules
+filetype plugin on                     " filetype-specific plugins
 
-""""""""""""""""""""
-" Included configs "
-""""""""""""""""""""
+" ── bells ─────────────────────────────────────────────────────────────────────
+set noerrorbells                       " no audio bell on errors
+set visualbell                         " use visual bell instead (intercepted below)
+set t_vb=                              " clear visual bell terminal code — total silence
 
-" other config files
+" ── netrw (built-in file explorer) ────────────────────────────────────────────
+" configured to behave like a lightweight NERDTree sidebar
+let g:netrw_banner      = 0           " hide the banner
+let g:netrw_liststyle   = 3           " tree view
+let g:netrw_browse_split = 4          " open files in the previous window
+let g:netrw_altv        = 1           " open vertical splits to the right
+let g:netrw_winsize     = 25          " sidebar takes 25% of screen width
+
+" ── keymaps ───────────────────────────────────────────────────────────────────
+map  <F2>      :Lexplore<CR>          " toggle file explorer sidebar
+" auto-close curly braces
+inoremap {     {}<Left>
+inoremap {<CR> {<CR>}<Esc>O
+inoremap {{    {
+inoremap {}    {}
+
+" ── syntax / theme ────────────────────────────────────────────────────────────
+syntax on
 source ~/.config/vim/syntax.vim
