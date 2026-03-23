@@ -9,11 +9,17 @@ USGS_URL="https://earthquake.usgs.gov/fdsnws/event/1/query"
 GDACS_URL="https://www.gdacs.org/xml/rss.xml"
 OPENSKY_URL="https://opensky-network.org/api/states/all"
 POLYMARKET_URL="https://gamma-api.polymarket.com/events?limit=30&closed=false&tag_slug=politics"
-# mapbox style — override via MAPBOX_STYLE env var or config.env.
+# visual theme — controls HUD panel colours, text palette, pin colours, and
+# the paired mapbox map style. override via THREATWATCH_THEME in config.env.
+# built-in themes: vintage (default), neon
+# each theme also sets MAPBOX_STYLE unless the user overrides that separately.
+THREATWATCH_THEME="${THREATWATCH_THEME:-vintage}"
+
+# mapbox style — normally driven by THREATWATCH_THEME below; override via
+# MAPBOX_STYLE in config.env to decouple the style from the HUD theme.
 # format: {username}/{style_id}  (the path after mapbox://styles/)
-# custom styles from mapbox studio are fully supported.
-MAPBOX_STYLE="${MAPBOX_STYLE:-mapbox/dark-v11}"
-MAPBOX_BASE="https://api.mapbox.com/styles/v1/${MAPBOX_STYLE}/static"
+MAPBOX_STYLE="${MAPBOX_STYLE:-}"
+MAPBOX_BASE=""  # set after config is sourced, once THREATWATCH_THEME is resolved
 
 # mapbox token — free tier at https://account.mapbox.com, no credit card needed
 # set via env: export MAPBOX_TOKEN="pk.eyJ1..."
@@ -72,13 +78,78 @@ SUMMARY_FILE="$CACHE_DIR/summary.json"
 PINS_FILE="$CACHE_DIR/pins.json"
 
 # load secrets — never commit config.env, only config.env.template.
-# sourced after variable declarations so MAPBOX_TOKEN overrides the default "" above.
+# sourced after variable declarations so MAPBOX_TOKEN / THREATWATCH_THEME
+# from config.env override the defaults above.
 # the script works without config.env — map fetches are simply skipped.
 _conf="${XDG_CONFIG_HOME:-$HOME/.config}/threatwatch/config.env"
 if [ -f "$_conf" ]; then
     . "$_conf"
 fi
 unset _conf
+
+# resolve theme — sets TH_* palette variables and MAPBOX_STYLE (unless the
+# user already set MAPBOX_STYLE explicitly in config.env, which takes priority).
+# call order: after config.env is sourced, before any function that uses TH_*.
+_resolve_theme() {
+    _t="${THREATWATCH_THEME:-vintage}"
+    case "$_t" in
+        neon)
+            # neon — dark panel with vivid accent colours; pairs with retro style B.
+            # L6 and soft lines use TH_TEXT_MID so the mapbox req count is readable.
+            _TH_MAPBOX_STYLE="mqu3zada/cmn36n4yr007j01r59srzb2ej"
+            TH_PANEL_FILL="rgba(6,8,14,0.90)"
+            TH_BORDER_COL="#00e5ff"
+            TH_TEXT_DARK="#e8f4f8"
+            TH_TEXT_MID="#b0ccd4"
+            TH_TEXT_SOFT="#7a9aaa"
+            TH_TEXT_FAINT="#b0ccd4"   # same as mid — faint neon on dark is unreadable
+            TH_LEVEL_CRITICAL="#ff2266"
+            TH_LEVEL_HIGH="#ff8800"
+            TH_LEVEL_MEDIUM="#ffdd00"
+            TH_LEVEL_LOW="#44ff88"
+            TH_LEVEL_INFO="#00e5ff"
+            TH_PIN_EMERG="00ffcc"
+            TH_PIN_MIL="4466ff"
+            TH_PIN_GDACS_RED="ff2244"
+            TH_PIN_GDACS_ORG="ff8800"
+            TH_PIN_Q_CRIT="ff2244"
+            TH_PIN_Q_HIGH="ff6600"
+            TH_PIN_Q_MED="ffaa00"
+            TH_PIN_Q_LOW="88cc44"
+            TH_LEG_TEXT="#e8f4f8"
+            ;;
+        vintage|*)
+            # vintage — cream paper panel with dark ink; pairs with retro parchment style B.
+            # default for any unrecognised value too.
+            _TH_MAPBOX_STYLE="mqu3zada/cmn36n4yr007j01r59srzb2ej"
+            TH_PANEL_FILL="rgba(240,232,210,0.94)"
+            TH_BORDER_COL="#2a1a0a"
+            TH_TEXT_DARK="#1a120a"
+            TH_TEXT_MID="#3d2b1a"
+            TH_TEXT_SOFT="#5a3e28"
+            TH_TEXT_FAINT="#5a3e28"   # same as soft — darkest readable ink on cream
+            TH_LEVEL_CRITICAL="#7a1008"
+            TH_LEVEL_HIGH="#7a3208"
+            TH_LEVEL_MEDIUM="#6a4c08"
+            TH_LEVEL_LOW="#2e5218"
+            TH_LEVEL_INFO="#3a3028"
+            TH_PIN_EMERG="1a5f5a"
+            TH_PIN_MIL="2b3a5c"
+            TH_PIN_GDACS_RED="6e1a10"
+            TH_PIN_GDACS_ORG="7a3a08"
+            TH_PIN_Q_CRIT="6e1a10"
+            TH_PIN_Q_HIGH="8c3a10"
+            TH_PIN_Q_MED="7a5410"
+            TH_PIN_Q_LOW="5a5228"
+            TH_LEG_TEXT="#1a120a"
+            ;;
+    esac
+    # MAPBOX_STYLE: honour explicit override from config.env, else use theme default
+    [ -z "$MAPBOX_STYLE" ] && MAPBOX_STYLE="$_TH_MAPBOX_STYLE"
+    MAPBOX_BASE="https://api.mapbox.com/styles/v1/${MAPBOX_STYLE}/static"
+    unset _t _TH_MAPBOX_STYLE
+}
+_resolve_theme
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -294,53 +365,53 @@ fetch_map() {
     # ── pin slot budget ───────────────────────────────────────────────────────
     # mapbox caps at 10 pins total. we pre-reserve slots so military/squawk
     # always appear even when there are 10+ quakes in the bbox.
-    # all pins use plain filled teardrops (no icon name) — clean parchment look.
-    #   emergency squawks : up to 2  (deep teal  #1a5f5a)
-    #   military aircraft : up to 3  (slate blue #2b3a5c)
-    #   GDACS in-region   : up to 1  (burgundy/amber, pin-m)
-    #   earthquakes       : whatever's left (burgundy→sienna→ochre→olive)
+    # icon suffixes restored (-airfield, -danger) — help recognise event type.
+    # pin colours come from TH_PIN_* theme variables set by _resolve_theme.
+    #   emergency squawks : up to 2  (airfield icon)
+    #   military aircraft : up to 3  (airfield icon)
+    #   GDACS in-region   : up to 1  (star icon, pin-m)
+    #   earthquakes       : whatever's left (danger icon, size-graduated)
     PINS=""
     MAX_PINS=10
 
-    # emergency squawk pins — deep teal solid dot, max 2
-    # plain pin-s+COLOR (no icon name) = clean filled teardrop, fits parchment style
+    # emergency squawk pins — airfield icon, theme teal, max 2
     EMERG_PINS=""
     if [ -f "$FLIGHTS_FILE" ]; then
-        EMERG_PINS=$(jq -r --arg sq "$EMERG_SQUAWKS" '
+        EMERG_PINS=$(jq -r --arg sq "$EMERG_SQUAWKS" --arg col "$TH_PIN_EMERG" '
             .states // []
             | map(select(. != null))
             | map(select( (.[14] // "") | test($sq) ))
             | map(select( .[5] != null and .[6] != null ))
             | .[:2][]
-            | "pin-s+1a5f5a(\(.[5] | tostring),\(.[6] | tostring))"
+            | "pin-s-airfield+\($col)(\(.[5] | tostring),\(.[6] | tostring))"
         ' "$FLIGHTS_FILE" 2>/dev/null | tr '\n' ',')
     fi
 
-    # military aircraft pins — dark slate blue solid dot, max 3
+    # military aircraft pins — airfield icon, theme slate, max 3
     MIL_PINS=""
     if [ -f "$FLIGHTS_FILE" ]; then
-        MIL_PINS=$(jq -r --arg pats "$MIL_PREFIXES" '
+        MIL_PINS=$(jq -r --arg pats "$MIL_PREFIXES" --arg col "$TH_PIN_MIL" '
             .states // []
             | map(select(. != null))
             | map(select( (.[1] // "" | ltrimstr(" ") | rtrimstr(" ") | ascii_upcase) | test($pats) ))
             | map(select( .[5] != null and .[6] != null ))
             | .[:3][]
-            | "pin-s+2b3a5c(\(.[5] | tostring),\(.[6] | tostring))"
+            | "pin-s-airfield+\($col)(\(.[5] | tostring),\(.[6] | tostring))"
         ' "$FLIGHTS_FILE" 2>/dev/null | tr '\n' ',')
     fi
 
-    # GDACS in-region alerts — solid dot, burgundy/amber, max 1
+    # GDACS in-region alerts — star icon, theme red/orange, max 1
     GDACS_PINS=""
     if [ -f "$SUMMARY_FILE" ]; then
-        GDACS_PINS=$(jq -r '
+        GDACS_PINS=$(jq -r --arg red "$TH_PIN_GDACS_RED" --arg org "$TH_PIN_GDACS_ORG" '
             .gdacs_alerts // []
             | map(select(.in_region == true and .lat != null and .lon != null))
             | map(select(.level == "red" or .level == "orange"))
             | .[:1][]
             | (.lon | tostring) as $lon
             | (.lat | tostring) as $lat
-            | if .level == "red" then "pin-m+6e1a10(\($lon),\($lat))"
-              else "pin-m+7a3a08(\($lon),\($lat))"
+            | if .level == "red" then "pin-m-star+\($red)(\($lon),\($lat))"
+              else "pin-m-star+\($org)(\($lon),\($lat))"
               end
         ' "$SUMMARY_FILE" 2>/dev/null | tr '\n' ',')
     fi
@@ -357,20 +428,22 @@ fetch_map() {
 
     # earthquake pins — fill remaining slots, highest magnitude first
     # size graduation: pin-l (crit) → pin-m (high) → pin-s (med/low)
-    # colors: deep burgundy → burnt sienna → dark ochre → olive
+    # colours come from TH_PIN_Q_* theme variables
     QUAKE_PINS=""
     if [ -f "$QUAKES_FILE" ] && [ "$QUAKE_SLOTS" -gt 0 ]; then
-        QUAKE_PINS=$(jq -r '
+        QUAKE_PINS=$(jq -r \
+            --arg crit "$TH_PIN_Q_CRIT" --arg high "$TH_PIN_Q_HIGH" \
+            --arg med  "$TH_PIN_Q_MED"  --arg low  "$TH_PIN_Q_LOW"  '
             .features // []
             | sort_by(-( .properties.mag // .properties.ml // 0 ))
             | .[:'"$QUAKE_SLOTS"'][]
             | (.properties.mag // .properties.ml // 0) as $m
             | (.geometry.coordinates[0] | tostring) as $lon
             | (.geometry.coordinates[1] | tostring) as $lat
-            | if $m >= '"$QUAKE_CRIT_MAG"' then "pin-l+6e1a10(\($lon),\($lat))"
-              elif $m >= '"$QUAKE_HIGH_MAG"' then "pin-m+8c3a10(\($lon),\($lat))"
-              elif $m >= 4.0 then "pin-s+7a5410(\($lon),\($lat))"
-              else "pin-s+5a5228(\($lon),\($lat))"
+            | if $m >= '"$QUAKE_CRIT_MAG"' then "pin-l-danger+\($crit)(\($lon),\($lat))"
+              elif $m >= '"$QUAKE_HIGH_MAG"' then "pin-m-danger+\($high)(\($lon),\($lat))"
+              elif $m >= 4.0 then "pin-s-danger+\($med)(\($lon),\($lat))"
+              else "pin-s-danger+\($low)(\($lon),\($lat))"
               end
         ' "$QUAKES_FILE" 2>/dev/null | tr '\n' ',')
     fi
@@ -452,14 +525,13 @@ _map_overlay() {
     GDACS_RGN=$(jq '[.gdacs_alerts[] | select(.in_region==true)] | length' \
         "$SUMMARY_FILE" 2>/dev/null || echo 0)
 
-    # accent bar colour — ink tones that read on cream paper
-    # also used for level label text so must contrast against #f0e8d8 background
+    # accent bar colour — driven by theme level palette
     case "$LEVEL" in
-        critical) LCOL="#7a1008" ;;
-        high)     LCOL="#7a3208" ;;
-        medium)   LCOL="#6a4c08" ;;
-        low)      LCOL="#2e5218" ;;
-        *)        LCOL="#3a3028" ;;
+        critical) LCOL="$TH_LEVEL_CRITICAL" ;;
+        high)     LCOL="$TH_LEVEL_HIGH"     ;;
+        medium)   LCOL="$TH_LEVEL_MEDIUM"   ;;
+        low)      LCOL="$TH_LEVEL_LOW"      ;;
+        *)        LCOL="$TH_LEVEL_INFO"     ;;
     esac
     LEVEL_UP=$(printf '%s' "$LEVEL" | tr '[:lower:]' '[:upper:]')
 
@@ -536,9 +608,9 @@ _map_overlay() {
     # pass 2: all draw / annotate ops on the TrueColor temp file
     "$IM" "$TC_TMP" \
         \
-        -fill "rgba(240,232,210,0.94)" \
+        -fill "${TH_PANEL_FILL}" \
         -draw "roundrectangle 0,0 ${HUD_X2},${HUD_Y2} 0,0" \
-        -fill "none" -strokewidth 3 -stroke "#2a1a0a" \
+        -fill "none" -strokewidth 3 -stroke "${TH_BORDER_COL}" \
         -draw "rectangle 1,1 ${HUD_X2},${HUD_Y2}" \
         -stroke "none" \
         \
@@ -546,46 +618,46 @@ _map_overlay() {
         -draw "rectangle 0,0 ${ACCENT},${HUD_Y2}" \
         \
         ${FONT_ARG} -pointsize "${FONT_LG}" \
-        -fill "${LCOL}"   -annotate "+${TEXT_X}+${L1Y}" "${L1}" \
+        -fill "${LCOL}"            -annotate "+${TEXT_X}+${L1Y}" "${L1}" \
         ${FONT_ARG} -pointsize "${FONT_MD}" \
-        -fill "#1a120a"   -annotate "+${TEXT_X}+${L2Y}" "${L2}" \
-        -fill "#1a120a"   -annotate "+${TEXT_X}+${L3Y}" "${L3}" \
+        -fill "${TH_TEXT_DARK}"    -annotate "+${TEXT_X}+${L2Y}" "${L2}" \
+        -fill "${TH_TEXT_DARK}"    -annotate "+${TEXT_X}+${L3Y}" "${L3}" \
         ${FONT_ARG} -pointsize "${FONT_SM}" \
-        -fill "#3d2b1a"   -annotate "+${TEXT_X}+${L4Y}" "${L4}" \
+        -fill "${TH_TEXT_MID}"     -annotate "+${TEXT_X}+${L4Y}" "${L4}" \
         ${FONT_ARG} -pointsize "${FONT_XS}" \
-        -fill "#5a3e28"   -annotate "+${TEXT_X}+${L5Y}" "${L5}" \
-        -fill "#7a5a3a"   -annotate "+${TEXT_X}+${L6Y}" "${L6}" \
+        -fill "${TH_TEXT_SOFT}"    -annotate "+${TEXT_X}+${L5Y}" "${L5}" \
+        -fill "${TH_TEXT_MID}"     -annotate "+${TEXT_X}+${L6Y}" "${L6}" \
         \
-        -fill "rgba(240,232,210,0.94)" \
+        -fill "${TH_PANEL_FILL}" \
         -draw "rectangle ${LEG_X1},${LEG_Y1} ${LEG_X2},${LEG_Y2}" \
-        -fill "none" -strokewidth 3 -stroke "#2a1a0a" \
+        -fill "none" -strokewidth 3 -stroke "${TH_BORDER_COL}" \
         -draw "rectangle ${LEG_X1},${LEG_Y1} $(( LEG_X2 - 1 )),$(( LEG_Y2 - 1 ))" \
         -stroke "none" \
         \
-        -fill "#6e1a10" \
+        -fill "#${TH_PIN_Q_CRIT}" \
         -draw "rectangle ${SW_X1},$(( R1 - LEG_DOT )) ${SW_X2},${R1}" \
         ${FONT_ARG} -pointsize "${LEG_FONT}" \
-        -fill "#1a120a" -annotate "+${LEG_TXT_X}+${R1}" "Crit quake (M5.5+)" \
+        -fill "${TH_LEG_TEXT}" -annotate "+${LEG_TXT_X}+${R1}" "Crit quake (M5.5+)" \
         \
-        -fill "#8c3a10" \
+        -fill "#${TH_PIN_Q_HIGH}" \
         -draw "rectangle ${SW_X1},$(( R2 - LEG_DOT )) ${SW_X2},${R2}" \
-        -fill "#1a120a" -annotate "+${LEG_TXT_X}+${R2}" "High quake (M4.5+)" \
+        -fill "${TH_LEG_TEXT}" -annotate "+${LEG_TXT_X}+${R2}" "High quake (M4.5+)" \
         \
-        -fill "#7a5410" \
+        -fill "#${TH_PIN_Q_MED}" \
         -draw "rectangle ${SW_X1},$(( R3 - LEG_DOT )) ${SW_X2},${R3}" \
-        -fill "#1a120a" -annotate "+${LEG_TXT_X}+${R3}" "Med quake (M4.0+)" \
+        -fill "${TH_LEG_TEXT}" -annotate "+${LEG_TXT_X}+${R3}" "Med quake (M4.0+)" \
         \
-        -fill "#5a5228" \
+        -fill "#${TH_PIN_Q_LOW}" \
         -draw "rectangle ${SW_X1},$(( R4 - LEG_DOT )) ${SW_X2},${R4}" \
-        -fill "#1a120a" -annotate "+${LEG_TXT_X}+${R4}" "Low quake (M3.0+)" \
+        -fill "${TH_LEG_TEXT}" -annotate "+${LEG_TXT_X}+${R4}" "Low quake (M3.0+)" \
         \
-        -fill "#1a5f5a" \
+        -fill "#${TH_PIN_EMERG}" \
         -draw "rectangle ${SW_X1},$(( R5 - LEG_DOT )) ${SW_X2},${R5}" \
-        -fill "#1a120a" -annotate "+${LEG_TXT_X}+${R5}" "Emergency squawk" \
+        -fill "${TH_LEG_TEXT}" -annotate "+${LEG_TXT_X}+${R5}" "Emergency squawk" \
         \
-        -fill "#2b3a5c" \
+        -fill "#${TH_PIN_MIL}" \
         -draw "rectangle ${SW_X1},$(( R6 - LEG_DOT )) ${SW_X2},${R6}" \
-        -fill "#1a120a" -annotate "+${LEG_TXT_X}+${R6}" "Military aircraft" \
+        -fill "${TH_LEG_TEXT}" -annotate "+${LEG_TXT_X}+${R6}" "Military aircraft" \
         \
         "$DST" 2>/dev/null
     _rc=$?
