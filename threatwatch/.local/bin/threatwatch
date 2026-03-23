@@ -9,7 +9,11 @@ USGS_URL="https://earthquake.usgs.gov/fdsnws/event/1/query"
 GDACS_URL="https://www.gdacs.org/xml/rss.xml"
 OPENSKY_URL="https://opensky-network.org/api/states/all"
 POLYMARKET_URL="https://gamma-api.polymarket.com/events?limit=30&closed=false&tag_slug=politics"
-MAPBOX_BASE="https://api.mapbox.com/styles/v1/mapbox/dark-v11/static"
+# mapbox style — override via MAPBOX_STYLE env var or config.env.
+# format: {username}/{style_id}  (the path after mapbox://styles/)
+# custom styles from mapbox studio are fully supported.
+MAPBOX_STYLE="${MAPBOX_STYLE:-mapbox/dark-v11}"
+MAPBOX_BASE="https://api.mapbox.com/styles/v1/${MAPBOX_STYLE}/static"
 
 # mapbox token — free tier at https://account.mapbox.com, no credit card needed
 # set via env: export MAPBOX_TOKEN="pk.eyJ1..."
@@ -290,14 +294,16 @@ fetch_map() {
     # ── pin slot budget ───────────────────────────────────────────────────────
     # mapbox caps at 10 pins total. we pre-reserve slots so military/squawk
     # always appear even when there are 10+ quakes in the bbox.
-    #   emergency squawks : up to 2  (cyan)
-    #   military aircraft : up to 3  (purple)
-    #   GDACS in-region   : up to 1  (star)
-    #   earthquakes       : whatever's left
+    # all pins use plain filled teardrops (no icon name) — clean parchment look.
+    #   emergency squawks : up to 2  (deep teal  #1a5f5a)
+    #   military aircraft : up to 3  (slate blue #2b3a5c)
+    #   GDACS in-region   : up to 1  (burgundy/amber, pin-m)
+    #   earthquakes       : whatever's left (burgundy→sienna→ochre→olive)
     PINS=""
     MAX_PINS=10
 
-    # emergency squawk pins — cyan, max 2
+    # emergency squawk pins — deep teal solid dot, max 2
+    # plain pin-s+COLOR (no icon name) = clean filled teardrop, fits parchment style
     EMERG_PINS=""
     if [ -f "$FLIGHTS_FILE" ]; then
         EMERG_PINS=$(jq -r --arg sq "$EMERG_SQUAWKS" '
@@ -306,11 +312,11 @@ fetch_map() {
             | map(select( (.[14] // "") | test($sq) ))
             | map(select( .[5] != null and .[6] != null ))
             | .[:2][]
-            | "pin-s-airfield+00ffff(\(.[5] | tostring),\(.[6] | tostring))"
+            | "pin-s+1a5f5a(\(.[5] | tostring),\(.[6] | tostring))"
         ' "$FLIGHTS_FILE" 2>/dev/null | tr '\n' ',')
     fi
 
-    # military aircraft pins — purple, max 3
+    # military aircraft pins — dark slate blue solid dot, max 3
     MIL_PINS=""
     if [ -f "$FLIGHTS_FILE" ]; then
         MIL_PINS=$(jq -r --arg pats "$MIL_PREFIXES" '
@@ -319,11 +325,11 @@ fetch_map() {
             | map(select( (.[1] // "" | ltrimstr(" ") | rtrimstr(" ") | ascii_upcase) | test($pats) ))
             | map(select( .[5] != null and .[6] != null ))
             | .[:3][]
-            | "pin-s-airfield+aa44ff(\(.[5] | tostring),\(.[6] | tostring))"
+            | "pin-s+2b3a5c(\(.[5] | tostring),\(.[6] | tostring))"
         ' "$FLIGHTS_FILE" 2>/dev/null | tr '\n' ',')
     fi
 
-    # GDACS in-region alerts — star pin, max 1
+    # GDACS in-region alerts — solid dot, burgundy/amber, max 1
     GDACS_PINS=""
     if [ -f "$SUMMARY_FILE" ]; then
         GDACS_PINS=$(jq -r '
@@ -333,8 +339,8 @@ fetch_map() {
             | .[:1][]
             | (.lon | tostring) as $lon
             | (.lat | tostring) as $lat
-            | if .level == "red" then "pin-s-star+ff0000(\($lon),\($lat))"
-              else "pin-s-star+ff8800(\($lon),\($lat))"
+            | if .level == "red" then "pin-m+6e1a10(\($lon),\($lat))"
+              else "pin-m+7a3a08(\($lon),\($lat))"
               end
         ' "$SUMMARY_FILE" 2>/dev/null | tr '\n' ',')
     fi
@@ -350,6 +356,8 @@ fetch_map() {
     [ "$QUAKE_SLOTS" -lt 0 ] && QUAKE_SLOTS=0
 
     # earthquake pins — fill remaining slots, highest magnitude first
+    # size graduation: pin-l (crit) → pin-m (high) → pin-s (med/low)
+    # colors: deep burgundy → burnt sienna → dark ochre → olive
     QUAKE_PINS=""
     if [ -f "$QUAKES_FILE" ] && [ "$QUAKE_SLOTS" -gt 0 ]; then
         QUAKE_PINS=$(jq -r '
@@ -359,10 +367,10 @@ fetch_map() {
             | (.properties.mag // .properties.ml // 0) as $m
             | (.geometry.coordinates[0] | tostring) as $lon
             | (.geometry.coordinates[1] | tostring) as $lat
-            | if $m >= '"$QUAKE_CRIT_MAG"' then "pin-l-danger+ff2222(\($lon),\($lat))"
-              elif $m >= '"$QUAKE_HIGH_MAG"' then "pin-m-danger+ff8800(\($lon),\($lat))"
-              elif $m >= 4.0 then "pin-s-danger+ffaa00(\($lon),\($lat))"
-              else "pin-s-danger+ffdd44(\($lon),\($lat))"
+            | if $m >= '"$QUAKE_CRIT_MAG"' then "pin-l+6e1a10(\($lon),\($lat))"
+              elif $m >= '"$QUAKE_HIGH_MAG"' then "pin-m+8c3a10(\($lon),\($lat))"
+              elif $m >= 4.0 then "pin-s+7a5410(\($lon),\($lat))"
+              else "pin-s+5a5228(\($lon),\($lat))"
               end
         ' "$QUAKES_FILE" 2>/dev/null | tr '\n' ',')
     fi
@@ -444,13 +452,14 @@ _map_overlay() {
     GDACS_RGN=$(jq '[.gdacs_alerts[] | select(.in_region==true)] | length' \
         "$SUMMARY_FILE" 2>/dev/null || echo 0)
 
-    # accent bar colour matches threat level
+    # accent bar colour — ink tones that read on cream paper
+    # also used for level label text so must contrast against #f0e8d8 background
     case "$LEVEL" in
-        critical) LCOL="#ff3333" ;;
-        high)     LCOL="#ff8800" ;;
-        medium)   LCOL="#ffcc00" ;;
-        low)      LCOL="#66cc44" ;;
-        *)        LCOL="#888888" ;;
+        critical) LCOL="#7a1008" ;;
+        high)     LCOL="#7a3208" ;;
+        medium)   LCOL="#6a4c08" ;;
+        low)      LCOL="#2e5218" ;;
+        *)        LCOL="#3a3028" ;;
     esac
     LEVEL_UP=$(printf '%s' "$LEVEL" | tr '[:lower:]' '[:upper:]')
 
@@ -517,10 +526,21 @@ _map_overlay() {
     SW_X1=$(( LEG_X1 + LEG_PAD ))
     SW_X2=$(( SW_X1 + LEG_DOT ))
 
-    "$IM" "$SRC" \
+    # pass 1: palette/indexed PNG from mapbox must be converted to TrueColorAlpha
+    # first or IM7 defers the type change and the first rgba() fill loses its alpha.
+    # write to a temp file so pass 2 can draw on a guaranteed 32-bit canvas.
+    TC_TMP="${CACHE_DIR}/.map_tc.png"
+    "$IM" "$SRC" -type TrueColorAlpha -define png:color-type=6 "$TC_TMP" 2>/dev/null \
+        || { cp "$SRC" "$DST"; return 1; }
+
+    # pass 2: all draw / annotate ops on the TrueColor temp file
+    "$IM" "$TC_TMP" \
         \
-        -fill "rgba(6,8,14,0.84)" \
+        -fill "rgba(240,232,210,0.94)" \
         -draw "roundrectangle 0,0 ${HUD_X2},${HUD_Y2} 0,0" \
+        -fill "none" -strokewidth 3 -stroke "#2a1a0a" \
+        -draw "rectangle 1,1 ${HUD_X2},${HUD_Y2}" \
+        -stroke "none" \
         \
         -fill "${LCOL}" \
         -draw "rectangle 0,0 ${ACCENT},${HUD_Y2}" \
@@ -528,43 +548,49 @@ _map_overlay() {
         ${FONT_ARG} -pointsize "${FONT_LG}" \
         -fill "${LCOL}"   -annotate "+${TEXT_X}+${L1Y}" "${L1}" \
         ${FONT_ARG} -pointsize "${FONT_MD}" \
-        -fill "#e0e0e0"   -annotate "+${TEXT_X}+${L2Y}" "${L2}" \
-        -fill "#e0e0e0"   -annotate "+${TEXT_X}+${L3Y}" "${L3}" \
+        -fill "#1a120a"   -annotate "+${TEXT_X}+${L2Y}" "${L2}" \
+        -fill "#1a120a"   -annotate "+${TEXT_X}+${L3Y}" "${L3}" \
         ${FONT_ARG} -pointsize "${FONT_SM}" \
-        -fill "#bbbbbb"   -annotate "+${TEXT_X}+${L4Y}" "${L4}" \
+        -fill "#3d2b1a"   -annotate "+${TEXT_X}+${L4Y}" "${L4}" \
         ${FONT_ARG} -pointsize "${FONT_XS}" \
-        -fill "#aaaaaa"   -annotate "+${TEXT_X}+${L5Y}" "${L5}" \
-        -fill "#606060"   -annotate "+${TEXT_X}+${L6Y}" "${L6}" \
+        -fill "#5a3e28"   -annotate "+${TEXT_X}+${L5Y}" "${L5}" \
+        -fill "#7a5a3a"   -annotate "+${TEXT_X}+${L6Y}" "${L6}" \
         \
-        -fill "rgba(6,8,14,0.80)" \
+        -fill "rgba(240,232,210,0.94)" \
         -draw "rectangle ${LEG_X1},${LEG_Y1} ${LEG_X2},${LEG_Y2}" \
+        -fill "none" -strokewidth 3 -stroke "#2a1a0a" \
+        -draw "rectangle ${LEG_X1},${LEG_Y1} $(( LEG_X2 - 1 )),$(( LEG_Y2 - 1 ))" \
+        -stroke "none" \
         \
-        -fill "#ff3333" \
+        -fill "#6e1a10" \
         -draw "rectangle ${SW_X1},$(( R1 - LEG_DOT )) ${SW_X2},${R1}" \
         ${FONT_ARG} -pointsize "${LEG_FONT}" \
-        -fill "#dddddd" -annotate "+${LEG_TXT_X}+${R1}" "Crit quake (M5.5+)" \
+        -fill "#1a120a" -annotate "+${LEG_TXT_X}+${R1}" "Crit quake (M5.5+)" \
         \
-        -fill "#ff8800" \
+        -fill "#8c3a10" \
         -draw "rectangle ${SW_X1},$(( R2 - LEG_DOT )) ${SW_X2},${R2}" \
-        -fill "#dddddd" -annotate "+${LEG_TXT_X}+${R2}" "High quake (M4.5+)" \
+        -fill "#1a120a" -annotate "+${LEG_TXT_X}+${R2}" "High quake (M4.5+)" \
         \
-        -fill "#ffaa00" \
+        -fill "#7a5410" \
         -draw "rectangle ${SW_X1},$(( R3 - LEG_DOT )) ${SW_X2},${R3}" \
-        -fill "#dddddd" -annotate "+${LEG_TXT_X}+${R3}" "Med quake (M4.0+)" \
+        -fill "#1a120a" -annotate "+${LEG_TXT_X}+${R3}" "Med quake (M4.0+)" \
         \
-        -fill "#ffdd44" \
+        -fill "#5a5228" \
         -draw "rectangle ${SW_X1},$(( R4 - LEG_DOT )) ${SW_X2},${R4}" \
-        -fill "#dddddd" -annotate "+${LEG_TXT_X}+${R4}" "Low quake (M3.0+)" \
+        -fill "#1a120a" -annotate "+${LEG_TXT_X}+${R4}" "Low quake (M3.0+)" \
         \
-        -fill "#00ffff" \
+        -fill "#1a5f5a" \
         -draw "rectangle ${SW_X1},$(( R5 - LEG_DOT )) ${SW_X2},${R5}" \
-        -fill "#dddddd" -annotate "+${LEG_TXT_X}+${R5}" "Emergency squawk" \
+        -fill "#1a120a" -annotate "+${LEG_TXT_X}+${R5}" "Emergency squawk" \
         \
-        -fill "#aa44ff" \
+        -fill "#2b3a5c" \
         -draw "rectangle ${SW_X1},$(( R6 - LEG_DOT )) ${SW_X2},${R6}" \
-        -fill "#dddddd" -annotate "+${LEG_TXT_X}+${R6}" "Military aircraft" \
+        -fill "#1a120a" -annotate "+${LEG_TXT_X}+${R6}" "Military aircraft" \
         \
         "$DST" 2>/dev/null
+    _rc=$?
+    rm -f "$TC_TMP"
+    return $_rc
 }
 
 # ── build summary ─────────────────────────────────────────────────────────────
@@ -1162,6 +1188,8 @@ case "${1:-}" in
         printf '  help          This help\n\n'
         printf 'Config (env vars):\n'
         printf '  MAPBOX_TOKEN       Free token from https://account.mapbox.com\n'
+        printf '  MAPBOX_STYLE       Style path: {username}/{style_id} (default: mapbox/dark-v11)\n'
+        printf '                     Custom studio styles: mqu3zada/<style_id>\n'
         printf '  MAP_MIN_INTERVAL   Min seconds between map fetches (default: 21600 = 6h)\n'
         printf '                     Set to 0 to always fetch, 86400 for daily.\n\n'
         printf 'Free tier: 50,000 Static Image requests/month.\n'
