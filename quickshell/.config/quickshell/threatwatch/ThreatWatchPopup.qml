@@ -342,5 +342,13 @@ PanelWindow {
                 fadeOut.running = true
             }
         }
+
+        // reload map if a fresh update lands while the popup is already open
+        function onUpdatedAtChanged() {
+            if (ThreatWatchModel.mapExpanded) {
+                mapImage.source = ""
+                mapImage.source = ThreatWatchModel.cacheDir + "/germany.png"
+            }
+        }
     }
 }
