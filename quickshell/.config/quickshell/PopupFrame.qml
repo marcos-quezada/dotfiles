@@ -13,9 +13,11 @@
 // callers animate visibility via chrome.open() / chrome.close().
 // the content area is inset: top = titleBarHeight + 6px, sides/bottom = 6px.
 //
-// gradient direction: left bars fade highlight→outline (bright outer, dark inner),
-// right bars fade outline→highlight (dark inner, bright outer). the two sets
-// mirror each other so the gradient spreads symmetrically away from the icon.
+// gradient direction: left bars are solid highlight for the outer half, then fade
+// to outline at the inner edge (toward the icon). right bars mirror this — outline
+// at the inner edge fading out to solid highlight on the outer half.
+// the 0.5 mid-stop holds the flat colour for the first half so only the inner
+// portion tapers — matching the retroism reference title bar style.
 // using Gradient.Horizontal on 2px-tall strips — vertical (the qt default) is
 // invisible at that height because the two pixel rows end up the same colour.
 
@@ -91,6 +93,7 @@ Rectangle {
                     gradient: Gradient {
                         orientation: Gradient.Horizontal
                         GradientStop { position: 0.0; color: gbRoot.colorStart }
+                        GradientStop { position: 0.5; color: gbRoot.colorStart }
                         GradientStop { position: 1.0; color: gbRoot.colorEnd   }
                     }
                 }
