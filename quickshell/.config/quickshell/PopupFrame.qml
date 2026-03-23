@@ -14,7 +14,7 @@
 // the content area is inset: top = titleBarHeight + 6px, sides/bottom = 6px.
 //
 // title bar decoration: 4 × 2px solid strips either side of the icon/title,
-// filled with Config.colors.highlight for a uniform flat look.
+// filled with Config.colors.shadow — darker than base, matching the reference.
 
 import QtQuick
 import QtQuick.Layouts
@@ -65,8 +65,7 @@ Rectangle {
     }
 
     // ── title bar decoration strips ───────────────────────────────────────────
-    // 4 × 2px solid horizontal strips filling the available width either side
-    // of the icon and title text.
+    // 4 × 2px solid horizontal strips, shadow colour (darker than base).
 
     component DecoStrips: Item {
         Layout.fillWidth: true
@@ -82,7 +81,7 @@ Rectangle {
                 Rectangle {
                     Layout.fillWidth: true
                     implicitHeight:   2
-                    color: Config.colors.highlight
+                    color: Config.colors.shadow
                 }
             }
         }
