@@ -117,7 +117,6 @@ Rectangle {
                 colorEnd:   Config.colors.outline
             }
 
-            // icon
             Text {
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment:   Text.AlignVCenter
@@ -128,7 +127,6 @@ Rectangle {
                 color: Config.colors.text
             }
 
-            // title label
             Text {
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment:   Text.AlignVCenter

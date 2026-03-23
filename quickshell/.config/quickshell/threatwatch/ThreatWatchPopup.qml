@@ -36,20 +36,16 @@ PanelWindow {
 
     color: "transparent"
 
-    // ── chrome ────────────────────────────────────────────────────────────────
-
     PopupFrame {
         id: chrome
         title: "THREATWATCH"
         icon:  "󱡣"
 
-        // ── map image ─────────────────────────────────────────────────────────
-
         Image {
             id: mapImage
             anchors.fill: parent
             source:       ThreatWatchModel.cacheDir + "/germany.png"
-            cache:        false     // never use Qt image cache — file changes without URL change
+            cache:        false     // file changes without URL change — never use Qt image cache
             fillMode:     Image.Stretch
             smooth:       true
         }
@@ -60,7 +56,6 @@ PanelWindow {
             onClicked: ThreatWatchModel.mapExpanded = false
         }
 
-        // ── interactive pin overlay ───────────────────────────────────────────
         // invisible hitboxes at pre-computed Web Mercator pixel positions.
         // offset: left = x-12, top = y-30 so the hitbox bottom-centre sits on the pin tip.
         //
@@ -109,8 +104,7 @@ PanelWindow {
                 height: 30
                 z:      10
 
-                // single MouseArea handles both hover and click absorption.
-                // hoverEnabled is required — without it containsMouse is always false.
+                // hoverEnabled is required — without it containsMouse is always false
                 MouseArea {
                     id:           pinMouse
                     width:        parent.width

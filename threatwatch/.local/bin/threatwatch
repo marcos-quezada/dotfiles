@@ -234,7 +234,6 @@ fetch_earthquakes() {
 
     EMSC_COUNT=$(jq '.features | length' "$QUAKES_FILE" 2>/dev/null || echo 0)
     if [ "$EMSC_COUNT" -lt 5 ]; then
-        # EMSC is sparse — pull USGS to fill gaps
         printf 'Fetching earthquakes (USGS — supplementary, EMSC only had %d events)...\n' "$EMSC_COUNT"
         curl -sf --max-time 15 \
             "${USGS_URL}?format=geojson&minmagnitude=${QUAKE_MED_MAG}&minlatitude=${BBOX_MINLAT}&maxlatitude=${BBOX_MAXLAT}&minlongitude=${BBOX_MINLON}&maxlongitude=${BBOX_MAXLON}&limit=20&orderby=time" \
@@ -315,7 +314,6 @@ _map_count_get() {
     # returns this month's count, resets to 0 if the month has rolled over
     THIS_MONTH=$(date +%Y-%m)
     if [ -f "$MAP_COUNT_FILE" ]; then
-        # one jq call reads both fields
         _mc=$(jq -r '(.month // "") + " " + ((.count // 0) | tostring)' \
             "$MAP_COUNT_FILE" 2>/dev/null || echo " 0")
         FILE_MONTH=$(printf '%s' "$_mc" | awk '{print $1}')
@@ -878,7 +876,6 @@ build_summary() {
         fi
     fi
 
-    # write summary.json
     QUAKE_THREATS_JSON=$(printf '%s\n' "$QUAKE_THREATS" | jq -Rsc 'split("\n") | map(select(. != ""))' 2>/dev/null || echo '[]')
 
     MAP_REQUESTS=$(_map_count_get 2>/dev/null || echo 0)

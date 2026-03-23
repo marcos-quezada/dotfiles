@@ -253,8 +253,9 @@ image_y  = 390 + (global_y - center_global_y)
 ```
 
 result written to `pins.json`. `ThreatWatchPopup` places invisible hitboxes at
-these coordinates that absorb clicks (preventing accidental map dismissal on pin
-areas). no tooltips — labels are baked into the map overlay by ImageMagick.
+these coordinates. hovering a hitbox shows an inline `Rectangle` tooltip (the
+`pinTooltip` at `z:20`) with the event title and type. clicking absorbs the event
+to prevent accidental map dismissal on pin areas.
 
 ### mapbox pin slot budget
 
@@ -262,10 +263,10 @@ Mapbox caps static image overlays at 10 pins. slots are pre-reserved:
 
 | type | slots | colour |
 |---|---|---|
-| emergency squawk | 2 | cyan `#00ffff` |
-| military aircraft | 3 | purple `#aa44ff` |
-| GDACS in-region | 1 | red/orange star |
-| earthquakes | remaining (up to 4) | magnitude-keyed red→yellow |
+| emergency squawk | 2 | white `#ffffff` (neon) / teal `#1a5f5a` (vintage) |
+| military aircraft | 3 | hot pink `#ff00cc` (neon) / slate `#2b3a5c` (vintage) |
+| GDACS in-region | 1 | red/orange star (theme `TH_PIN_GDACS_*`) |
+| earthquakes | remaining (up to 4) | magnitude-keyed, theme `TH_PIN_Q_*` |
 
 ### map overlay font
 
