@@ -15,9 +15,9 @@ bind ^[[5~ ed-move-to-beg
 bind ^[[6~ ed-move-to-end
 
 # ── prompt ────────────────────────────────────────────────────────────────────
-# ♥ (U+2665) is in ttyp0's Miscellaneous Symbols block — safe on both VT and foot.
-# U+2764 (❤ heavy black heart) is not — do not use it here.
-PS1="ℵ₀:\h:\w ♥❯ \$ "
+# ♥ (U+2665) and » (U+00BB) are in ttyp0's coverage — safe on both VT and foot.
+# U+2764 (❤ heavy black heart) and U+276F (❯ ornament) are dingbats — not covered.
+PS1="ℵ₀:\h:\w ♥» \$ "
 
 # ── aliases ───────────────────────────────────────────────────────────────────
 alias h='fc -l'

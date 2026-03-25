@@ -6,40 +6,43 @@ if $COLORTERM == "truecolor" || $COLORTERM == "24bit"
     let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"   " tmux foreground true colour sequence
     let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"   " tmux background true colour sequence
     highlight ColorColumn ctermbg=0 guibg=#001D2F
+
+    " ── theme ─────────────────────────────────────────────────────────────────
+    " catppuccin is managed via vim's native package system (~/.vim/pack/).
+    " run vim/install.sh to fetch it on a new machine.
+    set background=dark
+    colorscheme catppuccin_mocha
+
+    " ── lsp ───────────────────────────────────────────────────────────────────
+    " yegappan/lsp is managed via vim's native package system (~/.vim/pack/).
+    " run vim/install.sh to fetch it on a new machine.
+    packadd lsp
+
+    " register qmlls as the language server for QML files
+    call LspAddServer([#{
+        \   name:     'qmlls',
+        \   filetype: 'qml',
+        \   path:     'qmlls6',
+        \   args:     ['--build-dir', 'build']
+        \ }])
+
+    " ── lsp keymaps ───────────────────────────────────────────────────────────
+    nnoremap <leader>gd :LspGotoDefinition<CR>    " go to definition
+    nnoremap <leader>gr :LspPeekReferences<CR>    " peek references
+    nnoremap <leader>gi :LspPeekImplementation<CR> " peek implementation
+    nnoremap <leader>gt :LspPeekTypedef<CR>       " peek type definition
+    nnoremap <leader>rn :LspRename<CR>            " rename symbol
+    nnoremap <leader>ca :LspCodeAction<CR>        " code actions
+    nnoremap K          :LspHover<CR>             " hover documentation
+
+    " ── diagnostic navigation ─────────────────────────────────────────────────
+    nnoremap [d :LspDiag prev<CR>                 " jump to previous diagnostic
+    nnoremap ]d :LspDiag next<CR>                 " jump to next diagnostic
+    nnoremap <leader>df :LspDiag show<CR>         " show diagnostics for current file
 else
-    " ctermbg=235 would wrap to slot 3 (dark red) on 8-colour VT; use 0 (darkest) instead
+    " 8-colour VT: catppuccin uses 256-colour cterm indices that wrap on an
+    " 8-colour terminal (e.g. ctermbg=235 → slot 3 → dark red). Use the
+    " built-in default scheme which is safe on any palette depth.
     highlight ColorColumn ctermbg=0
+    colorscheme default
 endif
-
-" ── theme ─────────────────────────────────────────────────────────────────────
-" catppuccin is managed via vim's native package system (~/.vim/pack/).
-" run vim/install.sh to fetch it on a new machine.
-set background=dark
-colorscheme catppuccin_mocha
-
-" ── lsp ───────────────────────────────────────────────────────────────────────
-" yegappan/lsp is managed via vim's native package system (~/.vim/pack/).
-" run vim/install.sh to fetch it on a new machine.
-packadd lsp
-
-" register qmlls as the language server for QML files
-call LspAddServer([#{
-    \   name:     'qmlls',
-    \   filetype: 'qml',
-    \   path:     'qmlls6',
-    \   args:     ['--build-dir', 'build']
-    \ }])
-
-" ── lsp keymaps ───────────────────────────────────────────────────────────────
-nnoremap <leader>gd :LspGotoDefinition<CR>    " go to definition
-nnoremap <leader>gr :LspPeekReferences<CR>    " peek references
-nnoremap <leader>gi :LspPeekImplementation<CR> " peek implementation
-nnoremap <leader>gt :LspPeekTypedef<CR>       " peek type definition
-nnoremap <leader>rn :LspRename<CR>            " rename symbol
-nnoremap <leader>ca :LspCodeAction<CR>        " code actions
-nnoremap K          :LspHover<CR>             " hover documentation
-
-" ── diagnostic navigation ─────────────────────────────────────────────────────
-nnoremap [d :LspDiag prev<CR>                 " jump to previous diagnostic
-nnoremap ]d :LspDiag next<CR>                 " jump to next diagnostic
-nnoremap <leader>df :LspDiag show<CR>         " show diagnostics for current file
