@@ -43,4 +43,8 @@ else
     " 8-colour terminal (e.g. ctermbg=235 → slot 3 → dark red). Use the
     " built-in default scheme which is safe on any palette depth.
     colorscheme default
+    " default (and elflord) hardcode ColorColumn as ctermbg=DarkRed, which
+    " maps to a wrong slot on the VT palette. reverse is attribute-only and
+    " works correctly regardless of what colours the palette uses.
+    highlight ColorColumn cterm=reverse ctermbg=NONE ctermfg=NONE
 endif
