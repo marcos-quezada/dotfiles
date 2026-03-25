@@ -5,7 +5,6 @@ if $COLORTERM == "truecolor" || $COLORTERM == "24bit"
     set termguicolors                          " enable 24-bit RGB colour
     let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"   " tmux foreground true colour sequence
     let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"   " tmux background true colour sequence
-    highlight ColorColumn ctermbg=0 guibg=#001D2F
 
     " ── theme ─────────────────────────────────────────────────────────────────
     " catppuccin is managed via vim's native package system (~/.vim/pack/).
@@ -43,6 +42,5 @@ else
     " 8-colour VT: catppuccin uses 256-colour cterm indices that wrap on an
     " 8-colour terminal (e.g. ctermbg=235 → slot 3 → dark red). Use the
     " built-in default scheme which is safe on any palette depth.
-    highlight ColorColumn ctermbg=0
     colorscheme default
 endif

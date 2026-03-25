@@ -23,8 +23,10 @@ set fillchars+=vert:\                  " blank vertical split separator (no pipe
 set fillchars+=eob:\                   " blank end-of-buffer indicator (no tildes)
 set pumheight=20                       " cap autocomplete popup at 20 entries
 
-" column overflow guide starting at col 81
-let &colorcolumn=join(range(81,999),",")
+" visual guide at col 81; formatoptions-=t prevents auto hard-wrapping
+set textwidth=80
+set colorcolumn=+1
+set formatoptions-=t
 
 " ── search ────────────────────────────────────────────────────────────────────
 set hlsearch                           " highlight all search matches
