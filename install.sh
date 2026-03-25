@@ -143,6 +143,11 @@ if ! check_cmd magick "" && ! check_cmd convert ""; then
     info "to install: $(pkg_name 'brew install imagemagick' 'pkg install ImageMagick7' 'apt-get install imagemagick')"
 fi
 
+# bat powers the clue alias; graceful fallback to cat if absent
+if ! check_cmd bat "$(pkg_name bat bat bat) — syntax-highlighted cheatsheet viewer"; then
+    warn "clue alias will fall back to cat"
+fi
+
 # ── select packages to stow ───────────────────────────────────────────────────
 printf '\n  packages available:\n\n'
 
@@ -156,6 +161,7 @@ DO_QUICKSHELL=0
 DO_GIT=1
 DO_VIM=1
 DO_INPUTRC=1
+DO_CHEATSHEETS=1
 
 # macOS-only packages
 DO_ZSH=0
@@ -170,6 +176,7 @@ if [ "$YES" = "0" ]; then
     prompt_yn "stow git (.gitconfig + .color.gitconfig)?" y && DO_GIT=1 || DO_GIT=0
     prompt_yn "stow vim (.vimrc)?" y                         && DO_VIM=1 || DO_VIM=0
     prompt_yn "stow inputrc (.inputrc)?" y                   && DO_INPUTRC=1 || DO_INPUTRC=0
+    prompt_yn "stow cheatsheets (.config/cheatsheets/)?" y   && DO_CHEATSHEETS=1 || DO_CHEATSHEETS=0
     prompt_yn "stow threatwatch (threat monitor)?" y         && DO_THREATWATCH=1 || DO_THREATWATCH=0
 
     if [ "$PLATFORM" = "macos" ]; then
@@ -208,6 +215,7 @@ stow_pkg() {
 [ "$DO_GIT"        = "1" ] && stow_pkg git
 [ "$DO_VIM"        = "1" ] && stow_pkg vim
 [ "$DO_INPUTRC"    = "1" ] && stow_pkg inputrc
+[ "$DO_CHEATSHEETS" = "1" ] && stow_pkg cheatsheets
 [ "$DO_ZSH"        = "1" ] && stow_pkg zsh
 [ "$DO_NVIM"       = "1" ] && stow_pkg nvim
 [ "$DO_SKETCHYBAR" = "1" ] && stow_pkg sketchybar

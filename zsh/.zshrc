@@ -50,6 +50,13 @@ alias gp='git pull --rebase'
 alias gcam='git commit -am'
 alias gl='git log --graph --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit'
 
+# clue — show the CLI cheatsheet; falls back to cat if bat is not installed
+if command -v bat >/dev/null 2>&1; then
+  alias clue='bat --style=plain --language=md ~/.config/cheatsheets/cli.md'
+else
+  alias clue='cat ~/.config/cheatsheets/cli.md'
+fi
+
 # ── functions ─────────────────────────────────────────────────────────────────
 
 # sync a branch with upstream and push to origin
