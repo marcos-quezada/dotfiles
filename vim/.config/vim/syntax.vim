@@ -5,6 +5,10 @@ if $COLORTERM == "truecolor" || $COLORTERM == "24bit"
     set termguicolors                          " enable 24-bit RGB colour
     let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"   " tmux foreground true colour sequence
     let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"   " tmux background true colour sequence
+    highlight ColorColumn ctermbg=0 guibg=#001D2F
+else
+    " ctermbg=235 would wrap to slot 3 (dark red) on 8-colour VT; use 0 (darkest) instead
+    highlight ColorColumn ctermbg=0
 endif
 
 " ── theme ─────────────────────────────────────────────────────────────────────

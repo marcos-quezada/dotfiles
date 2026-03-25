@@ -15,12 +15,9 @@ bind ^[[5~ ed-move-to-beg
 bind ^[[6~ ed-move-to-end
 
 # ── prompt ────────────────────────────────────────────────────────────────────
-# ❤ (U+2764) is not in the ttyp0 bitmap font used on the VT console;
-# fall back to a plain '<3' when running on cons25/vt220.
-case "$TERM" in
-    cons25|vt100|vt220) PS1="aleph0:\h:\w <3> \$ " ;;
-    *)                  PS1="ℵ₀:\h:\w ❤❯ \$ "     ;;
-esac
+# ♥ (U+2665) is in ttyp0's Miscellaneous Symbols block — safe on both VT and foot.
+# U+2764 (❤ heavy black heart) is not — do not use it here.
+PS1="ℵ₀:\h:\w ♥❯ \$ "
 
 # ── aliases ───────────────────────────────────────────────────────────────────
 alias h='fc -l'

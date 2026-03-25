@@ -25,7 +25,6 @@ set pumheight=20                       " cap autocomplete popup at 20 entries
 
 " column overflow guide starting at col 81
 let &colorcolumn=join(range(81,999),",")
-highlight ColorColumn ctermbg=235 guibg=#001D2F
 
 " ── search ────────────────────────────────────────────────────────────────────
 set hlsearch                           " highlight all search matches
