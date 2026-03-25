@@ -1,45 +1,65 @@
 # CLI Cheatsheet
 
-## Git Aliases
-| Alias          | Expands to                                                    |
-|----------------|---------------------------------------------------------------|
-| `gs`           | `git status`                                                  |
-| `gc`           | `git commit`                                                  |
-| `gcam`         | `git commit -am`                                              |
-| `gp`           | `git pull --rebase`                                           |
-| `gl`           | pretty graph log (hash, decorators, message, date, author)    |
+## Shell Aliases
+| Alias   | Expands to                              |
+|---------|-----------------------------------------|
+| `ll`    | `ls -laFo`                              |
+| `l`     | `ls -l`                                 |
+| `g`     | `grep -Ei`                              |
+| `m`     | `$PAGER`                                |
+| `j`     | `jobs`                                  |
+| `h`     | `fc -l` (history)                       |
 
-## Git Functions
+## Git Aliases (shell)
+| Alias    | Expands to                                                  |
+|----------|-------------------------------------------------------------|
+| `gs`     | `git status`                                                |
+| `gc`     | `git commit`                                                |
+| `gcam`   | `git commit -am`                                            |
+| `gp`     | `git pull --rebase`                                         |
+| `gl`     | pretty graph log (hash, branch, message, date, author)      |
+
+## Git Aliases (.gitconfig)
+| Alias   | Action                                                       |
+|---------|--------------------------------------------------------------|
+| `lool`  | graph log — hash, subject, branch, author                    |
+| `lol`   | graph log — last commit, oneline, all branches               |
+| `ll`    | graph log — last 10 commits, oneline, all branches           |
+| `cfw`   | clone bare repo for worktree workflow (runs `git-clone-bare-for-worktrees`) |
+
+## Git Worktree Workflow
+| Command                    | Action                                               |
+|----------------------------|------------------------------------------------------|
+| `git cfw <url>`            | Clone bare repo; creates `<repo>/.bare` + `.git`     |
+| `git cfw <url> <name>`     | Clone bare repo into `<name>/` directory             |
+| `git worktree add <path>`  | Create a new worktree at `<path>`                    |
+| `git worktree list`        | List all active worktrees                            |
+| `git worktree remove <path>` | Remove a worktree                                  |
+
+## Git Functions (shell)
 | Command           | Action                                                   |
 |-------------------|----------------------------------------------------------|
-| `gsync <branch>`  | Pull upstream branch and push to origin                  |
-
-## Docker Functions
-| Command           | Action                                                   |
-|-------------------|----------------------------------------------------------|
-| `dockrun [image]` | One-shot ansible test container (default: ubuntu1604)    |
-| `denter <id>`     | `docker exec -it <id> bash`                              |
+| `gsync <branch>`  | Pull from upstream and push to origin                    |
 
 ## SSH Helpers
-| Command        | Action                                                      |
-|----------------|-------------------------------------------------------------|
-| `knownrm <n>`  | Remove line `n` from `~/.ssh/known_hosts`                   |
+| Command        | Action                                        |
+|----------------|-----------------------------------------------|
+| `knownrm <n>`  | Remove line `n` from `~/.ssh/known_hosts`     |
+
+## FreeBSD
+| Command      | Action                                           |
+|--------------|--------------------------------------------------|
+| `handbook`   | Open FreeBSD handbook in w3m                     |
 
 ## Threatwatch
-| Command                  | Action                                           |
-|--------------------------|--------------------------------------------------|
-| `threatwatch`            | Print statusbar text (current threat level)      |
-| `threatwatch data`       | Print full JSON summary                          |
-| `threatwatch update`     | Fetch and cache all sources                      |
-| `threatwatch --help`     | Show all flags                                   |
+| Command                | Action                                         |
+|------------------------|------------------------------------------------|
+| `threatwatch`          | Print statusbar text (current threat level)    |
+| `threatwatch data`     | Print full JSON summary                        |
+| `threatwatch update`   | Fetch and cache all sources                    |
+| `threatwatch --help`   | Show all flags                                 |
 
 ## Cheatsheets
-| Command   | Action                                     |
-|-----------|--------------------------------------------|
-| `clue`    | Show this CLI cheatsheet (via bat)         |
-
-## Foot Terminal
-| Location                    | Purpose                              |
-|-----------------------------|--------------------------------------|
-| `~/.config/foot/foot.ini`   | Font, palette, cursor, alpha         |
-| `man foot.ini`              | Full option reference                |
+| Command   | Action                                           |
+|-----------|--------------------------------------------------|
+| `clue`    | Show this cheatsheet (bat with paging)           |

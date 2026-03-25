@@ -73,8 +73,14 @@ let g:netrw_winsize     = 25          " sidebar takes 25% of screen width
 " ── keymaps ───────────────────────────────────────────────────────────────────
 map  <F2>      :Lexplore<CR>          " toggle file explorer sidebar
 
-" open vim cheatsheet in a right-side read-only split; q closes it
-nnoremap <leader>? :vsplit ~/.config/cheatsheets/vim.md<CR>:setlocal ro nomodifiable filetype=markdown<CR>:nnoremap <buffer> q :close<CR><CR>
+" cheatsheet split — opens vim.md read-only on the right; q closes it
+augroup cheatsheet
+    autocmd!
+    autocmd BufReadPost *cheatsheets/vim.md
+        \ setlocal ro nomodifiable filetype=markdown |
+        \ nnoremap <buffer><silent> q :close<CR>
+augroup END
+nnoremap <silent> <leader>? :vsplit ~/.config/cheatsheets/vim.md<CR>
 
 " auto-close curly braces
 inoremap {     {}<Left>
