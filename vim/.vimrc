@@ -23,11 +23,6 @@ set fillchars+=vert:\                  " blank vertical split separator (no pipe
 set fillchars+=eob:\                   " blank end-of-buffer indicator (no tildes)
 set pumheight=20                       " cap autocomplete popup at 20 entries
 
-" visual guide at col 81; formatoptions-=t prevents auto hard-wrapping
-set textwidth=80
-set colorcolumn=+1
-set formatoptions-=t
-
 " ── search ────────────────────────────────────────────────────────────────────
 set hlsearch                           " highlight all search matches
 set showmatch                          " briefly jump to matching bracket on insert
@@ -87,6 +82,7 @@ inoremap {<CR> {<CR>}<Esc>O
 inoremap {{    {
 inoremap {}    {}
 
-" ── syntax / theme ────────────────────────────────────────────────────────────
+" ── theme / lsp ──────────────────────────────────────────────────────────────
 syntax on
-source ~/.config/vim/syntax.vim
+source ~/.config/vim/theme.vim
+source ~/.config/vim/lsp.vim
