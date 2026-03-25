@@ -141,6 +141,42 @@ if [ -n "$MISSING_CORE" ]; then
     fi
 fi
 
+# ── font deps (FreeBSD) ───────────────────────────────────────────────────────
+# foot.ini uses Spleen 8x16 and Symbols Nerd Font Mono; check via fc-list.
+if [ "$PLATFORM" = "freebsd" ]; then
+    printf '\n  checking fonts...\n\n'
+    MISSING_FONTS=""
+
+    if command -v fc-list >/dev/null 2>&1; then
+        if fc-list | grep -qi "spleen"; then
+            ok "Spleen found"
+        else
+            warn "Spleen not found — required by foot.ini"
+            MISSING_FONTS="$MISSING_FONTS spleen"
+        fi
+
+        if fc-list | grep -qi "symbols nerd font"; then
+            ok "Symbols Nerd Font Mono found"
+        else
+            warn "Symbols Nerd Font Mono not found — required by foot.ini"
+            # nerd-fonts is the FreeBSD port; covers all Nerd Font families
+            MISSING_FONTS="$MISSING_FONTS nerd-fonts"
+        fi
+    else
+        warn "fc-list not available — skipping font check (install fontconfig)"
+    fi
+
+    if [ -n "$MISSING_FONTS" ]; then
+        printf '\n'
+        if prompt_yn "install missing fonts now?" y; then
+            # shellcheck disable=SC2086
+            install_pkg $MISSING_FONTS
+        else
+            warn "foot terminal will not render correctly without the above fonts"
+        fi
+    fi
+fi
+
 # ── optional deps ─────────────────────────────────────────────────────────────
 printf '\n  checking optional dependencies...\n\n'
 
