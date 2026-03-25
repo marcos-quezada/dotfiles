@@ -1,33 +1,36 @@
+# foot terminal — gameboy DMG palette
+# background: #9bbc0f (lightest), foreground: #0f380f (darkest)
+# all 16 ANSI slots map to 4 shades; hue is meaningless — contrast via bold/reverse/dim only
+
 [color]
     ui = true
 
 [color "grep"]
-    match = bold
+    match = bold reverse
 
 [color "status"]
-    # headers dim so content stands out
+    # dim header so the file list pops relative to it
     header = dim
-    # added: bright, bold — most prominent
-    added = bold green
-    # changed: reverse block for contrast on a monochrome palette
-    changed = bold yellow
-    # untracked: normal weight, distinguishable from added/changed
-    untracked = yellow
-    # branch name: bold so it reads clearly in the header
-    branch = bold green
-
-    # detached head — alarming even on a limited palette
+    # added: bold — heavier weight against the light background, clearly readable
+    added = bold
+    # changed/modified: reverse block — dark rectangle, maximum contrast, impossible to miss
+    changed = reverse
+    # untracked: plain foreground — readable, lower urgency than added/changed
+    untracked = normal
+    # branch name in header: bold so it stands out from surrounding dim text
+    branch = bold
+    # detached head: bold reverse blink — alarming on any palette
     nobranch = bold reverse blink
 
 [color "diff"]
-    # meta and frag lines: dimmed so they recede into the background
+    # meta and frag lines recede — they frame the diff, not the content
     meta = dim
     frag = dim
     # context lines: plain, no decoration
     context = normal
-    # removed: bold + reverse block — maximum contrast for deletions
+    # removed: bold reverse — dark block, the most visually heavy treatment available
     old = bold reverse
-    # added: bold — clearly positive
-    new = bold green
-    # moved lines: dim italic to distinguish from true additions
+    # added: bold — heavier than context but not a full block
+    new = bold
+    # function/hunk header: italic to distinguish from content
     func = italic
