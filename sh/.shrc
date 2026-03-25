@@ -17,7 +17,7 @@ bind ^[[6~ ed-move-to-end
 # ── prompt ────────────────────────────────────────────────────────────────────
 # ♥ (U+2665) and › (U+203A) are in ttyp0's coverage — safe on both VT and foot.
 # U+2764 (❤ heavy black heart) and U+276F (❯ ornament) are dingbats — not covered.
-PS1="ℵ₀:\h:\w ♥› \$ "
+PS1="ℵ₀:\h:\w ♥ › \\$ "
 
 # ── aliases ───────────────────────────────────────────────────────────────────
 alias h='fc -l'
