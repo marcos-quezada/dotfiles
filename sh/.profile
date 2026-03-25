@@ -1,32 +1,25 @@
-#
-# .profile - Bourne Shell startup script for login shells
-#
-# see also sh(1), environ(7).
-#
+# .profile — /bin/sh login shell config (FreeBSD)
 
-# These are normally set through /etc/login.conf.  You may override them here
-# if wanted.
-# PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:$HOME/bin; export PATH
+# ── path ──────────────────────────────────────────────────────────────────────
 export PATH="$HOME/.local/bin:$PATH"
 
-# Setting TERM is normally done through /etc/ttys.  Do only override
-# if you're sure that you'll never log in via telnet or xterm or a
-# serial line.
-# TERM=xterm; 	export TERM
+# ── environment ───────────────────────────────────────────────────────────────
+export EDITOR=vim
+export PAGER=less
 
-EDITOR=vi;   	export EDITOR
-PAGER=less;  	export PAGER
+# point sh(1) at the interactive config
+export ENV=$HOME/.shrc
 
-# set ENV to a file invoked each time sh is started for interactive use.
-ENV=$HOME/.shrc; export ENV
+# ── vt / serial helpers ───────────────────────────────────────────────────────
+# requery terminal size; useful on serial lines and after resize
+[ -x /usr/bin/resizewin ] && /usr/bin/resizewin -z
 
-# Let sh(1) know it's at home, despite /home being a symlink.
-if [ "$PWD" != "$HOME" ] && [ "$PWD" -ef "$HOME" ] ; then cd ; fi
+# larger VT font — only applies on the FreeBSD virtual console
+[ -x /usr/sbin/vidcontrol ] && vidcontrol -f 12x22 /usr/share/vt/fonts/ttyp0-22.fnt 2>/dev/null
 
-# Query terminal size; useful for serial lines.
-if [ -x /usr/bin/resizewin ] ; then /usr/bin/resizewin -z ; fi
+# ── login greeting ────────────────────────────────────────────────────────────
+[ -x /usr/bin/fortune ] && /usr/bin/fortune freebsd-tips
 
-# Display a random cookie on each login.
-if [ -x /usr/bin/fortune ] ; then /usr/bin/fortune freebsd-tips ; fi
-
-vidcontrol -f 12x22 /usr/share/vt/fonts/ttyp0-22.fnt
+# ── home symlink fix ──────────────────────────────────────────────────────────
+# /home is a symlink on FreeBSD; ensure $PWD resolves correctly
+if [ "$PWD" != "$HOME" ] && [ "$PWD" -ef "$HOME" ]; then cd; fi

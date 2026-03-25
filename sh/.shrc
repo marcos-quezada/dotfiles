@@ -1,52 +1,66 @@
-#
-# .shrc - bourne shell startup file 
-#
-# This file will be used if the shell is invoked for interactive use and
-# the environment variable ENV is set to this file.
-#
-# see also sh(1), environ(7).
-#
+# .shrc — /bin/sh interactive config (FreeBSD)
+# loaded on each interactive shell via ENV=$HOME/.shrc in .profile
 
+# ── editline key bindings ─────────────────────────────────────────────────────
+# history search on up/down arrows (csh-style behaviour)
+bind ^[[A ed-search-prev-history
+bind ^[[B ed-search-next-history
 
-# file permissions: rwxr-xr-x
-#
-# umask	022
+# ctrl+right / ctrl+left: word-by-word navigation
+bind "\\e[1;5C" em-next-word
+bind "\\e[1;5D" ed-prev-word
 
-# Uncomment this to enable the builtin vi(1) command line editor in sh(1),
-# e.g. ESC to go into visual mode.
-# set -o vi
+# home/end keys (fixes MobaXterm and some VT keymaps)
+bind ^[[5~ ed-move-to-beg
+bind ^[[6~ ed-move-to-end
 
+# ── prompt ────────────────────────────────────────────────────────────────────
+PS1="
+\033[32mℵ₀ \t\033[0m \w
+λ❯ "
 
-# some useful aliases
+# ── aliases ───────────────────────────────────────────────────────────────────
 alias h='fc -l'
+alias history='fc -l'
 alias j=jobs
 alias m="$PAGER"
 alias ll='ls -laFo'
 alias l='ls -l'
-alias g='egrep -i'
- 
-# # be paranoid
-# alias cp='cp -ip'
-# alias mv='mv -i'
-# alias rm='rm -i'
+alias g='grep -Ei'
 
-# # csh like history on arrow up and down
-bind ^[[A ed-search-prev-history
-bind ^[[B ed-search-next-history
+# git
+alias gs='git status'
+alias gc='git commit'
+alias gp='git pull --rebase'
+alias gcam='git commit -am'
+alias gl='git log --graph --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit'
 
-# # Ctrl+right arrow: go to the next word
-# # Ctrl+left arrow: go to the previous word
-bind "\\e[1;5C" em-next-word
-bind "\\e[1;5D" ed-prev-word
+# clue — show the CLI cheatsheet; falls back to cat if bat is not installed
+if command -v bat >/dev/null 2>&1; then
+    alias clue='bat --style=plain --language=md ~/.config/cheatsheets/cli.md'
+else
+    alias clue='cat ~/.config/cheatsheets/cli.md'
+fi
 
-alias history='fc -l'
+# handbook — open the locally installed FreeBSD handbook in w3m
+alias handbook='w3m /usr/local/share/doc/freebsd/en/books/handbook/index.html'
 
-# Fix home/del for mobaxterm
-bind ^[[5~ ed-move-to-beg
-bind ^[[6~ ed-move-to-end
+# ── functions ─────────────────────────────────────────────────────────────────
 
-# set prompt: ``username@hostname:directory $ '' 
-PS1="\u@\h:\w \\$ "
+# sync a branch with upstream and push to origin
+gsync() {
+    if [ -z "$1" ]; then
+        echo "usage: gsync <branch>"
+        return 1
+    fi
+    git branch --list "$1" | grep -q . || { echo "branch $1 does not exist"; return 1; }
+    git checkout "$1" && git pull upstream "$1" && git push origin "$1"
+}
 
-# search path for cd(1)
-# CDPATH=:$HOME
+# remove a line from ~/.ssh/known_hosts by line number
+knownrm() {
+    case "$1" in
+        ''|*[!0-9]*) echo "error: line number required" >&2; return 1 ;;
+    esac
+    sed -i '' "${1}d" ~/.ssh/known_hosts
+}

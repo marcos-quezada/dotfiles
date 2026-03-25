@@ -120,6 +120,16 @@ check_cmd curl "$(pkg_name curl curl curl)" || MISSING_CORE="$MISSING_CORE curl"
 check_cmd jq   "$(pkg_name jq jq jq)"       || MISSING_CORE="$MISSING_CORE jq"
 check_cmd awk  "built into base system"
 
+# bat is required on FreeBSD (powers the clue alias); optional elsewhere
+if [ "$PLATFORM" = "freebsd" ]; then
+    check_cmd bat "bat" || MISSING_CORE="$MISSING_CORE bat"
+fi
+
+# w3m is required on FreeBSD (powers the handbook alias)
+if [ "$PLATFORM" = "freebsd" ]; then
+    check_cmd w3m "w3m" || MISSING_CORE="$MISSING_CORE w3m"
+fi
+
 if [ -n "$MISSING_CORE" ]; then
     printf '\n'
     warn "missing required tools:$MISSING_CORE"
@@ -127,7 +137,7 @@ if [ -n "$MISSING_CORE" ]; then
         # shellcheck disable=SC2086
         install_pkg $MISSING_CORE
     else
-        warn "threatwatch will not work correctly without curl and jq"
+        warn "some features will not work correctly without the above tools"
     fi
 fi
 
@@ -143,9 +153,11 @@ if ! check_cmd magick "" && ! check_cmd convert ""; then
     info "to install: $(pkg_name 'brew install imagemagick' 'pkg install ImageMagick7' 'apt-get install imagemagick')"
 fi
 
-# bat powers the clue alias; graceful fallback to cat if absent
-if ! check_cmd bat "$(pkg_name bat bat bat) — syntax-highlighted cheatsheet viewer"; then
-    warn "clue alias will fall back to cat"
+# bat on non-FreeBSD is optional; clue falls back to cat
+if [ "$PLATFORM" != "freebsd" ]; then
+    if ! check_cmd bat "$(pkg_name bat bat bat) — syntax-highlighted cheatsheet viewer"; then
+        warn "clue alias will fall back to cat"
+    fi
 fi
 
 # ── select packages to stow ───────────────────────────────────────────────────
@@ -153,9 +165,11 @@ printf '\n  packages available:\n\n'
 
 # threatwatch is available on all platforms
 DO_THREATWATCH=1
-# quickshell is only meaningful on freebsd (wayland/sway)
+# quickshell and sh are only meaningful on freebsd
 DO_QUICKSHELL=0
+DO_SH=0
 [ "$PLATFORM" = "freebsd" ] && DO_QUICKSHELL=1
+[ "$PLATFORM" = "freebsd" ] && DO_SH=1
 
 # core packages — available everywhere
 DO_GIT=1
@@ -188,12 +202,14 @@ if [ "$YES" = "0" ]; then
 
     if [ "$PLATFORM" = "freebsd" ]; then
         printf '\n  FreeBSD packages:\n\n'
+        prompt_yn "stow sh (.shrc + .profile)?" y && DO_SH=1 || DO_SH=0
         if prompt_yn "stow quickshell (sway statusbar — Wayland only)?" y; then
             DO_QUICKSHELL=1
         else
             DO_QUICKSHELL=0
         fi
     else
+        info "sh skipped — FreeBSD /bin/sh config only"
         info "quickshell skipped — sway/Wayland package, FreeBSD only"
     fi
 fi
@@ -212,13 +228,14 @@ stow_pkg() {
     fi
 }
 
-[ "$DO_GIT"        = "1" ] && stow_pkg git
-[ "$DO_VIM"        = "1" ] && stow_pkg vim
-[ "$DO_INPUTRC"    = "1" ] && stow_pkg inputrc
+[ "$DO_GIT"         = "1" ] && stow_pkg git
+[ "$DO_VIM"         = "1" ] && stow_pkg vim
+[ "$DO_INPUTRC"     = "1" ] && stow_pkg inputrc
 [ "$DO_CHEATSHEETS" = "1" ] && stow_pkg cheatsheets
-[ "$DO_ZSH"        = "1" ] && stow_pkg zsh
-[ "$DO_NVIM"       = "1" ] && stow_pkg nvim
-[ "$DO_SKETCHYBAR" = "1" ] && stow_pkg sketchybar
+[ "$DO_SH"          = "1" ] && stow_pkg sh
+[ "$DO_ZSH"         = "1" ] && stow_pkg zsh
+[ "$DO_NVIM"        = "1" ] && stow_pkg nvim
+[ "$DO_SKETCHYBAR"  = "1" ] && stow_pkg sketchybar
 [ "$DO_THREATWATCH" = "1" ] && stow_pkg threatwatch
 [ "$DO_QUICKSHELL"  = "1" ] && stow_pkg quickshell
 

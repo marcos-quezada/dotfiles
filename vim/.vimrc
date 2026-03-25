@@ -53,6 +53,14 @@ filetype on                            " enable filetype detection
 filetype indent on                     " filetype-specific indentation rules
 filetype plugin on                     " filetype-specific plugins
 
+" markdown: conceal syntax markers so the file reads cleanly
+augroup markdown_display
+    autocmd!
+    autocmd FileType markdown setlocal conceallevel=2 concealcursor=nc
+    autocmd FileType markdown setlocal wrap linebreak nolist
+    autocmd FileType markdown setlocal spell spelllang=en_us
+augroup END
+
 " ── bells ─────────────────────────────────────────────────────────────────────
 set noerrorbells                       " no audio bell on errors
 set visualbell                         " use visual bell instead (intercepted below)
@@ -70,7 +78,7 @@ let g:netrw_winsize     = 25          " sidebar takes 25% of screen width
 map  <F2>      :Lexplore<CR>          " toggle file explorer sidebar
 
 " open vim cheatsheet in a right-side split; close with q
-nnoremap <leader>? :vsplit ~/.config/cheatsheets/vim.md \| setlocal ro nomodifiable conceallevel=2<CR>
+nnoremap <leader>? :vsplit ~/.config/cheatsheets/vim.md \| setlocal ro nomodifiable<CR>
 
 " auto-close curly braces
 inoremap {     {}<Left>
