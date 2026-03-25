@@ -15,7 +15,12 @@ bind ^[[5~ ed-move-to-beg
 bind ^[[6~ ed-move-to-end
 
 # ── prompt ────────────────────────────────────────────────────────────────────
-PS1="ℵ₀:\h:\w ❤❯ \\$ "
+# ❤ (U+2764) is not in the ttyp0 bitmap font used on the VT console;
+# fall back to a plain '<3' when running on cons25/vt220.
+case "$TERM" in
+    cons25|vt100|vt220) PS1="aleph0:\h:\w <3> \$ " ;;
+    *)                  PS1="ℵ₀:\h:\w ❤❯ \$ "     ;;
+esac
 
 # ── aliases ───────────────────────────────────────────────────────────────────
 alias h='fc -l'
