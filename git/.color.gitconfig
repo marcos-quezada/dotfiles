@@ -1,6 +1,7 @@
-# foot terminal — gameboy DMG palette
-# background: #9bbc0f (lightest), foreground: #0f380f (darkest)
-# all 16 ANSI slots map to 4 shades; hue is meaningless — contrast via bold/reverse/dim only
+# terminal-agnostic color config — works on both light (foot/gameboy) and dark (VT) backgrounds
+# uses only bold/reverse/dim/italic — no named colors or ANSI slots
+# reverse swaps fg↔bg regardless of palette: dark block on light bg, light block on dark bg
+# bold increases weight on both: heavier dark text on light, brighter text on dark
 
 [color]
     ui = true
