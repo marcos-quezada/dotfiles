@@ -168,8 +168,12 @@ DO_THREATWATCH=1
 # quickshell and sh are only meaningful on freebsd
 DO_QUICKSHELL=0
 DO_SH=0
+DO_FOOT=0
 [ "$PLATFORM" = "freebsd" ] && DO_QUICKSHELL=1
 [ "$PLATFORM" = "freebsd" ] && DO_SH=1
+# foot is Wayland-native; default on for freebsd and linux
+[ "$PLATFORM" = "freebsd" ] && DO_FOOT=1
+[ "$PLATFORM" = "linux" ]   && DO_FOOT=1
 
 # core packages — available everywhere
 DO_GIT=1
@@ -203,13 +207,18 @@ if [ "$YES" = "0" ]; then
     if [ "$PLATFORM" = "freebsd" ]; then
         printf '\n  FreeBSD packages:\n\n'
         prompt_yn "stow sh (.shrc + .profile)?" y && DO_SH=1 || DO_SH=0
+        prompt_yn "stow foot (Wayland terminal emulator)?" y && DO_FOOT=1 || DO_FOOT=0
         if prompt_yn "stow quickshell (sway statusbar — Wayland only)?" y; then
             DO_QUICKSHELL=1
         else
             DO_QUICKSHELL=0
         fi
+    elif [ "$PLATFORM" = "linux" ]; then
+        printf '\n  Linux packages:\n\n'
+        prompt_yn "stow foot (Wayland terminal emulator)?" y && DO_FOOT=1 || DO_FOOT=0
     else
         info "sh skipped — FreeBSD /bin/sh config only"
+        info "foot skipped — Wayland terminal, FreeBSD/Linux only"
         info "quickshell skipped — sway/Wayland package, FreeBSD only"
     fi
 fi
@@ -236,6 +245,7 @@ stow_pkg() {
 [ "$DO_ZSH"         = "1" ] && stow_pkg zsh
 [ "$DO_NVIM"        = "1" ] && stow_pkg nvim
 [ "$DO_SKETCHYBAR"  = "1" ] && stow_pkg sketchybar
+[ "$DO_FOOT"        = "1" ] && stow_pkg foot
 [ "$DO_THREATWATCH" = "1" ] && stow_pkg threatwatch
 [ "$DO_QUICKSHELL"  = "1" ] && stow_pkg quickshell
 

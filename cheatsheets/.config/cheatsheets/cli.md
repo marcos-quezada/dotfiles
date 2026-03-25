@@ -37,3 +37,9 @@
 | Command   | Action                                     |
 |-----------|--------------------------------------------|
 | `clue`    | Show this CLI cheatsheet (via bat)         |
+
+## Foot Terminal
+| Location                    | Purpose                              |
+|-----------------------------|--------------------------------------|
+| `~/.config/foot/foot.ini`   | Font, palette, cursor, alpha         |
+| `man foot.ini`              | Full option reference                |
