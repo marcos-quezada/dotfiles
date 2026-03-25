@@ -44,7 +44,8 @@ else
     " built-in default scheme which is safe on any palette depth.
     colorscheme default
     " default (and elflord) hardcode ColorColumn as ctermbg=DarkRed, which
-    " maps to a wrong slot on the VT palette. reverse is attribute-only and
-    " works correctly regardless of what colours the palette uses.
-    highlight ColorColumn cterm=reverse ctermbg=NONE ctermfg=NONE
+    " maps to a wrong slot on the VT palette. Use slot 0 (dark gray, the
+    " terminal background) with slot 7 (light) as foreground — visible against
+    " green text without introducing any colour outside the 8-slot palette.
+    highlight ColorColumn cterm=NONE ctermbg=0 ctermfg=7
 endif
