@@ -139,6 +139,151 @@ this one object. changing a colour requires editing exactly one line.
 
 ---
 
+## threatwatch themes
+
+### how themes work
+
+`_resolve_theme()` runs once at startup, after `config.env` is sourced. it sets
+every `TH_*` variable for the current session and resolves `MAPBOX_STYLE`.
+
+```
+config.env sourced
+    └── THREATWATCH_THEME="vintage"   (or "neon", or unset → defaults to vintage)
+
+_resolve_theme()
+    ├── case branch sets all TH_* variables
+    ├── sets _TH_MAPBOX_STYLE  (internal — the style paired with this theme)
+    └── MAPBOX_STYLE resolution:
+            if MAPBOX_STYLE already set in config.env → keep it (explicit override)
+            else → MAPBOX_STYLE = _TH_MAPBOX_STYLE
+        then: MAPBOX_BASE = https://api.mapbox.com/styles/v1/${MAPBOX_STYLE}/static
+```
+
+the `vintage|*` branch is the fallback — any unrecognised theme name silently
+uses vintage rather than crashing. keep this as the last branch when adding
+new themes.
+
+### variable contract
+
+all `TH_*` variables must be set in every theme branch. missing a variable
+produces a silent empty string, which ImageMagick renders as black — not an
+error, but visually broken.
+
+**HUD panel**
+
+| variable | format | controls |
+|---|---|---|
+| `TH_PANEL_FILL` | `rgba(r,g,b,a)` | background fill of HUD + legend panels |
+| `TH_BORDER_COL` | `#rrggbb` | border stroke of HUD + legend panels |
+
+**text hierarchy** — four levels, dark→faint, used top-to-bottom in the HUD
+
+| variable | format | used for |
+|---|---|---|
+| `TH_TEXT_DARK` | `#rrggbb` | primary data lines (quake count, flight count) |
+| `TH_TEXT_MID` | `#rrggbb` | secondary data (Polymarket line, Mapbox usage) |
+| `TH_TEXT_SOFT` | `#rrggbb` | timestamps and low-priority lines |
+| `TH_TEXT_FAINT` | `#rrggbb` | de-emphasised text; on dark themes set equal to `TH_TEXT_MID` — faint-on-dark is unreadable |
+| `TH_LEG_TEXT` | `#rrggbb` | legend labels |
+
+**threat level accent** — drives the left accent bar and the top HUD line colour
+
+| variable | format | level |
+|---|---|---|
+| `TH_LEVEL_CRITICAL` | `#rrggbb` | critical |
+| `TH_LEVEL_HIGH` | `#rrggbb` | high |
+| `TH_LEVEL_MEDIUM` | `#rrggbb` | medium |
+| `TH_LEVEL_LOW` | `#rrggbb` | low |
+| `TH_LEVEL_INFO` | `#rrggbb` | info (default / no events) |
+
+**pin colours** — bare hex, no `#` prefix. passed directly into Mapbox Static
+Images pin URL syntax: `pin-s-icon+rrggbb(lon,lat)`. the `#` form is rejected
+by the API.
+
+| variable | pin type | slots |
+|---|---|---|
+| `TH_PIN_EMERG` | emergency squawk aircraft | up to 2 |
+| `TH_PIN_MIL` | military callsign aircraft | up to 3 |
+| `TH_PIN_GDACS_RED` | GDACS red alert in region | 1 |
+| `TH_PIN_GDACS_ORG` | GDACS orange alert in region | 1 |
+| `TH_PIN_Q_CRIT` | earthquake M5.5+ (`pin-l`) | up to 4 (fills remaining slots) |
+| `TH_PIN_Q_HIGH` | earthquake M4.5+ (`pin-m`) | ↑ |
+| `TH_PIN_Q_MED` | earthquake M4.0+ (`pin-s`) | ↑ |
+| `TH_PIN_Q_LOW` | earthquake M3.5+ (`pin-s`) | ↑ |
+
+**Mapbox style**
+
+| variable | format | notes |
+|---|---|---|
+| `_TH_MAPBOX_STYLE` | `{username}/{style_id}` | internal — set inside the `case` branch, unset after `_resolve_theme` returns |
+
+### pin colour selection guide
+
+the map has its own dominant colours. pins must stand out from both the map
+background **and** from each other. before choosing pin colours, sample the
+map histogram to find the dominant hues.
+
+method: fetch the map with `threatwatch map --force`, then run:
+```sh
+magick ~/.cache/threatwatch/germany_raw.png \
+    -format %c -depth 8 histogram:info:- \
+    | sort -rn | head -20
+```
+
+this gives the top 20 pixel colours by count. build a palette of those
+dominant hues, then choose each pin colour to maximise distance from all of
+them and from the other pins.
+
+the inline comments in `_resolve_theme()` document this for both existing
+themes — preserve that pattern when adding a new one.
+
+### adding a theme
+
+1. pick a Mapbox style. studio styles live at
+   `https://studio.mapbox.com` — the style ID is the last path segment of
+   the style URL. user-owned styles use `{username}/{style_id}`.
+
+2. fetch the map and sample the histogram (see above). note the dominant
+   colours so you can choose pin colours that contrast with the map.
+
+3. add a `case` branch in `_resolve_theme()`, **before** the `vintage|*)`
+   fallback:
+
+   ```sh
+   mytheme)
+       _TH_MAPBOX_STYLE="{username}/{style_id}"
+       TH_PANEL_FILL="rgba(...)"
+       TH_BORDER_COL="#..."
+       TH_TEXT_DARK="#..."
+       TH_TEXT_MID="#..."
+       TH_TEXT_SOFT="#..."
+       TH_TEXT_FAINT="#..."
+       TH_LEVEL_CRITICAL="#..."
+       TH_LEVEL_HIGH="#..."
+       TH_LEVEL_MEDIUM="#..."
+       TH_LEVEL_LOW="#..."
+       TH_LEVEL_INFO="#..."
+       TH_PIN_EMERG="rrggbb"    # bare hex — note the contrast rationale
+       TH_PIN_MIL="rrggbb"
+       TH_PIN_GDACS_RED="rrggbb"
+       TH_PIN_GDACS_ORG="rrggbb"
+       TH_PIN_Q_CRIT="rrggbb"
+       TH_PIN_Q_HIGH="rrggbb"
+       TH_PIN_Q_MED="rrggbb"
+       TH_PIN_Q_LOW="rrggbb"
+       TH_LEG_TEXT="#..."
+       ;;
+   ```
+
+4. add the theme name to the `THREATWATCH_THEME` comment block in
+   `config.env.template` with a one-line description and the paired style ID.
+
+5. test: set `THREATWATCH_THEME="mytheme"` in `config.env`, run
+   `threatwatch map --force && threatwatch overlay`, then inspect
+   `~/.cache/threatwatch/germany.png`.
+
+---
+
 ## threatwatch script
 
 ### data flow
