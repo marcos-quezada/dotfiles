@@ -1,5 +1,0 @@
-automount_devd.conf
-cups.conf
-cups.conf.sample
-u2f.conf
-webcamd.conf
