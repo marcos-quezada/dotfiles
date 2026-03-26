@@ -206,6 +206,7 @@ DO_QUICKSHELL=0
 DO_SH=0
 DO_FOOT=0
 DO_SWAY=0
+DO_VT=0
 [ "$PLATFORM" = "freebsd" ] && DO_QUICKSHELL=1
 [ "$PLATFORM" = "freebsd" ] && DO_SH=1
 # foot and sway are Wayland-native; default on for freebsd and linux
@@ -213,6 +214,8 @@ DO_SWAY=0
 [ "$PLATFORM" = "freebsd" ] && DO_SWAY=1
 [ "$PLATFORM" = "linux" ]   && DO_FOOT=1
 [ "$PLATFORM" = "linux" ]   && DO_SWAY=1
+# vt console font — FreeBSD only; stows to /boot/fonts/ (root-owned)
+[ "$PLATFORM" = "freebsd" ] && DO_VT=1
 
 # core packages — available everywhere
 DO_GIT=1
@@ -253,6 +256,11 @@ if [ "$YES" = "0" ]; then
         else
             DO_QUICKSHELL=0
         fi
+        if prompt_yn "install vt console font to /boot/fonts/ (requires doas/sudo)?" y; then
+            DO_VT=1
+        else
+            DO_VT=0
+        fi
     elif [ "$PLATFORM" = "linux" ]; then
         printf '\n  Linux packages:\n\n'
         prompt_yn "stow foot (Wayland terminal emulator)?" y && DO_FOOT=1 || DO_FOOT=0
@@ -279,6 +287,23 @@ stow_pkg() {
     fi
 }
 
+# vt targets /boot/fonts/ which is root-owned; stow --target=/ with privilege escalation
+stow_vt() {
+    if [ ! -d "$REPO_DIR/vt" ]; then
+        warn "vt package dir not found — skipping"
+        return
+    fi
+    SUDO=""
+    command -v doas >/dev/null 2>&1 && SUDO=doas
+    command -v sudo >/dev/null 2>&1 && [ -z "$SUDO" ] && SUDO=sudo
+    if [ -z "$SUDO" ]; then
+        die "doas or sudo required to stow vt (target is /boot/fonts/)"
+    fi
+    ${SUDO} stow --dir="$REPO_DIR" --target="/" --restow vt \
+        && ok "stowed vt → /boot/fonts/" \
+        || die "stow failed for vt"
+}
+
 [ "$DO_GIT"         = "1" ] && stow_pkg git
 [ "$DO_VIM"         = "1" ] && stow_pkg vim
 [ "$DO_INPUTRC"     = "1" ] && stow_pkg inputrc
@@ -291,6 +316,7 @@ stow_pkg() {
 [ "$DO_SWAY"        = "1" ] && stow_pkg sway
 [ "$DO_THREATWATCH" = "1" ] && stow_pkg threatwatch
 [ "$DO_QUICKSHELL"  = "1" ] && stow_pkg quickshell
+[ "$DO_VT"          = "1" ] && stow_vt
 
 # ── config template ───────────────────────────────────────────────────────────
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/threatwatch"

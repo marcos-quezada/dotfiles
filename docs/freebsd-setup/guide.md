@@ -360,70 +360,79 @@ sysctl dev.iwlwifi.0.power_save=1
 
 `uw-ttyp0` is a monospace bitmap screen font by Dr. Uwe Waldmann
 (<https://people.mpi-inf.mpg.de/~uwe/misc/uw-ttyp0/>). It supports a large
-Unicode range and includes stylistic variants (zero shape, tilde position,
-Cyrillic variant) selected at build time.
+Unicode range and comes as a pre-built `.fnt` binary for several size/variant
+combinations — no ports build or `vtfontcvt(8)` required.
 
-The font is not in the FreeBSD ports tree. It must be downloaded and converted
-manually using `vtfontcvt(8)`.
+The font is committed to this repo as `vt/boot/fonts/12x22.fnt.gz`. The `vt`
+stow package uses `--target=/` (requires `doas`/`sudo`) to place files under
+`/boot/fonts/`.
 
 ### Install steps
 
-1. Download the source tarball from the author's page.
+1. Download the pre-built `.fnt` file from the author's page (the `ttyp0`
+   distribution includes ready-to-use bitmap fonts in multiple sizes).
 
-2. Before building, edit `VARIANTS.dat` to select your preferred stylistic
-   variants (zero shape, tilde, Cyrillic locale, etc.).
-
-3. Build the font. The build system produces `.bdf` files; convert to the
-   `.fnt` format that `vt(4)` uses:
+2. Rename to match the glyph dimensions. The 12×22 variant was chosen here:
 
    ```sh
-   # inside the uw-ttyp0 source directory, after running make:
-   vtfontcvt -o uw-ttyp0-r14.fnt uw-ttyp0-r14.bdf
-   # repeat for each size variant you want
+   mv uw-ttyp0-<variant>.fnt 12x22.fnt
    ```
 
-4. Gzip and install to `/boot/fonts/`:
+3. Gzip it — the FreeBSD loader requires compressed fonts in `/boot/fonts/`:
 
    ```sh
-   gzip -k uw-ttyp0-r14.fnt
-   cp uw-ttyp0-r14.fnt.gz /boot/fonts/
+   gzip 12x22.fnt          # produces 12x22.fnt.gz
    ```
 
-5. Register the font in `/boot/fonts/INDEX.fonts` so the loader can find it:
+4. Copy to `/boot/fonts/` (root-owned):
+
+   ```sh
+   doas cp 12x22.fnt.gz /boot/fonts/
+   ```
+
+5. Register the font in `/boot/fonts/INDEX.fonts` so the loader and
+   `vidfont(8)` can find it. Add these three lines (matching the filename stem
+   `12x22`):
 
    ```text
-   uw-ttyp0-r14.fnt:en:UW ttyp0 size 14
-   uw-ttyp0-r14.fnt:de:UW ttyp0 Größe 14
+   12x22.fnt:en:UW ttyp0 BSD Console, size 22
+   12x22.fnt:da:UW ttyp0 BSD-konsol, størrelse 22
+   12x22.fnt:de:UW ttyp0 BSD Console, Größe 22
    ```
 
 6. Select it in `/boot/loader.conf`:
 
    ```text
-   screen.font=uw-ttyp0-r14
+   screen.font=12x22
    ```
 
-   The key is the filename stem, without `.fnt`.
+   The key is the filename stem without `.fnt`. This takes effect from the
+   very first loader frame — before the kernel loads.
 
-> **Note:** Large fonts (many glyphs) cannot reliably be loaded from
-> `loader.conf` at early boot. If the loader silently falls back to Terminus,
-> load the font from `rc.local` instead:
-> ```sh
-> vidcontrol -f /boot/fonts/uw-ttyp0-r14.fnt
-> ```
+   Alternatively, install the whole `vt` stow package from this repo:
+
+   ```sh
+   doas stow --dir=~/dotfiles --target=/ --restow vt
+   # or: sh ~/dotfiles/install.sh  (prompts for vt)
+   ```
 
 ### Colours
 
-The VT colour palette is set in `loader.conf` via ANSI index:
+The VT colour palette is controlled by two `loader.conf` keys. They apply both
+during the boot loader phase and in the VT console after the kernel takes over:
 
 ```text
-teken.fg_color="10"   # bright green
-teken.bg_color="8"    # dark grey
+teken.fg_color="10"   # bright green (ANSI colour index 10)
+teken.bg_color="8"    # dark grey    (ANSI colour index 8)
 ```
 
+The bright-green-on-dark-grey combination matches the Gameboy DMG palette used
+in `foot.ini`, so the console and terminal feel visually consistent.
+
 > **Reference:** The FreeBSD Forums thread
-> [*The gallant console font got supercharged*](https://forums.freebsd.org/threads/the-gallant-console-font-got-supercharged.99074/)
-> contains a detailed walkthrough of building and installing VT bitmap fonts,
-> including how to register them for loader-time use.
+> [*The gallant console font got supercharged*](https://forums.freebsd.org/threads/the-gallant-console-font-got-supercharged.99074/post-715734)
+> documents the exact procedure for placing pre-built `.fnt.gz` fonts in
+> `/boot/fonts/` and registering them for loader-time use.
 
 ---
 
@@ -452,14 +461,13 @@ Key settings:
 Downloaded from Vermaden's FreeBSD wallpaper collection:
 <https://vermaden.wordpress.com/2023/10/04/freebsd-unix-wallpapers/>
 
-Stored at `~/walls/freebsd-kilmynda-wide.png` and referenced in the sway
-config:
+Committed to this repo at `sway/walls/freebsd-kilmynda-wide.png`. Stowing the
+`sway` package places it at `~/walls/freebsd-kilmynda-wide.png`, which matches
+the sway config reference:
 
 ```text
 output * bg ~/walls/freebsd-kilmynda-wide.png stretch
 ```
-
-<!-- TODO: commit the wallpaper file to sway/walls/ in this repo -->
 
 ### Wayland IPC / shared memory
 
@@ -498,7 +506,34 @@ Ly itself is enabled via its own rc script (installed by the `ly` package).
 
 ### Configuration
 
-<!-- TODO: commit /etc/ly/config.ini to docs/freebsd-setup/raw/ then document customisations here -->
+Config lives at `/etc/ly/config.ini`. Key customisations on this machine:
+
+| Key | Value | Effect |
+|-----|-------|--------|
+| `animation` | `matrix` | CMatrix rain plays on the login screen |
+| `bigclock` | `en` | Large ASCII clock shown in English |
+| `battery_id` | `BAT0` | Battery percentage shown top-left |
+| `lang` | `de` | German locale for UI strings |
+| `full_color` | `true` | 24-bit colour in the TUI |
+| `vi_mode` | `false` | Standard keybindings (not vi) |
+| `waylandsessions` | `/usr/local/share/wayland-sessions` | Where Ly looks for `.desktop` session files; picks up sway automatically |
+| `brightness_down_cmd` | `/usr/bin/backlight -q - 10%` | Invoked by F5 |
+| `brightness_up_cmd` | `/usr/bin/backlight -q + 10%` | Invoked by F6 |
+| `cmatrix_fg` | `0x0000FF00` | Matrix rain colour — green |
+| `cmatrix_head_col` | `0x01FFFFFF` | Matrix head character — bold white (`0x01` = `TB_BOLD`) |
+| `shutdown_key` | `F1` | `/sbin/shutdown -p now` |
+| `restart_key` | `F2` | `/sbin/shutdown -r now` |
+| `save` | `true` | Last-used session and login saved across reboots |
+
+Ly is enabled via its own rc script. There is no `ly_enable="YES"` in
+`rc.conf` — the package installs an rc script that enables itself. Verify:
+
+```sh
+service ly status
+```
+
+The `seatd_enable="YES"` entry in `rc.conf` must come before Ly starts;
+`seatd` provides the seat abstraction that Sway requires.
 
 ---
 
