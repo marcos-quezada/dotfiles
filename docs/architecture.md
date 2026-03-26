@@ -9,17 +9,18 @@ design decisions for the quickshell + threatwatch configuration.
 ### bar structure
 
 the bar runs on sway (wlroots compositor) using Quickshell's `PanelWindow` +
-`WlrLayershell`. one `Bar` instance is spawned per monitor via `Variants { model:
-Quickshell.screens }`.
+`WlrLayershell`. `Bar.qml` wraps its content in `Scope > Variants { model:
+Quickshell.screens }` so one `Bar` instance is spawned per monitor.
 
 ```
 shell.qml
-├── Taskbar.Bar          — PanelWindow, WlrLayer.Bottom, spans all monitors
-│   ├── workspacesPanel  — left side: sway workspace switcher
-│   └── trayPanel        — right side: SysTray row
-│       ├── ThreatWatchWidget
-│       └── ClockWidget
-└── ThreatWatch.ThreatWatchPopup  — PanelWindow, WlrLayer.Overlay (see below)
+├── Taskbar.Bar                    — PanelWindow, WlrLayer.Bottom
+│   │                                (Bar.qml wraps this in Scope > Variants { model: Quickshell.screens }
+│   │                                 so one instance spawns per monitor)
+│   ├── workspacesPanel            — left side: sway workspace switcher (Workspaces.qml)
+│   └── trayPanel                  — right side: system tray row
+│       └── SysTray                — SysTray.qml (contains ThreatWatchWidget + ClockWidget internally)
+└── ThreatWatch.ThreatWatchPopup   — PanelWindow, WlrLayer.Overlay (see below)
 ```
 
 ### widget interactions
@@ -392,19 +393,26 @@ fix: set `hoverEnabled: true` on the `MouseArea` and drive visibility from
 
 ## stow layout
 
-each top-level directory in this repo is a stow package. `stow <package>` from
-the repo root creates symlinks under `$HOME` that mirror the package's directory
-tree.
+every top-level directory (except `docs/`) is a stow package. `install.sh`
+handles all stow invocations interactively — you do not need to run `stow`
+manually.
 
-```
-dotfiles/
-├── quickshell/          stow package — sway bar (FreeBSD only)
-│   └── .config/quickshell/
-├── threatwatch/         stow package — all platforms
-│   ├── .local/bin/threatwatch
-│   └── .config/threatwatch/config.env.template
-├── docs/                not stowed — repo documentation
-├── install.sh           not stowed — bootstrap script
-├── .stow-local-ignore   tells stow what to skip
-└── .gitignore
-```
+| package | stow target | platform | contents |
+|---|---|---|---|
+| `cheatsheets` | `$HOME` | all | `.config/cheatsheets/` |
+| `foot` | `$HOME` | FreeBSD + Linux | `.config/foot/` |
+| `git` | `$HOME` | all | `.gitconfig`, `.color.gitconfig`, `.gitignore`, `.local/bin/git-clone-bare-for-worktrees` |
+| `inputrc` | `$HOME` | all | `.inputrc` |
+| `nvim` | `$HOME` | macOS | `.config/nvim/` |
+| `quickshell` | `$HOME` | FreeBSD | `.config/quickshell/` (bar + threatwatch QML, fonts) |
+| `sh` | `$HOME` | FreeBSD | `.profile`, `.shrc` |
+| `sketchybar` | `$HOME` | macOS | `.config/sketchybar/` |
+| `sway` | `$HOME` | FreeBSD + Linux | `.config/sway/config`, `walls/freebsd-kilmynda-wide.png` |
+| `threatwatch` | `$HOME` | all | `.local/bin/threatwatch`, `.config/threatwatch/config.env.template` |
+| `vim` | `$HOME` | all | `.vimrc`, `.config/vim/` |
+| `vt` | `/` | FreeBSD | `boot/fonts/12x22.fnt.gz`, `boot/fonts/INDEX.fonts` |
+| `zsh` | `$HOME` | macOS | `.zshrc`, `.git-worktree-functions.zsh` |
+
+`vt` is the only package with a non-`$HOME` target. `install.sh` runs
+`stow --target=/ vt` under `doas`/`sudo` — console font files must land in
+`/boot/fonts/` for the FreeBSD loader to find them.
