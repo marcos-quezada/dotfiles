@@ -1,0 +1,39 @@
+Id Refs Address                Size Name
+ 1  122 0xffffffff80200000  1f4daa0 kernel
+ 2    1 0xffffffff8214e000     9528 acpi_video.ko
+ 3    1 0xffffffff82158000     47e8 cpuctl.ko
+ 4    1 0xffffffff8215d000     3618 cc_htcp.ko
+ 5    1 0xffffffff82161000     6dc0 acpi_wmi.ko
+ 6    1 0xffffffff82168000     2d08 cd9660_iconv.ko
+ 7    3 0xffffffff8216b000     91d8 libiconv.ko
+ 8    1 0xffffffff82175000   620c10 zfs.ko
+10    1 0xffffffff827ac000     2d18 msdosfs_iconv.ko
+11    1 0xffffffff827b0000     36c8 coretemp.ko
+12    1 0xffffffff827b5000     b258 cuse.ko
+13    1 0xffffffff837f9000    c74a0 if_iwlwifi.ko
+14    1 0xffffffff838c1000     4368 i915_kbl_dmc_ver1_04_bin.ko
+15    1 0xffffffff83a00000   210318 i915kms.ko
+16    3 0xffffffff838c6000    8a190 drm.ko
+17    1 0xffffffff83951000     22b8 iic.ko
+18    2 0xffffffff83954000     4120 linuxkpi_video.ko
+19    4 0xffffffff83959000     7358 dmabuf.ko
+20    3 0xffffffff83961000     3378 lindebugfs.ko
+21    1 0xffffffff83965000     b480 ttm.ko
+22    1 0xffffffff83971000    14a88 nvidia-drm.ko
+23    2 0xffffffff83e00000  6068378 nvidia.ko
+24    2 0xffffffff83986000    32320 linux.ko
+25    1 0xffffffff839b9000     6d98 mqueuefs.ko
+26    3 0xffffffff839c0000     ce68 linux_common.ko
+27    1 0xffffffff83c11000   1652f8 nvidia-modeset.ko
+28    1 0xffffffff839cd000    14958 fusefs.ko
+29    1 0xffffffff839e2000     4250 ichsmb.ko
+30    1 0xffffffff839e7000     2178 smbus.ko
+31    1 0xffffffff839ea000     2110 pchtherm.ko
+32    1 0xffffffff839ed000     4d84 geom_uzip.ko
+33    1 0xffffffff839f2000     58c0 ng_ubt.ko
+34    5 0xffffffff83d77000     abb8 netgraph.ko
+35    3 0xffffffff83d82000     a330 ng_hci.ko
+36    3 0xffffffff839f8000     2670 ng_bluetooth.ko
+37    1 0xffffffff83d8d000     5bf8 autofs.ko
+38    1 0xffffffff839fb000     2a80 mac_ntpd.ko
+39    1 0xffffffff83d93000    1c0c8 ng_btsocket.ko

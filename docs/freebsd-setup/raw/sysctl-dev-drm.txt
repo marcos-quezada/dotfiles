@@ -1,0 +1,7 @@
+dev.drm.1.PCI_ID: 10de:1d10
+dev.drm.129.PCI_ID: 10de:1d10
+dev.drm.0.PCI_ID: 8086:5917
+dev.drm.128.PCI_ID: 8086:5917
+dev.drm.drm_debug_persist: 0
+dev.drm.skip_ddb: 0
+dev.drm.__drm_debug: 0
