@@ -494,15 +494,49 @@ __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia foot
 Ly is a lightweight TUI display manager. It handles session selection and
 PAM authentication, then execs the chosen session (Sway).
 
-### Enable
+### Install
 
-In `/etc/rc.conf`:
-
-```text
-seatd_enable="YES"   # must come first — ly depends on seatd
+```sh
+pkg install ly
 ```
 
-Ly itself is enabled via its own rc script (installed by the `ly` package).
+> **TODO:** a local fork of ly is planned that fixes battery percentage
+> reporting on FreeBSD. When ready, the install step above will be replaced
+> with a `zig build` from source. The rest of this section remains valid
+> regardless of which variant is used.
+
+### Enable — `/etc/gettytab` and `/etc/ttys`
+
+On FreeBSD, ly is not started by an rc service. Instead, `init(8)` invokes
+it through the standard `getty(8)` mechanism. Two files must be edited.
+
+**1. Add an entry to `/etc/gettytab`:**
+
+```text
+Ly:\
+	:lo=/usr/local/bin/ly_wrapper:\
+	:al=root:
+```
+
+**2. Replace the getty command on `ttyv1` in `/etc/ttys`:**
+
+```text
+ttyv1  "/usr/libexec/getty Ly"  xterm  on  secure
+```
+
+`ttyv1` is the second virtual console (FreeBSD TTYs start at `ttyv0`).
+After this change, `init` will run `ly_wrapper` on `ttyv1` instead of the
+standard login prompt. A reboot (or `kill -HUP 1`) is needed for the
+`ttys` change to take effect.
+
+> If the login screen does not appear after reboot, switch to `ttyv1`
+> with **Alt+F2**. If Ly is running on `ttyv0` instead, use **Alt+F1**.
+
+`seatd` must also be running before the session starts:
+
+```text
+seatd_enable="YES"   # in /etc/rc.conf — must start before the first login
+```
 
 ### Configuration
 
@@ -525,16 +559,6 @@ installs under `/usr/local`). Key customisations on this machine:
 | `shutdown_key` | `F1` | `/sbin/shutdown -p now` |
 | `restart_key` | `F2` | `/sbin/shutdown -r now` |
 | `save` | `true` | Last-used session and login saved across reboots |
-
-Ly is enabled via its own rc script. There is no `ly_enable="YES"` in
-`rc.conf` — the package installs an rc script that enables itself. Verify:
-
-```sh
-service ly status
-```
-
-The `seatd_enable="YES"` entry in `rc.conf` must come before Ly starts;
-`seatd` provides the seat abstraction that Sway requires.
 
 ---
 
