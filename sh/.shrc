@@ -47,6 +47,9 @@ alias handbook='w3m /usr/local/share/doc/freebsd/en/books/handbook/index.html'
 
 # ── functions ─────────────────────────────────────────────────────────────────
 
+# git worktree helpers
+[ -f "$HOME/.config/sh/gwt.sh" ] && . "$HOME/.config/sh/gwt.sh"
+
 # sync a branch with upstream and push to origin
 gsync() {
     if [ -z "$1" ]; then
