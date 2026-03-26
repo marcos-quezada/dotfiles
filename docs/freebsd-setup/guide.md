@@ -506,7 +506,8 @@ Ly itself is enabled via its own rc script (installed by the `ly` package).
 
 ### Configuration
 
-Config lives at `/etc/ly/config.ini`. Key customisations on this machine:
+Config lives at `/usr/local/etc/ly/config.ini` (ly is a port; everything
+installs under `/usr/local`). Key customisations on this machine:
 
 | Key | Value | Effect |
 |-----|-------|--------|
