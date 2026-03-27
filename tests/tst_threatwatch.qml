@@ -1,5 +1,5 @@
 // tst_threatwatch.qml — Qt Quick Test suite for threatwatch pure logic (Utils.qml).
-// run: QT_QPA_PLATFORM=offscreen qmltestrunner -import <path>/utils -input tst_threatwatch.qml
+// run: QT_QPA_PLATFORM=offscreen qmltestrunner -import <qs_config_dir> -input tst_threatwatch.qml
 //
 // all tests exercise Utils.qml only — no Quickshell imports, no Wayland, no display required.
 

@@ -1,0 +1,9 @@
+# ThreatWatchUtils module — pure logic, no Quickshell imports, testable headlessly
+#
+# directory name matches module name so Qt can resolve it from the parent search path.
+# ThreatWatchModel imports via relative path: import "../ThreatWatchUtils" as Utils
+# tests pass the qs config dir as -import so Qt finds ThreatWatchUtils/ automatically.
+
+module ThreatWatchUtils
+
+Utils 1.0 Utils.qml

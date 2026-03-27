@@ -6,6 +6,10 @@
 # only Utils.qml (no Quickshell imports) is tested — Quickshell types
 # that require a live Wayland compositor cannot be exercised this way.
 #
+# -import takes the parent search path; Qt resolves the module by matching
+# the qmldir 'module ThreatWatchUtils' declaration to the ThreatWatchUtils/
+# subdirectory inside that path.
+#
 # qmltestrunner location varies by platform:
 #   FreeBSD:  /usr/local/lib/qt6/bin/qmltestrunner  (qt6-declarative)
 #   macOS:    $(brew --prefix qt)/bin/qmltestrunner  (qt formula)
@@ -53,7 +57,7 @@ setup() {
         skip "qmltestrunner not found (install qt6-declarative or set QML_TEST_RUNNER)"
     fi
     run "$QML_RUNNER" \
-        -import "$QS_DIR/utils" \
+        -import "$QS_DIR" \
         -input  "$REPO_ROOT/tests/tst_threatwatch.qml"
     [ "$status" -eq 0 ]
 }

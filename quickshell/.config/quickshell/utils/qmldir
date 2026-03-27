@@ -1,8 +1,0 @@
-# utils module — pure logic, no Quickshell imports, testable headlessly with qmltestrunner
-#
-# Utils is instantiated as a child object in ThreatWatchModel via a relative import.
-# tests import this module directly via: qmltestrunner -import <qs_dir>/utils
-
-module ThreatWatchUtils
-
-Utils 1.0 Utils.qml

@@ -8,7 +8,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "../utils" as Utils
+import "../ThreatWatchUtils" as Utils
 
 Singleton {
     id: root
