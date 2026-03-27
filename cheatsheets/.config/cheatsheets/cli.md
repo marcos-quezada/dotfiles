@@ -59,6 +59,15 @@
 | `threatwatch update`   | Fetch and cache all sources                    |
 | `threatwatch --help`   | Show all flags                                 |
 
+## Script Generator
+| Command                     | Action                                              |
+|-----------------------------|-----------------------------------------------------|
+| `new_script`                | Interactive: prompts for name, purpose, options     |
+| `new_script <file>`         | Interactive: write generated template to `<file>`   |
+| `new_script -q <file>`      | Quiet: write default POSIX sh template, no prompts  |
+| `new_script -s <file>`      | Add root-privilege check to generated script        |
+| `new_script -h`             | Show help                                           |
+
 ## Cheatsheets
 | Command   | Action                                           |
 |-----------|--------------------------------------------------|
