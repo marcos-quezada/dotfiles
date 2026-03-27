@@ -561,3 +561,103 @@ manually.
 `vt` is the only package with a non-`$HOME` target. `install.sh` runs
 `stow --target=/ vt` under `doas`/`sudo` — console font files must land in
 `/boot/fonts/` for the FreeBSD loader to find them.
+
+---
+
+## shell quality
+
+### target shell
+
+all scripts not under `sketchybar/` target FreeBSD `/bin/sh` (POSIX sh, no bash
+extensions). forbidden constructs:
+
+- `[[ ]]` — use `[ ]`
+- `(( ))` — use `expr` or `[ $((…)) -eq … ]`
+- `declare -a` / `declare -A` — no arrays; use newline-delimited strings
+- `echo -e` — use `printf`
+- `$REPLY` from bare `read` — always name the variable: `read -r var`
+- `local` — not POSIX; use a unique `_prefix` naming convention instead and
+  `unset` after use
+
+sketchybar plugins are macOS-only and may use bash — they carry `#!/bin/bash`.
+
+### shellcheck
+
+run against every script before committing:
+
+```sh
+shellcheck <file>
+```
+
+the lint gate (`tests/lint.bats`) runs ShellCheck on all nine target files and
+is the CI entry point — it must pass before any other suite is run.
+
+**suppression rules** — only suppress with an inline comment explaining why:
+
+```sh
+# shellcheck disable=SC2329  # called via trap string, not directly
+signal_exit() { … }
+```
+
+never suppress without a comment. never use a file-level `# shellcheck disable`
+directive — suppressions must be as narrow as possible.
+
+common legitimate suppressions in this repo:
+
+| code | reason |
+|---|---|
+| SC2329 | `signal_exit` called only via `trap "…"` string — ShellCheck can't see the indirect call |
+| SC2016 | help text intentionally prints `$EDITOR` as a literal string |
+| SC1090 | `bats` tests source gwt.sh at a dynamic path — no static path for ShellCheck |
+| SC1091 | sketchybar plugins source icon map at a dynamic install path |
+
+### shfmt
+
+format check for consistent style:
+
+```sh
+shfmt -ln posix <file>   # POSIX sh scripts
+shfmt -ln bash  <file>   # bash scripts (sketchybar plugins)
+```
+
+`shfmt` is installed by the dev tools section of `install.sh` alongside
+ShellCheck and bats-core.
+
+### bats test suite
+
+```
+tests/
+├── lint.bats             ShellCheck gate — run this first; all 9 scripts must pass
+├── new_script.bats       unit tests for new_script (flags, generated content, output ShellCheck)
+├── threatwatch.bats      unit tests for threatwatch against fixture JSON (no network)
+├── git-clone-bare.bats   integration tests using a local bare repo
+├── gwt.bats              tests sourcing gwt.sh against a local bare-worktree hub
+└── fixtures/
+    ├── quakes.json       2 EMSC events (M4.8 AUSTRIA, M3.7 BAVARIA)
+    ├── flights.json      OpenSky state vectors (GAF001, REACH42, DLH123)
+    └── summary.json      full summary output with threat_level=high
+```
+
+run all suites:
+
+```sh
+bats tests/
+```
+
+run a single suite:
+
+```sh
+bats tests/lint.bats
+```
+
+all tests are network-free. `threatwatch.bats` mocks the cache directory with
+`$TMPDIR` and points `THREATWATCH_CACHE` at the fixtures directory so the
+script reads fixture JSON instead of live data.
+
+### generated scripts
+
+`new_script -q <path>` generates a POSIX sh script skeleton. the generated
+output is itself ShellCheck-clean — verified by `tests/new_script.bats` test 9.
+the `signal_exit` function in the generated code carries `# shellcheck
+disable=SC2329` because it is only ever called via `trap "signal_exit …"` and
+ShellCheck's direct-call analysis flags it as unused without the directive.
