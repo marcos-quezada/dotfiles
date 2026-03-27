@@ -53,7 +53,7 @@ setup() {
         skip "qmltestrunner not found (install qt6-declarative or set QML_TEST_RUNNER)"
     fi
     run "$QML_RUNNER" \
-        -import "$QS_DIR/threatwatch" \
+        -import "$QS_DIR/utils" \
         -input  "$REPO_ROOT/tests/tst_threatwatch.qml"
     [ "$status" -eq 0 ]
 }
