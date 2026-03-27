@@ -548,7 +548,7 @@ manually.
 | `foot` | `$HOME` | FreeBSD + Linux | `.config/foot/` |
 | `git` | `$HOME` | all | `.gitconfig`, `.color.gitconfig`, `.gitignore`, `.local/bin/git-clone-bare-for-worktrees`, `.local/bin/new_script` |
 | `inputrc` | `$HOME` | all | `.inputrc` |
-| `nvim` | `$HOME` | macOS | `.config/nvim/` |
+| `nvim` | `$HOME` | FreeBSD | `.config/nvim/init.lua` — minimal single-file config, treesitter only |
 | `quickshell` | `$HOME` | FreeBSD | `.config/quickshell/` (bar + threatwatch QML, fonts) |
 | `sh` | `$HOME` | FreeBSD | `.profile`, `.shrc` |
 | `sketchybar` | `$HOME` | macOS | `.config/sketchybar/` |
@@ -556,6 +556,7 @@ manually.
 | `threatwatch` | `$HOME` | all | `.local/bin/threatwatch`, `.config/threatwatch/config.env.template` |
 | `vim` | `$HOME` | all | `.vimrc`, `.config/vim/` |
 | `vt` | `/` | FreeBSD | `boot/fonts/12x22.fnt.gz`, `boot/fonts/INDEX.fonts` |
+| `xdg` | `$HOME` | FreeBSD | `.config/mimeapps.list` |
 | `zsh` | `$HOME` | macOS | `.zshrc`, `.git-worktree-functions.zsh` |
 
 `vt` is the only package with a non-`$HOME` target. `install.sh` runs

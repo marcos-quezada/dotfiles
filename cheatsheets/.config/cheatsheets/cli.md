@@ -76,7 +76,7 @@
 | `stow --dir=~/dotfiles --target="$HOME" --simulate --restow <pkg>` | Dry-run: preview changes        |
 | `doas stow --dir=~/dotfiles --target=/ --restow vt`              | Re-stow `vt` (root target)        |
 
-Packages: `cheatsheets` `foot` `git` `inputrc` `nvim` `quickshell` `sh` `sketchybar` `sway` `threatwatch` `vim` `vt` `zsh`
+Packages: `cheatsheets` `foot` `git` `inputrc` `nvim` `quickshell` `sh` `sketchybar` `sway` `threatwatch` `vim` `vt` `xdg` `zsh`
 
 ## Sway Wallpapers
 | File                          | Set via `sway/config`                          |
