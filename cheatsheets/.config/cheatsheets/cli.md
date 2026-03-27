@@ -68,6 +68,22 @@
 | `new_script -s <file>`      | Add root-privilege check to generated script        |
 | `new_script -h`             | Show help                                           |
 
+## Dotfiles
+| Command                                                          | Action                            |
+|------------------------------------------------------------------|-----------------------------------|
+| `stow --dir=~/dotfiles --target="$HOME" --restow <pkg>`          | Stow (or re-stow) a package       |
+| `stow --dir=~/dotfiles --target="$HOME" --delete <pkg>`          | Unstow a package                  |
+| `stow --dir=~/dotfiles --target="$HOME" --simulate --restow <pkg>` | Dry-run: preview changes        |
+| `doas stow --dir=~/dotfiles --target=/ --restow vt`              | Re-stow `vt` (root target)        |
+
+Packages: `cheatsheets` `foot` `git` `inputrc` `nvim` `quickshell` `sh` `sketchybar` `sway` `threatwatch` `vim` `vt` `zsh`
+
+## Sway Wallpapers
+| File                          | Set via `sway/config`                          |
+|-------------------------------|------------------------------------------------|
+| `freebsd-kilmynda-wide.png`   | `output * bg ~/walls/freebsd-kilmynda-wide.png stretch` |
+| `metropolis.png`              | `output * bg ~/walls/metropolis.png stretch`   |
+
 ## Cheatsheets
 | Command   | Action                                           |
 |-----------|--------------------------------------------------|

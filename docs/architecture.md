@@ -552,7 +552,7 @@ manually.
 | `quickshell` | `$HOME` | FreeBSD | `.config/quickshell/` (bar + threatwatch QML, fonts) |
 | `sh` | `$HOME` | FreeBSD | `.profile`, `.shrc` |
 | `sketchybar` | `$HOME` | macOS | `.config/sketchybar/` |
-| `sway` | `$HOME` | FreeBSD + Linux | `.config/sway/config`, `walls/freebsd-kilmynda-wide.png` |
+| `sway` | `$HOME` | FreeBSD + Linux | `.config/sway/config`, `walls/freebsd-kilmynda-wide.png`, `walls/metropolis.png` |
 | `threatwatch` | `$HOME` | all | `.local/bin/threatwatch`, `.config/threatwatch/config.env.template` |
 | `vim` | `$HOME` | all | `.vimrc`, `.config/vim/` |
 | `vt` | `/` | FreeBSD | `boot/fonts/12x22.fnt.gz`, `boot/fonts/INDEX.fonts` |
@@ -561,6 +561,38 @@ manually.
 `vt` is the only package with a non-`$HOME` target. `install.sh` runs
 `stow --target=/ vt` under `doas`/`sudo` — console font files must land in
 `/boot/fonts/` for the FreeBSD loader to find them.
+
+### manual stow
+
+`install.sh` is the normal entry point, but individual packages can be stowed or
+unstowed at any time without re-running the full installer.
+
+stow a single package:
+
+```sh
+stow --dir=~/dotfiles --target="$HOME" --restow <package>
+```
+
+unstow (remove symlinks for) a package:
+
+```sh
+stow --dir=~/dotfiles --target="$HOME" --delete <package>
+```
+
+`--restow` is equivalent to `--delete` followed by `--stow` — it cleans up any
+stale symlinks before creating fresh ones. safe to run repeatedly.
+
+`vt` requires a root target and privilege escalation:
+
+```sh
+doas stow --dir=~/dotfiles --target=/ --restow vt
+```
+
+to preview what stow would do without changing anything, add `--simulate` (or `-n`):
+
+```sh
+stow --dir=~/dotfiles --target="$HOME" --simulate --restow <package>
+```
 
 ---
 
