@@ -1,0 +1,460 @@
+#!/bin/sh
+# ---------------------------------------------------------------------------
+# new_script - POSIX sh script template generator
+#
+# adapted from the original bash version by William Shotts:
+#   https://linuxcommand.org/lc3_new_script.php
+# ported to POSIX sh for FreeBSD /bin/sh compatibility.
+#
+# Usage: new_script [-h|--help] [-q|--quiet] [-s|--root] [script]
+#
+# Revision history:
+# 2026-03-27  POSIX sh port — removed bash arrays, declare, [[]], (()), echo -e
+# 2014-03-20  Corrected bug in insert_help_message() (3.3) — William Shotts
+# 2012-05-14  Created — William Shotts
+# ---------------------------------------------------------------------------
+
+PROGNAME="${0##*/}"
+VERSION="3.3-posix"
+
+DATE=$(date +'%Y-%m-%d')
+YEAR=$(date +'%Y')
+
+# real name from passwd — awk handles both BSD and Linux field layout
+AUTHOR=$(awk -v user="$USER" -F: '$1 == user { print $5 }' /etc/passwd 2>/dev/null)
+EMAIL_ADDRESS="${REPLYTO:-${USER}@$(hostname)}"
+
+# options are stored as tab-delimited records, one per line, in a single string.
+# each record: letter TAB description TAB long TAB arg TAB arg_desc
+# the "help" option is always record 1 and is prepended at write time.
+OPT_RECORDS=""
+OPT_COUNT=0
+
+# ── helpers ───────────────────────────────────────────────────────────────────
+
+clean_up() {
+    return
+}
+
+error_exit() {
+    printf '%s: %s\n' "$PROGNAME" "${1:-unknown error}" >&2
+    clean_up
+    exit 1
+}
+
+graceful_exit() {
+    clean_up
+    exit 0
+}
+
+signal_exit() {
+    case "$1" in
+        INT)  error_exit "program interrupted by user" ;;
+        TERM) printf '\n%s: program terminated\n' "$PROGNAME" >&2; graceful_exit ;;
+        *)    error_exit "terminating on unknown signal" ;;
+    esac
+}
+
+usage() {
+    printf 'Usage: %s [-h|--help] [-q|--quiet] [-s|--root] [script]\n' "$PROGNAME"
+}
+
+help_message() {
+    cat <<- _EOF_
+	${PROGNAME} ${VERSION}
+	POSIX sh script template generator.
+
+	$(usage)
+
+	Options:
+
+	  -h, --help    Display this help message and exit.
+	  -q, --quiet   Quiet mode. No prompting. Outputs default script.
+	  -s, --root    Output script requires root privileges to run.
+
+	_EOF_
+}
+
+# ── option record accessors ───────────────────────────────────────────────────
+# records are 1-indexed; field numbers match the tab-delimited layout above.
+
+_opt_field() {
+    # _opt_field <record_number> <field_number>
+    printf '%s' "$OPT_RECORDS" \
+        | awk -v rec="$1" -v fld="$2" -F'\t' 'NR==rec { print $fld }'
+}
+
+_opt_count() {
+    printf '%s' "$OPT_RECORDS" | grep -c '' 2>/dev/null || printf '0'
+}
+
+# ── template fragments ────────────────────────────────────────────────────────
+
+insert_license() {
+    if [ -z "$script_license" ]; then
+        printf '# All rights reserved.\n'
+        return
+    fi
+    cat <<- '_EOF_'
+
+	# This program is free software: you can redistribute it and/or modify
+	# it under the terms of the GNU General Public License as published by
+	# the Free Software Foundation, either version 3 of the License, or
+	# (at your option) any later version.
+	#
+	# This program is distributed in the hope that it will be useful,
+	# but WITHOUT ANY WARRANTY; without even the implied warranty of
+	# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	# GNU General Public License at <http://www.gnu.org/licenses/> for
+	# more details.
+	_EOF_
+}
+
+insert_usage() {
+    printf 'usage() {\n    printf '"'"'%s\n'"'"' "%s"\n}\n' "$usage_str"
+}
+
+insert_help_message() {
+    printf 'help_message() {\n'
+    printf '    cat <<- _EOF_\n'
+    printf '\t$PROGNAME ver. $VERSION\n'
+    printf '\t%s\n' "$script_purpose"
+    printf '\n\t$(usage)\n'
+    printf '\n\tOptions:\n'
+    printf '\n\t  -h, --help  Display this help message and exit.\n'
+
+    # print one line per additional option
+    if [ -n "$OPT_RECORDS" ]; then
+        _total=$(_opt_count)
+        _i=1
+        while [ "$_i" -le "$_total" ]; do
+            _letter=$(_opt_field "$_i" 1)
+            _desc=$(_opt_field   "$_i" 2)
+            _long=$(_opt_field   "$_i" 3)
+            _arg=$(_opt_field    "$_i" 4)
+            _argdesc=$(_opt_field "$_i" 5)
+
+            _long_str=""
+            [ -n "$_long" ] && _long_str=", --${_long}"
+            _arg_str=""
+            [ -n "$_arg" ] && _arg_str=" ${_arg}"
+
+            printf '\t  -%s%s%s  %s\n' "$_letter" "$_long_str" "$_arg_str" "$_desc"
+            [ -n "$_arg" ] && printf "\t    Where '%s' is the %s.\n" "$_arg" "$_argdesc"
+
+            _i=$(( _i + 1 ))
+        done
+    fi
+
+    [ -n "$root_mode" ] && printf '\n\tNOTE: You must be the superuser to run this script.\n'
+    printf '\n\t_EOF_\n'
+    printf '}\n'
+}
+
+insert_root_check() {
+    [ -z "$root_mode" ] && return
+    printf '# check for root UID\n'
+    printf 'if [ "$(id -u)" != "0" ]; then\n'
+    printf '    error_exit "you must be the superuser to run this script"\n'
+    printf 'fi\n'
+}
+
+insert_parser() {
+    printf 'while [ -n "${1:-}" ]; do\n'
+    printf '    case "$1" in\n'
+    printf '        -h | --help) help_message; graceful_exit ;;\n'
+
+    if [ -n "$OPT_RECORDS" ]; then
+        _total=$(_opt_count)
+        _i=1
+        while [ "$_i" -le "$_total" ]; do
+            _letter=$(_opt_field "$_i" 1)
+            _desc=$(_opt_field   "$_i" 2)
+            _long=$(_opt_field   "$_i" 3)
+            _arg=$(_opt_field    "$_i" 4)
+
+            printf '        -%s' "$_letter"
+            [ -n "$_long" ] && printf ' | --%s' "$_long"
+            printf ')\n'
+            printf '            # %s\n' "$_desc"
+            if [ -n "$_arg" ]; then
+                printf '            shift; %s="$1" ;;\n' "$_arg"
+            else
+                printf '            ;;\n'
+            fi
+
+            _i=$(( _i + 1 ))
+        done
+    fi
+
+    printf '        -* | --*)\n'
+    printf '            usage\n'
+    printf '            error_exit "unknown option $1" ;;\n'
+    printf '        *)\n'
+    printf '            # positional argument: $1\n'
+    printf '            ;;\n'
+    printf '    esac\n'
+    printf '    shift\n'
+    printf 'done\n'
+}
+
+# ── write_script ──────────────────────────────────────────────────────────────
+# emits the complete generated script to stdout.
+
+write_script() {
+    # capture fragments first so heredoc is not nested
+    _usage_fn=$(insert_usage)
+    _help_fn=$(insert_help_message)
+    _root_check=$(insert_root_check)
+    _parser=$(insert_parser)
+    _license=$(insert_license)
+
+    cat << _EOF_
+#!/bin/sh
+# ---------------------------------------------------------------------------
+# $script_name - $script_purpose
+#
+# Copyright $YEAR, $AUTHOR <$EMAIL_ADDRESS>
+$_license
+#
+# Usage: $script_name$usage_message
+#
+# Revision history:
+# $DATE  Created by $PROGNAME ver. $VERSION
+# ---------------------------------------------------------------------------
+
+PROGNAME="\${0##*/}"
+VERSION="0.1"
+
+clean_up() { # perform pre-exit housekeeping
+    return
+}
+
+error_exit() {
+    printf '%s: %s\n' "\$PROGNAME" "\${1:-unknown error}" >&2
+    clean_up
+    exit 1
+}
+
+graceful_exit() {
+    clean_up
+    exit 0
+}
+
+signal_exit() { # handle trapped signals
+    case "\$1" in
+        INT)  error_exit "program interrupted by user" ;;
+        TERM) printf '\n%s: program terminated\n' "\$PROGNAME" >&2; graceful_exit ;;
+        *)    error_exit "terminating on unknown signal" ;;
+    esac
+}
+
+$_usage_fn
+
+$_help_fn
+
+# trap signals
+trap "signal_exit TERM" TERM HUP
+trap "signal_exit INT"  INT
+
+$_root_check
+
+# parse command-line
+$_parser
+
+# main logic
+
+graceful_exit
+_EOF_
+}
+
+# ── input helpers ─────────────────────────────────────────────────────────────
+
+check_filename() {
+    _fn="$1"
+    _dir="${_fn%/*}"
+
+    # if path has no slash, dirname equals the filename — no dir to check
+    if [ "$_dir" != "$_fn" ] && [ ! -d "$_dir" ]; then
+        [ -z "$quiet_mode" ] && printf 'directory %s does not exist.\n' "$_dir"
+        unset _fn _dir
+        return 1
+    fi
+
+    if [ -z "$_fn" ]; then
+        [ -n "$quiet_mode" ] && { unset _fn _dir; return 0; }
+        unset _fn _dir
+        return 1
+    fi
+
+    if [ -e "$_fn" ]; then
+        if [ -f "$_fn" ] && [ -w "$_fn" ]; then
+            if [ -n "$quiet_mode" ]; then
+                unset _fn _dir
+                return 0
+            fi
+            printf 'file %s exists. overwrite [y/n]? ' "$_fn"
+            read -r _ow
+            case "$_ow" in
+                [Yy]) unset _fn _dir _ow; return 0 ;;
+                *)    unset _fn _dir _ow; return 1 ;;
+            esac
+        else
+            unset _fn _dir
+            return 1
+        fi
+    fi
+
+    unset _fn _dir
+    return 0
+}
+
+read_option() {
+    _idx=$(( OPT_COUNT + 1 ))
+
+    printf '\nOption %d:\n' "$_idx"
+
+    printf 'Enter option letter [a-z] (Enter to end) > '
+    read -r _letter
+    [ -z "$_letter" ] && unset _idx _letter && return 1
+
+    printf 'Description of option -------------------> '
+    read -r _desc
+
+    printf 'Enter long alternate name (optional) ----> '
+    read -r _long
+
+    printf 'Enter option argument (if any) ----------> '
+    read -r _arg
+
+    _argdesc=""
+    if [ -n "$_arg" ]; then
+        printf 'Description of argument (if any)---------> '
+        read -r _argdesc
+    fi
+
+    # append tab-delimited record
+    _record=$(printf '%s\t%s\t%s\t%s\t%s' \
+        "$_letter" "$_desc" "$_long" "$_arg" "$_argdesc")
+
+    if [ -z "$OPT_RECORDS" ]; then
+        OPT_RECORDS="$_record"
+    else
+        OPT_RECORDS=$(printf '%s\n%s' "$OPT_RECORDS" "$_record")
+    fi
+
+    OPT_COUNT=$(( OPT_COUNT + 1 ))
+    unset _idx _letter _desc _long _arg _argdesc _record
+    return 0
+}
+
+# ── signal traps ──────────────────────────────────────────────────────────────
+
+trap "signal_exit TERM" TERM HUP
+trap "signal_exit INT"  INT
+
+# ── parse command-line ────────────────────────────────────────────────────────
+
+quiet_mode=""
+root_mode=""
+script_license=""
+tmp_script=""
+
+while [ -n "${1:-}" ]; do
+    case "$1" in
+        -h | --help)   help_message; graceful_exit ;;
+        -q | --quiet)  quiet_mode=yes ;;
+        -s | --root)   root_mode=yes ;;
+        -* | --*)      usage; error_exit "unknown option $1" ;;
+        *)             tmp_script="$1"; break ;;
+    esac
+    shift
+done
+
+# ── main logic ────────────────────────────────────────────────────────────────
+
+if [ -n "$quiet_mode" ]; then
+    script_filename="$tmp_script"
+    check_filename "$script_filename" \
+        || error_exit "$script_filename is not writable"
+    script_purpose="[Enter purpose of script here.]"
+else
+    # get script filename
+    script_filename=""
+    while [ -z "$script_filename" ]; do
+        if [ -n "$tmp_script" ]; then
+            script_filename="$tmp_script"
+            tmp_script=""
+        else
+            printf 'Enter script output filename: '
+            read -r script_filename
+        fi
+        if ! check_filename "$script_filename"; then
+            printf '%s is not writable. Please choose another name.\n\n' "$script_filename"
+            script_filename=""
+        fi
+    done
+
+    # purpose
+    printf 'Enter purpose of script: '
+    read -r script_purpose
+
+    # license
+    printf 'Include GPL license header [y/n]? '
+    read -r _reply
+    case "$_reply" in
+        [Yy]) script_license="GPL" ;;
+    esac
+
+    # requires superuser?
+    printf 'Does this script require superuser privileges [y/n]? '
+    read -r _reply
+    case "$_reply" in
+        [Yy]) root_mode="yes" ;;
+    esac
+
+    # command-line options
+    printf 'Does this script support command-line options [y/n]? '
+    read -r _reply
+    case "$_reply" in
+        [Yy])
+            while read_option; do :; done
+            ;;
+    esac
+fi
+
+script_name="${script_filename##*/}"
+script_name="${script_name:-[Untitled Script]}"
+
+# build usage message string from collected options
+usage_message=" [-h|--help]"
+if [ -n "$OPT_RECORDS" ]; then
+    _total=$(_opt_count)
+    _i=1
+    while [ "$_i" -le "$_total" ]; do
+        _letter=$(_opt_field "$_i" 1)
+        _long=$(_opt_field   "$_i" 3)
+        _arg=$(_opt_field    "$_i" 4)
+
+        _tok="[-${_letter}"
+        [ -n "$_long" ] && _tok="${_tok}|--${_long}"
+        [ -n "$_arg"  ] && _tok="${_tok} ${_arg}"
+        _tok="${_tok}]"
+
+        usage_message="$usage_message $_tok"
+        _i=$(( _i + 1 ))
+    done
+fi
+
+usage_str="${script_name}${usage_message}"
+
+# generate
+if [ -n "$script_filename" ]; then
+    write_script > "$script_filename"
+    chmod +x "$script_filename"
+    printf 'Script written to: %s\n' "$script_filename"
+else
+    write_script
+fi
+
+graceful_exit
