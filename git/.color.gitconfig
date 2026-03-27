@@ -22,6 +22,9 @@
     branch = bold
     # detached head: bold reverse blink — alarming on any palette
     nobranch = bold reverse blink
+    # hint: bold — default cyan (slot 6 = 8bac0f on gameboy) is near-invisible on the
+    # 9bbc0f background; bold adds enough weight to distinguish it without touching colour
+    hint = bold
 
 [color "diff"]
     # meta and frag lines recede — they frame the diff, not the content
