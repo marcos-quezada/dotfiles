@@ -3,13 +3,25 @@
 " run ~/.config/vim/install.sh to fetch it on a new machine.
 packadd lsp
 
-" register qmlls as the language server for QML files
+" register qmlls as the language server for QML files.
+" no --build-dir: pure-QML projects use .qmlls.ini instead, which quickshell
+" auto-populates with its module import paths on first run.
 call LspAddServer([#{
     \   name:     'qmlls',
     \   filetype: 'qml',
     \   path:     'qmlls6',
-    \   args:     ['--build-dir', 'build']
+    \   args:     []
     \ }])
+
+" ── qmllint quickfix ──────────────────────────────────────────────────────────
+" <leader>lq runs qmllint on the current file and populates the quickfix list.
+" :copen / :cclose toggle the window; :cn / :cp navigate between findings.
+augroup qml_lint
+    autocmd!
+    autocmd FileType qml setlocal makeprg=qmllint\ %
+    autocmd FileType qml setlocal errorformat=%f:%l:%c:\ %m
+augroup END
+nnoremap <silent> <leader>lq :make<CR>:copen<CR>
 
 " ── keymaps ───────────────────────────────────────────────────────────────────
 nnoremap <leader>gd :LspGotoDefinition<CR>     " go to definition

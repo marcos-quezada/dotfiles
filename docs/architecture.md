@@ -735,3 +735,121 @@ output is itself ShellCheck-clean — verified by `tests/new_script.bats` test 9
 the `signal_exit` function in the generated code carries `# shellcheck
 disable=SC2329` because it is only ever called via `trap "signal_exit …"` and
 ShellCheck's direct-call analysis flags it as unused without the directive.
+
+---
+
+## QML quality
+
+### tools
+
+| tool | package (FreeBSD) | role |
+|---|---|---|
+| `qmllint` | `qt6-declarative` | batch linter — unqualified access, bad signal handlers, unused imports, type errors, JS anti-patterns |
+| `qmlformat` | `qt6-declarative` | formatter only — no semantic checks. use `-i` for in-place edit |
+| `qmlls6` | `qt6-declarative` | LSP server — completions, go-to-definition, hover in Vim |
+
+all three binaries ship in the same package. on FreeBSD the LSP binary has a
+`6` suffix (`qmlls6`) — this is what `lsp.vim` registers.
+
+`qmllint` exits non-zero on any `error`-level finding. strictness is
+per-category (e.g. `--unused-imports=error`) — there is no global `--strict`
+flag.
+
+### vim integration
+
+`:make` is wired to `qmllint %` for QML files via the `qml_lint` augroup in
+`lsp.vim`. `<leader>lq` triggers `:make<CR>:copen<CR>` to run the linter and
+immediately show the quickfix list.
+
+`errorformat` is set to `%f:%l:%c: %m` which matches qmllint's output format.
+
+formatting is manual: `:!qmlformat -i %` rewrites the current file in place.
+there is no autoformat-on-save — qmlformat is a separate concern from the LSP.
+
+### qmlls and .qmlls.ini
+
+`--build-dir build` (the original arg) was wrong for a pure-QML Quickshell
+project — it pointed at a nonexistent CMake build directory and suppressed
+valid completions. the correct approach is an empty `.qmlls.ini` in
+`~/.config/quickshell/`. Quickshell auto-populates it with its module import
+paths on first run. the file is committed as a placeholder so the stow package
+creates it — Quickshell fills it in on startup.
+
+### testing approach
+
+Quickshell types (`PanelWindow`, `WlrLayershell`, `FileView`, `Process`) cannot
+be tested headlessly — they require a live Wayland compositor or Quickshell's
+C++ plugin loaded. only pure-logic QML (no `import Quickshell`) is exercisable
+with `qmltestrunner`.
+
+**Utils.qml** — extracted from `ThreatWatchModel.qml` specifically to enable
+testing. it is a plain `QtObject` with `import QtQuick` only. it exposes:
+
+| function / property | purpose |
+|---|---|
+| `levelColors` | level → `#rrggbb` colour map |
+| `parseSummary(raw)` | JSON parse + field extraction from summary.json |
+| `formatTimestamp(iso)` | `"2025-01-15T14:32:00Z"` → `"2025-01-15 14:32 UTC"` |
+| `parsePins(raw)` | JSON parse + array validation from pins.json |
+| `pinTypeLabel(type)` | string mapping for pin type → human label |
+
+`ThreatWatchModel.qml` instantiates `Utils { id: utils }` as a child object and
+delegates to it. `levelColors` is re-exposed on the model so downstream widgets
+don't need to import Utils directly.
+
+**tst_threatwatch.qml** in `tests/` is the Qt Quick Test file. it covers ~20
+cases across all five Utils functions including data-driven table tests for
+`pinTypeLabel`.
+
+run headlessly:
+
+```sh
+QT_QPA_PLATFORM=offscreen /usr/local/lib/qt6/bin/qmltestrunner \
+    -import quickshell/.config/quickshell/threatwatch \
+    -input  tests/tst_threatwatch.qml
+```
+
+or via bats:
+
+```sh
+bats tests/qml.bats
+```
+
+`tests/qml.bats` resolves `qmltestrunner` from `$QML_TEST_RUNNER`, `$PATH`, or
+the FreeBSD install path `/usr/local/lib/qt6/bin/qmltestrunner`. on machines
+without Qt installed the availability test fails fast and the suite is skipped.
+
+### dev workflow
+
+`watchFiles = true` is the Quickshell default — any `.qml` file save triggers an
+automatic sub-second reload. no command is needed for the basic edit loop.
+
+for explicit reloads, `IpcHandler { target: "shell" }` in `shell.qml` exposes
+two functions over the `qs` CLI:
+
+```sh
+qs ipc call shell reload       # soft reload — reuses windows
+qs ipc call shell hardReload   # hard reload — destroys and recreates all windows
+```
+
+`qs log` shows runtime output and errors from the running Quickshell instance.
+
+`swaymsg reload` does not restart `exec` processes — Quickshell keeps running
+across sway config reloads.
+
+### bats suite table (updated)
+
+```
+tests/
+├── lint.bats             ShellCheck gate — run this first; all 9 scripts must pass
+├── vim.bats              headless vim sourcing tests for .vimrc, theme.vim, lsp.vim
+├── qml.bats              Qt Quick Test gate — Utils.qml pure-logic tests (qmltestrunner)
+├── new_script.bats       unit tests for new_script (flags, generated content, output ShellCheck)
+├── threatwatch.bats      unit tests for threatwatch against fixture JSON (no network)
+├── git-clone-bare.bats   integration tests using a local bare repo
+├── gwt.bats              tests sourcing gwt.sh against a local bare-worktree hub
+└── fixtures/
+    ├── quakes.json       2 EMSC events (M4.8 AUSTRIA, M3.7 BAVARIA)
+    ├── flights.json      OpenSky state vectors (GAF001, REACH42, DLH123)
+    └── summary.json      full summary output with threat_level=high
+```

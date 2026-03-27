@@ -70,6 +70,15 @@
 | `q:` | Open command-line history window          |
 | `q/` | Open search history window                |
 
+## QML (Leader = Space)
+| Key / Command              | Action                                                  |
+|----------------------------|---------------------------------------------------------|
+| `<leader>lq`               | Run qmllint on current file, populate quickfix list     |
+| `:copen` / `:cclose`       | Open / close the quickfix window                        |
+| `:cn` / `:cp`              | Jump to next / previous quickfix entry                  |
+| `:!qmlformat -i %`         | Format current QML file in place                        |
+| `<leader>gd`, `K`, etc.    | LSP keymaps work for QML files (qmlls via .qmlls.ini)   |
+
 ## Cheatsheet
 | Key            | Action                         |
 |----------------|--------------------------------|

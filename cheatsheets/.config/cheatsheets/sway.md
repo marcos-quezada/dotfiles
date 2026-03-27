@@ -66,3 +66,13 @@
 | `XF86MonBrightnessDown`| brightness −5% (brightnessctl)  |
 | `XF86MonBrightnessUp`  | brightness +5% (brightnessctl)  |
 | `Print`                | screenshot (grim)               |
+
+## Quickshell dev workflow
+| Command                             | Action                                                      |
+|-------------------------------------|-------------------------------------------------------------|
+| *(save any `.qml` file)*            | auto-reload — `watchFiles = true` by default, sub-second   |
+| `qs ipc call shell reload`          | soft reload: reuse windows, re-evaluate QML                 |
+| `qs ipc call shell hardReload`      | hard reload: destroy and recreate all windows               |
+| `qs log`                            | view Quickshell runtime log / errors                        |
+| `qs list`                           | list running Quickshell instances                           |
+| `qs kill`                           | stop the running Quickshell instance                        |

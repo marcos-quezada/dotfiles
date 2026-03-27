@@ -1,5 +1,7 @@
 // ThreatWatchModel.qml — singleton data layer: all processes, timers, file watchers, shared state.
 // no visual items live here. see docs/architecture.md for the full design rationale.
+// pure logic (JSON parsing, formatters, label helpers) lives in Utils.qml so it
+// can be tested headlessly with qmltestrunner without Quickshell imports.
 
 pragma Singleton
 
@@ -9,6 +11,10 @@ import Quickshell.Io
 
 Singleton {
     id: root
+
+    // ── pure-logic helpers ────────────────────────────────────────────────────
+    // Utils has no Quickshell imports — instantiated as a plain child object.
+    Utils { id: utils }
 
     // ── configuration ─────────────────────────────────────────────────────────
 
@@ -35,14 +41,7 @@ Singleton {
     property string updatedAt: ""
 
     // level → colour map — all widgets read this; never hardcode colours elsewhere
-    // colours chosen for legibility on the light (#d8d8d8) default bar base
-    readonly property var levelColors: ({
-        "critical": "#cc0000",
-        "high":     "#cc5500",
-        "medium":   "#997700",
-        "low":      "#336600",
-        "info":     "#444444",
-    })
+    readonly property var levelColors: utils.levelColors
 
     property bool mapWarn:      false   // usage >= 40,000 this month
     property bool mapHardLimit: false   // usage >= 48,000; fetches paused
@@ -125,44 +124,25 @@ Singleton {
         }
     }
 
-    // human-readable pin category — used by ThreatWatchPopup pin labels
-    function pinTypeLabel(type) {
-        if (type === "quake")     return "Earthquake"
-        if (type === "military")  return "Military aircraft"
-        if (type === "emergency") return "Emergency squawk"
-        if (type === "gdacs")     return "GDACS disaster alert"
-        return ""
-    }
+    // delegates to Utils — exposed here so callers don't need to import Utils
+    function pinTypeLabel(type) { return utils.pinTypeLabel(type) }
 
     // ── private helpers ───────────────────────────────────────────────────────
 
     function _refreshFromSummary() {
-        var raw = String(summaryWatcher.text)
-        if (!raw) return
-        var s
-        try { s = JSON.parse(raw) } catch(e) { return }
-
-        if (s.threat_level) root.level = s.threat_level
-
-        // format "2025-01-15T14:32:00Z" → "2025-01-15 14:32 UTC"
-        if (s.updated_at) {
-            var ts = s.updated_at.replace("T", " ").replace("Z", "")
-            root.updatedAt = ts.substring(0, 16) + " UTC"
-        }
-
-        var mb = s.mapbox || {}
-        root.mapRequests  = mb.requests_this_month || 0
-        root.mapWarn      = mb.warn || false
-        root.mapHardLimit = root.mapRequests >= 48000
+        var result = utils.parseSummary(String(summaryWatcher.text))
+        if (!result) return
+        if (result.level)     root.level     = result.level
+        if (result.updatedAt) root.updatedAt = result.updatedAt
+        root.mapRequests  = result.mapRequests
+        root.mapWarn      = result.mapWarn
+        root.mapHardLimit = result.mapRequests >= 48000
     }
 
     function _refreshPins() {
-        try {
-            var parsed = JSON.parse(pinsWatcher.text)
-            if (Array.isArray(parsed)) root.pins = parsed
-        } catch (e) {
-            // partial write in progress — keep previous pins, retry next cycle
-        }
+        var result = utils.parsePins(pinsWatcher.text)
+        if (result !== null) root.pins = result
+        // null means partial write in progress — keep previous pins, retry next cycle
     }
 
     // ── init ──────────────────────────────────────────────────────────────────

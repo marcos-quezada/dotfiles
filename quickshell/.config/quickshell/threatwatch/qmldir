@@ -3,6 +3,7 @@
 # ThreatWatchModel  singleton — background data fetching, file watchers, state
 # ThreatWatchWidget bar item  — drop into SysTray.qml RowLayout
 # ThreatWatchPopup  overlay   — map panel; mount once in shell.qml at root scope
+# Utils             internal  — pure logic; no Quickshell imports; testable headlessly
 #
 # architectural overview: see ThreatWatchModel.qml and docs/architecture.md
 
@@ -10,3 +11,4 @@ module ThreatWatch
 singleton ThreatWatchModel 1.0 ThreatWatchModel.qml
 ThreatWatchWidget          1.0 ThreatWatchWidget.qml
 ThreatWatchPopup           1.0 ThreatWatchPopup.qml
+Utils                      1.0 Utils.qml
