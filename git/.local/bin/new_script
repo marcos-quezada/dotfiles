@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC2016  # single-quoted shell code is intentional — we emit literal source
 # ---------------------------------------------------------------------------
 # new_script - POSIX sh script template generator
 #
@@ -47,6 +48,7 @@ graceful_exit() {
     exit 0
 }
 
+# shellcheck disable=SC2329  # called via trap string, not directly
 signal_exit() {
     case "$1" in
         INT)  error_exit "program interrupted by user" ;;
@@ -111,7 +113,9 @@ insert_license() {
 }
 
 insert_usage() {
-    printf 'usage() {\n    printf '"'"'%s\n'"'"' "%s"\n}\n' "$usage_str"
+    # %%s in the format becomes a literal %s in the generated source.
+    # one argument: $usage_str fills the quoted string in the generated printf call.
+    printf 'usage() {\n    printf '"'"'%%s\\n'"'"' "%s"\n}\n' "$usage_str"
 }
 
 insert_help_message() {
@@ -365,7 +369,7 @@ while [ -n "${1:-}" ]; do
         -h | --help)   help_message; graceful_exit ;;
         -q | --quiet)  quiet_mode=yes ;;
         -s | --root)   root_mode=yes ;;
-        -* | --*)      usage; error_exit "unknown option $1" ;;
+        -*)            usage; error_exit "unknown option $1" ;;
         *)             tmp_script="$1"; break ;;
     esac
     shift

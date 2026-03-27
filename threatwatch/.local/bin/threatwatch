@@ -85,6 +85,7 @@ PINS_FILE="$CACHE_DIR/pins.json"
 # the script works without config.env — map fetches are simply skipped.
 _conf="${XDG_CONFIG_HOME:-$HOME/.config}/threatwatch/config.env"
 if [ -f "$_conf" ]; then
+    # shellcheck source=/dev/null  # path is dynamic; content is user-managed secrets
     . "$_conf"
 fi
 unset _conf
@@ -114,6 +115,8 @@ _resolve_theme() {
             TH_TEXT_DARK="#e8f4f8"
             TH_TEXT_MID="#b0ccd4"
             TH_TEXT_SOFT="#7a9aaa"
+            # reserved for third-party themes; not used by built-in overlay annotate calls.
+            # shellcheck disable=SC2034
             TH_TEXT_FAINT="#b0ccd4"   # same as mid — faint neon on dark is unreadable
             TH_LEVEL_CRITICAL="#ff2266"
             TH_LEVEL_HIGH="#ff8800"
@@ -139,6 +142,8 @@ _resolve_theme() {
             TH_TEXT_DARK="#1a120a"
             TH_TEXT_MID="#3d2b1a"
             TH_TEXT_SOFT="#5a3e28"
+            # reserved for third-party themes; not used by built-in overlay annotate calls.
+            # shellcheck disable=SC2034
             TH_TEXT_FAINT="#5a3e28"   # same as soft — darkest readable ink on cream
             TH_LEVEL_CRITICAL="#7a1008"
             TH_LEVEL_HIGH="#7a3208"
@@ -525,9 +530,12 @@ apply_map_overlay() {
     MAP_RAW=$(cat "$FLAG")
     rm -f "$FLAG"
     [ -f "$MAP_RAW" ] || return 0
-    _map_overlay "$MAP_RAW" "$MAP_FILE" \
-        && printf '  Map: overlay applied → %s\n' "$MAP_FILE" \
-        || { cp "$MAP_RAW" "$MAP_FILE"; printf '  Map: overlay skipped (no magick), raw map saved.\n'; }
+    if _map_overlay "$MAP_RAW" "$MAP_FILE"; then
+        printf '  Map: overlay applied → %s\n' "$MAP_FILE"
+    else
+        cp "$MAP_RAW" "$MAP_FILE"
+        printf '  Map: overlay skipped (no magick), raw map saved.\n'
+    fi
 }
 
 # ── map overlay ───────────────────────────────────────────────────────────────
@@ -555,8 +563,6 @@ _map_overlay() {
     MIL=$(jq -r '.mil_count // 0'                     "$SUMMARY_FILE")
     EMERG=$(jq -r '.emerg_count // 0'                 "$SUMMARY_FILE")
     MAPUSE=$(jq -r '.mapbox.requests_this_month // 0' "$SUMMARY_FILE")
-    UPDATED=$(jq -r '.updated_at // ""' "$SUMMARY_FILE" \
-        | sed 's/T/ /; s/Z/ UTC/' | cut -c1-16)
 
     POLY_TOP=$(jq -r '
         .poly_markets[0]
@@ -647,6 +653,9 @@ _map_overlay() {
     "$IM" "$SRC" -type TrueColorAlpha -define png:color-type=6 "$TC_TMP" 2>/dev/null \
         || { cp "$SRC" "$DST"; return 1; }
 
+    # FONT_ARG is intentionally unquoted below — it's either empty (zero words)
+    # or "-font /path/to/font" (two words). Quoting would pass an empty arg when unset.
+    # shellcheck disable=SC2086
     # pass 2: all draw / annotate ops on the TrueColor temp file
     "$IM" "$TC_TMP" \
         \
@@ -713,7 +722,6 @@ build_summary() {
     printf 'Building summary...\n'
 
     LEVEL="info"
-    THREATS='[]'
     QUAKE_COUNT=0
     TOP_QUAKE="null"
     MIL_COUNT=0
@@ -1111,9 +1119,12 @@ overlay_only() {
         printf '  Overlay: no raw map found at %s — run: threatwatch map --force\n' "$MAP_RAW"
         return 1
     fi
-    _map_overlay "$MAP_RAW" "$MAP_FILE" \
-        && printf '  Map: overlay applied → %s\n' "$MAP_FILE" \
-        || { cp "$MAP_RAW" "$MAP_FILE"; printf '  Map: overlay skipped (no magick), raw map saved.\n'; }
+    if _map_overlay "$MAP_RAW" "$MAP_FILE"; then
+        printf '  Map: overlay applied → %s\n' "$MAP_FILE"
+    else
+        cp "$MAP_RAW" "$MAP_FILE"
+        printf '  Map: overlay skipped (no magick), raw map saved.\n'
+    fi
 }
 
 # ── mapbox usage ──────────────────────────────────────────────────────────────

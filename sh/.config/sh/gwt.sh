@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # gwt.sh — git bare-worktree helpers for /bin/sh (FreeBSD)
 # source from .shrc:  . ~/.config/sh/gwt.sh
 #
@@ -78,7 +79,7 @@ _gwt_add() {
     # already exists — just jump in
     if [ -d "$_wt" ]; then
         _gwt_info "worktree already exists — jumping in"
-        cd "$_wt"
+        cd "$_wt" || { unset _branch _base _root _wt; return 1; }
         unset _branch _base _root _wt
         return 0
     fi
@@ -99,7 +100,7 @@ _gwt_add() {
         git -C "$_root" worktree add -b "$_branch" "$_wt" "$_base"
     fi
 
-    cd "$_wt"
+    cd "$_wt" || { unset _branch _base _root _wt; return 1; }
     _gwt_ok "worktree '$_branch' ready at: $_wt"
 
     # open in $EDITOR — falls back to vi if EDITOR is unset
@@ -134,14 +135,18 @@ _gwt_rm() {
     case "$PWD" in
         "$_wt"*)
             _gwt_info "leaving '$_branch' first..."
-            cd "$_root"
+            cd "$_root" || { unset _branch _root _wt; return 1; }
             ;;
     esac
 
     _gwt_info "removing worktree '$_branch'..."
-    git -C "$_root" worktree remove --force "$_wt" \
-        && _gwt_ok "worktree removed" \
-        || { _gwt_err "git worktree remove failed"; unset _branch _root _wt; return 1; }
+    if git -C "$_root" worktree remove --force "$_wt"; then
+        _gwt_ok "worktree removed"
+    else
+        _gwt_err "git worktree remove failed"
+        unset _branch _root _wt
+        return 1
+    fi
 
     git -C "$_root" worktree prune
 
@@ -149,9 +154,11 @@ _gwt_rm() {
     read -r _reply
     case "$_reply" in
         [Yy])
-            git -C "$_root/.bare" branch -D "$_branch" \
-                && _gwt_ok "local branch deleted" \
-                || _gwt_warn "could not delete branch (may already be gone)"
+            if git -C "$_root/.bare" branch -D "$_branch"; then
+                _gwt_ok "local branch deleted"
+            else
+                _gwt_warn "could not delete branch (may already be gone)"
+            fi
             ;;
     esac
 
@@ -229,7 +236,7 @@ EOF
     fi
 
     _gwt_info "→ $_match"
-    cd "$_match"
+    cd "$_match" || { unset _query _root _match _line _dir; return 1; }
     unset _query _root _match _line _dir
 }
 
@@ -285,16 +292,20 @@ _gwt_clean() {
             case "$PWD" in
                 "$_wt"*)
                     _gwt_info "leaving '$_b' first..."
-                    cd "$_root"
+                    cd "$_root" || return 1
                     ;;
             esac
-            git -C "$_root" worktree remove --force "$_wt" \
-                && _gwt_ok "removed worktree: $_b" \
-                || _gwt_warn "could not remove worktree: $_b"
+            if git -C "$_root" worktree remove --force "$_wt"; then
+                _gwt_ok "removed worktree: $_b"
+            else
+                _gwt_warn "could not remove worktree: $_b"
+            fi
         fi
-        git -C "$_root/.bare" branch -D "$_b" 2>/dev/null \
-            && _gwt_ok "deleted local branch: $_b" \
-            || _gwt_warn "branch '$_b' not found locally (already cleaned)"
+        if git -C "$_root/.bare" branch -D "$_b" 2>/dev/null; then
+            _gwt_ok "deleted local branch: $_b"
+        else
+            _gwt_warn "branch '$_b' not found locally (already cleaned)"
+        fi
     done
 
     git -C "$_root" worktree prune
@@ -315,6 +326,7 @@ gwt() {
         *)
             printf 'gwt — git worktree helper\n\n'
             printf 'usage:\n'
+            # shellcheck disable=SC2016  # $EDITOR is literal help text, not an expansion
             printf '  gwt add   <branch> [base]   create worktree, cd, open $EDITOR\n'
             printf '  gwt rm    <branch>           remove worktree (prompt to delete branch)\n'
             printf '  gwt ls                       list all worktrees\n'

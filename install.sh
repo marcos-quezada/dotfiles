@@ -196,6 +196,22 @@ if [ "$PLATFORM" != "freebsd" ]; then
     fi
 fi
 
+# ── dev tools (optional) ─────────────────────────────────────────────────────
+# these tools are only needed when hacking on the shell scripts themselves.
+# not required for normal dotfiles use.
+if prompt_yn "install shell dev tools (shellcheck, shfmt, bats-core)?" n; then
+    printf '\n  checking shell dev tools...\n\n'
+    MISSING_DEV=""
+    check_cmd shellcheck "$(pkg_name shellcheck hs-ShellCheck shellcheck)" || MISSING_DEV="$MISSING_DEV $(pkg_name shellcheck hs-ShellCheck shellcheck)"
+    check_cmd shfmt      "$(pkg_name shfmt shfmt shfmt)"                   || MISSING_DEV="$MISSING_DEV $(pkg_name shfmt shfmt shfmt)"
+    check_cmd bats       "$(pkg_name bats-core bats-core bats-core)"       || MISSING_DEV="$MISSING_DEV $(pkg_name bats-core bats-core bats-core)"
+    if [ -n "$MISSING_DEV" ]; then
+        printf '\n'
+        # shellcheck disable=SC2086  # word-split is intentional — space-delimited pkg list
+        install_pkg $MISSING_DEV
+    fi
+fi
+
 # ── select packages to stow ───────────────────────────────────────────────────
 printf '\n  packages available:\n\n'
 
@@ -279,9 +295,11 @@ printf '\n  stowing packages...\n\n'
 stow_pkg() {
     _pkg="$1"
     if [ -d "$REPO_DIR/$_pkg" ]; then
-        stow --dir="$REPO_DIR" --target="$HOME" --restow "$_pkg" \
-            && ok "stowed $_pkg" \
-            || die "stow failed for $_pkg"
+        if stow --dir="$REPO_DIR" --target="$HOME" --restow "$_pkg"; then
+            ok "stowed $_pkg"
+        else
+            die "stow failed for $_pkg"
+        fi
     else
         warn "package dir not found: $REPO_DIR/$_pkg — skipping"
     fi
@@ -299,9 +317,11 @@ stow_vt() {
     if [ -z "$SUDO" ]; then
         die "doas or sudo required to stow vt (target is /boot/fonts/)"
     fi
-    ${SUDO} stow --dir="$REPO_DIR" --target="/" --restow vt \
-        && ok "stowed vt → /boot/fonts/" \
-        || die "stow failed for vt"
+    if ${SUDO} stow --dir="$REPO_DIR" --target="/" --restow vt; then
+        ok "stowed vt → /boot/fonts/"
+    else
+        die "stow failed for vt"
+    fi
 }
 
 [ "$DO_GIT"         = "1" ] && stow_pkg git
@@ -353,6 +373,7 @@ case ":${PATH}:" in
         printf '\n'
         warn "\$HOME/.local/bin is not in your PATH"
         info "add this to your shell profile (~/.profile, ~/.zshrc, etc.):"
+        # shellcheck disable=SC2016  # $HOME is literal advice text, not an expansion
         printf '      export PATH="$HOME/.local/bin:$PATH"\n'
         ;;
 esac
