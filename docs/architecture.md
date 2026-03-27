@@ -628,6 +628,7 @@ ShellCheck and bats-core.
 ```
 tests/
 ├── lint.bats             ShellCheck gate — run this first; all 9 scripts must pass
+├── vim.bats              headless vim sourcing tests for .vimrc, theme.vim, lsp.vim
 ├── new_script.bats       unit tests for new_script (flags, generated content, output ShellCheck)
 ├── threatwatch.bats      unit tests for threatwatch against fixture JSON (no network)
 ├── git-clone-bare.bats   integration tests using a local bare repo
@@ -653,6 +654,47 @@ bats tests/lint.bats
 all tests are network-free. `threatwatch.bats` mocks the cache directory with
 `$TMPDIR` and points `THREATWATCH_CACHE` at the fixtures directory so the
 script reads fixture JSON instead of live data.
+
+### vim quality
+
+no linter is used for Vimscript. vint (the canonical Vimscript linter) is not in
+FreeBSD ports, crashes on Vim 9 `#{key: val}` dict literal syntax (upstream issue
+#339, unfixed), hangs on `:vim9script`, and has been abandoned since 2018 with 79
+open issues. style conventions are enforced by convention, not tooling.
+
+style conventions applied to all `.vim` files in this repo:
+
+- `scriptencoding utf-8` as the first line of every file (multibyte chars present)
+- single-quoted strings where no escape sequences are needed
+- full option names (`tabstop` not `ts`, `autoindent` not `ai`)
+
+**testing approach** — headless `vim -es` sourcing via `tests/vim.bats`:
+
+```sh
+vim --clean -es -u NONE \
+    --cmd "set packpath=$TMPDIR" \
+    --cmd "set cpoptions-=C" \
+    -c "source <file>" \
+    -c 'qa!'
+```
+
+`-es` is silent ex mode — no UI, no startup files, exits non-zero if any E-series
+error fires during sourcing. each test checks `$status -eq 0`.
+
+two `--cmd` flags are always required:
+
+| flag | why |
+|---|---|
+| `set packpath=$TMPDIR` | points vim at a stub plugin directory so `packadd lsp` succeeds |
+| `set cpoptions-=C` | in `-es` mode the C cpoption treats `\`-continuation lines as new commands, breaking the multiline `#{...}` dict literal in `lsp.vim` |
+
+the lsp stub (`$TMPDIR/pack/plugins/opt/lsp/plugin/lsp.vim`) defines a no-op
+`LspAddServer()` function so `lsp.vim`'s `call LspAddServer([…])` succeeds without
+a real plugin checkout.
+
+`.vimrc` sources `~/.config/vim/theme.vim` and `~/.config/vim/lsp.vim` via
+hardcoded `~` paths. tests point `$HOME` at a tmpdir containing symlinks to the
+repo files: `--cmd "let $HOME='$TMPDIR/home'"`.
 
 ### generated scripts
 

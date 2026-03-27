@@ -1,5 +1,6 @@
+scriptencoding utf-8
 " ── general ──────────────────────────────────────────────────────────────────
-let mapleader = " "                    " leader key: Space
+let mapleader = ' '                    " leader key: Space
 set nobackup                           " don't create backup files; use VCS instead
 set autoread                           " reload file when changed on disk
 set hidden                             " allow switching buffers without saving
@@ -29,8 +30,8 @@ set showmatch                          " briefly jump to matching bracket on ins
 
 " ── indentation ───────────────────────────────────────────────────────────────
 set expandtab                          " use spaces instead of tab characters
-set ts=2 sts=2 sw=2                    " tab width / soft tab / shift width: all 2 spaces
-set ai si                              " autoindent + smartindent
+set tabstop=2 softtabstop=2 shiftwidth=2  " tab width / soft tab / shift width: all 2 spaces
+set autoindent smartindent             " autoindent + smartindent
 set smarttab                           " backspace over indent in multiples of shiftwidth
 
 " ── editing ───────────────────────────────────────────────────────────────────

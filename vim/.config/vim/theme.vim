@@ -1,3 +1,4 @@
+scriptencoding utf-8
 " ── theme ────────────────────────────────────────────────────────────────────
 " zaibatsu ships with vim 9+ and degrades gracefully on 8-colour terminals;
 " no terminal-capability guards needed.
