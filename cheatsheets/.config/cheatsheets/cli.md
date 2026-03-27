@@ -84,6 +84,17 @@ Packages: `cheatsheets` `foot` `git` `inputrc` `nvim` `quickshell` `sh` `sketchy
 | `freebsd-kilmynda-wide.png`   | `output * bg ~/walls/freebsd-kilmynda-wide.png stretch` |
 | `metropolis.png`              | `output * bg ~/walls/metropolis.png stretch`   |
 
+## Dev / Testing
+| Command                                    | Action                                            |
+|--------------------------------------------|---------------------------------------------------|
+| `bats tests/`                              | Run full bats suite (all suites)                  |
+| `bats tests/lint.bats`                     | Run ShellCheck gate only                          |
+| `bats tests/vim.bats`                      | Run headless Vim sourcing tests only              |
+| `bats tests/qml.bats`                      | Run QML pure-logic tests (skips if no Qt)         |
+| `shellcheck <file>`                        | Lint a shell script                               |
+| `shfmt -ln posix <file>`                   | Format-check a POSIX sh script                    |
+| `shfmt -ln bash <file>`                    | Format-check a bash script                        |
+
 ## Cheatsheets
 | Command   | Action                                           |
 |-----------|--------------------------------------------------|

@@ -3,26 +3,33 @@
 Quickshell is the QML-based bar launched by sway via `exec quickshell`.
 The config lives at `~/.config/quickshell/`.
 
-## Run from a terminal
+## Dev loop
 
-Kill the running instance first, then launch interactively so QML errors
-print to stdout:
+`watchFiles = true` is the default — saving any `.qml` file triggers an
+automatic sub-second reload. no command needed for normal editing.
+
+## IPC reload
+
+```sh
+qs ipc call shell reload       # soft reload — reuses windows
+qs ipc call shell hardReload   # hard reload — destroys and recreates all windows
+```
+
+`qs log` shows runtime output and QML errors from the running instance.
+
+## Full restart from a terminal
+
+Kill the running instance and relaunch interactively so QML errors print to
+stdout:
 
 ```sh
 pkill quickshell
 quickshell
 ```
 
-All QML errors, warnings, and `console.log()` output appear in the terminal.
-Press `Ctrl-C` to stop.
-
-## Reload without killing sway
-
-```sh
-pkill quickshell && quickshell &
-```
-
-Quickshell re-reads `shell.qml` and all imports on start; no sway reload needed.
+Press `Ctrl-C` to stop. useful when you need to see startup errors or test a
+change that `watchFiles` reload doesn't catch (e.g. changes to `shell.qml`
+root structure).
 
 ## Common error patterns
 
@@ -33,27 +40,23 @@ Quickshell re-reads `shell.qml` and all imports on start; no sway reload needed.
 | `module "Foo" is not installed` | missing QML import path or package |
 | blank bar / no bar | `exec quickshell` not in sway config, or quickshell crashed silently |
 
-## Inspect running IPC state
-
-```sh
-# list all open IPC sockets
-quickshell ipc list
-
-# call a function or read a property
-quickshell ipc call <socket> <path>
-```
-
 ## File layout
 
 ```
 ~/.config/quickshell/
-├── shell.qml          # root Scope — entry point
-├── Bar.qml            # top-level bar component
+├── shell.qml          # root Scope — entry point, IpcHandler
+├── Bar.qml            # top-level bar component (one instance per screen)
 ├── Time.qml           # clock widget
 ├── PopupFrame.qml     # shared popup chrome
 ├── settings.json      # runtime tunables (colours, sizes, etc.)
-├── taskbar/           # workspace + window list
-├── threatwatch/       # threat feed popup
+├── .qmlls.ini         # qmlls LSP import paths (auto-populated by Quickshell)
+├── taskbar/           # workspace switcher
+├── threatwatch/       # threat feed widget + popup
+│   ├── ThreatWatchModel.qml  # singleton data layer
+│   ├── ThreatWatchWidget.qml # bar item
+│   ├── ThreatWatchPopup.qml  # map overlay
+│   ├── Utils.qml             # pure logic (no Quickshell imports; testable)
+│   └── qmldir
 └── fonts/             # bundled fonts loaded by shell.qml
 ```
 
@@ -63,4 +66,5 @@ do not edit them.
 ## qmlls (language server)
 
 `qmlls6` is configured in `~/.config/vim/lsp.vim`. It provides completion and
-diagnostics inside Vim for all `.qml` files.
+diagnostics inside Vim for all `.qml` files. import paths come from
+`.qmlls.ini` — no `--build-dir` needed.

@@ -661,6 +661,7 @@ ShellCheck and bats-core.
 tests/
 ├── lint.bats             ShellCheck gate — run this first; all 9 scripts must pass
 ├── vim.bats              headless vim sourcing tests for .vimrc, theme.vim, lsp.vim
+├── qml.bats              Qt Quick Test gate — Utils.qml pure-logic tests (qmltestrunner)
 ├── new_script.bats       unit tests for new_script (flags, generated content, output ShellCheck)
 ├── threatwatch.bats      unit tests for threatwatch against fixture JSON (no network)
 ├── git-clone-bare.bats   integration tests using a local bare repo
@@ -686,6 +687,9 @@ bats tests/lint.bats
 all tests are network-free. `threatwatch.bats` mocks the cache directory with
 `$TMPDIR` and points `THREATWATCH_CACHE` at the fixtures directory so the
 script reads fixture JSON instead of live data.
+
+`qml.bats` skips gracefully when `qmltestrunner` is not installed — the
+availability test emits a `skip` rather than failing.
 
 ### vim quality
 
@@ -836,20 +840,3 @@ qs ipc call shell hardReload   # hard reload — destroys and recreates all wind
 
 `swaymsg reload` does not restart `exec` processes — Quickshell keeps running
 across sway config reloads.
-
-### bats suite table (updated)
-
-```
-tests/
-├── lint.bats             ShellCheck gate — run this first; all 9 scripts must pass
-├── vim.bats              headless vim sourcing tests for .vimrc, theme.vim, lsp.vim
-├── qml.bats              Qt Quick Test gate — Utils.qml pure-logic tests (qmltestrunner)
-├── new_script.bats       unit tests for new_script (flags, generated content, output ShellCheck)
-├── threatwatch.bats      unit tests for threatwatch against fixture JSON (no network)
-├── git-clone-bare.bats   integration tests using a local bare repo
-├── gwt.bats              tests sourcing gwt.sh against a local bare-worktree hub
-└── fixtures/
-    ├── quakes.json       2 EMSC events (M4.8 AUSTRIA, M3.7 BAVARIA)
-    ├── flights.json      OpenSky state vectors (GAF001, REACH42, DLH123)
-    └── summary.json      full summary output with threat_level=high
-```
