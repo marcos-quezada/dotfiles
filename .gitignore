@@ -26,6 +26,10 @@ __pycache__/
 # nvim — plugin lockfile is machine-specific; let each machine regenerate it
 nvim/.config/nvim/lazy-lock.json
 
+# qmlls — Quickshell auto-populates this with machine-specific /var/run VFS paths on first run.
+# stow creates the empty placeholder; each machine gets its own content.
+quickshell/.config/quickshell/.qmlls.ini
+
 # zsh — history and completion cache are runtime state
 zsh/.zsh_history
 zsh/.zcompdump*
