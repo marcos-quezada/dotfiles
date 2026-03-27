@@ -3,6 +3,8 @@
 # focused on earthquakes, military flights, disasters, prediction markets.
 # inspired by https://github.com/BreadOnPenguins/scripts/blob/master/statusbar/aurora
 
+PROGNAME="${0##*/}"
+
 # urls!
 EMSC_URL="https://www.seismicportal.eu/fdsnws/event/1/query"
 USGS_URL="https://earthquake.usgs.gov/fdsnws/event/1/query"
@@ -160,6 +162,24 @@ _resolve_theme() {
     unset _t _TH_MAPBOX_STYLE
 }
 _resolve_theme
+
+# ── signal handling ───────────────────────────────────────────────────────────
+
+clean_up() {
+    # remove transient files that a mid-run kill would otherwise leave behind
+    rm -f "$CACHE_DIR/.map_tc.png" "$CACHE_DIR/.map_raw_ready"
+}
+
+signal_exit() {
+    case "$1" in
+        INT)  printf '\n%s: interrupted\n'  "$PROGNAME" >&2; clean_up; exit 1 ;;
+        TERM) printf '\n%s: terminated\n'   "$PROGNAME" >&2; clean_up; exit 1 ;;
+        *)    printf '\n%s: unknown signal\n' "$PROGNAME" >&2; clean_up; exit 1 ;;
+    esac
+}
+
+trap "signal_exit TERM" TERM HUP
+trap "signal_exit INT"  INT
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 

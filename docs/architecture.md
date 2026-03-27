@@ -546,7 +546,7 @@ manually.
 |---|---|---|---|
 | `cheatsheets` | `$HOME` | all | `.config/cheatsheets/` |
 | `foot` | `$HOME` | FreeBSD + Linux | `.config/foot/` |
-| `git` | `$HOME` | all | `.gitconfig`, `.color.gitconfig`, `.gitignore`, `.local/bin/git-clone-bare-for-worktrees` |
+| `git` | `$HOME` | all | `.gitconfig`, `.color.gitconfig`, `.gitignore`, `.local/bin/git-clone-bare-for-worktrees`, `.local/bin/new_script` |
 | `inputrc` | `$HOME` | all | `.inputrc` |
 | `nvim` | `$HOME` | macOS | `.config/nvim/` |
 | `quickshell` | `$HOME` | FreeBSD | `.config/quickshell/` (bar + threatwatch QML, fonts) |

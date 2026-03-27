@@ -1,33 +1,47 @@
 #!/bin/sh
-set -e
-
-# Examples of a call:
-# git-clone-bare-for-worktrees git@github.com:name/repo.git
-# => Clones to a /repo directory
-# git-clone-bare-for-worktrees git@github.com/name/repo.git my-repo
-# => Clones to a /my-repo directory
-
-url=$1
-basename=${url##*/}
-name=${2:-${basename%.*}}
-
-mkdir $name
-cd "$name"
-
-# Moves all the administrative git files (a.k.a. $GIT_DIR) under .bare directory.
+# git-clone-bare-for-worktrees — clone a repo as a bare for worktree use.
 #
-# Plan is to create worktrees as sibilings of this directory.
-# Example targeted structure:
-# .bare
-# main
-# new-awesome-feature
-# hotfix-bug-12
-# ...
-git clone --bare "$url" .bare
-echo "gitdir: ./.bare" > .git
+# Usage:
+#   git-clone-bare-for-worktrees <url> [name]
+#
+# Examples:
+#   git-clone-bare-for-worktrees git@github.com:name/repo.git
+#   => clones to ./repo/
+#   git-clone-bare-for-worktrees git@github.com:name/repo.git my-repo
+#   => clones to ./my-repo/
+#
+# Layout created:
+#   <name>/.bare    — bare git object store ($GIT_DIR)
+#   <name>/.git     — text redirect so porcelain commands find the bare dir
+#   <name>/main     — (after git fetch) worktrees sit here as siblings of .bare
 
-# Explicitly sets the remote origin fetch so we can fetch remote branches
-git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+PROGNAME="${0##*/}"
 
-# Gets all branches from origin
-git fetch origin
+error_exit() {
+    printf '%s: %s\n' "$PROGNAME" "${1:-unknown error}" >&2
+    exit 1
+}
+
+url="${1:-}"
+[ -z "$url" ] && error_exit "usage: $PROGNAME <url> [name]"
+
+basename="${url##*/}"
+name="${2:-${basename%.*}}"
+
+mkdir "$name"  || error_exit "could not create directory: $name"
+cd "$name"     || error_exit "could not enter directory: $name"
+
+# .bare holds the object store; worktrees live as siblings
+git clone --bare "$url" .bare \
+    || error_exit "git clone --bare failed for: $url"
+
+# text redirect so git porcelain commands work from the repo root
+printf 'gitdir: ./.bare\n' > .git \
+    || error_exit "could not write .git redirect"
+
+# without this, git fetch won't populate refs/remotes/origin/*
+git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*" \
+    || error_exit "git config failed"
+
+git fetch origin \
+    || error_exit "git fetch origin failed"
