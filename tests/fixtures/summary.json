@@ -1,0 +1,41 @@
+{
+  "threat_level": "high",
+  "quake_count": 2,
+  "top_quake": {
+    "mag": 4.8,
+    "place": "AUSTRIA",
+    "lat": 48.5,
+    "lon": 13.4,
+    "url": "https://www.seismicportal.eu/eventdetails.html?unid=20240315_0000001",
+    "tsunami": false
+  },
+  "mil_count": 2,
+  "emerg_count": 0,
+  "gdacs_alerts": [
+    {
+      "level": "orange",
+      "title": "Flood in Germany",
+      "lat": 51.5,
+      "lon": 12.3,
+      "in_region": true
+    }
+  ],
+  "poly_markets": [
+    {
+      "title": "Will Russia invade NATO territory by 2025?",
+      "slug": "russia-nato-invasion-2025",
+      "prob_yes": 12.5,
+      "volume": 250000
+    }
+  ],
+  "quake_threats": [
+    "HIGH EQ M4.8 AUSTRIA",
+    "MED  EQ M3.7 BAVARIA, GERMANY"
+  ],
+  "mapbox": {
+    "requests_this_month": 42,
+    "free_tier_limit": 50000,
+    "warn": false
+  },
+  "updated_at": "2024-03-15T08:00:00Z"
+}

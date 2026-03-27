@@ -191,7 +191,7 @@ insert_parser() {
         done
     fi
 
-    printf '        -* | --*)\n'
+    printf '        -*)\n'
     printf '            usage\n'
     printf '            error_exit "unknown option $1" ;;\n'
     printf '        *)\n'
@@ -245,6 +245,7 @@ graceful_exit() {
     exit 0
 }
 
+# shellcheck disable=SC2329  # called via trap string, not directly
 signal_exit() { # handle trapped signals
     case "\$1" in
         INT)  error_exit "program interrupted by user" ;;

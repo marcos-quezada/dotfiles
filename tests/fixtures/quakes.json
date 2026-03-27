@@ -1,0 +1,31 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [13.4, 48.5, 10.0] },
+      "properties": {
+        "unid": "20240315_0000001",
+        "ml": 4.8,
+        "place": null,
+        "flynn_region": "AUSTRIA",
+        "time": "2024-03-15T06:12:00.000Z",
+        "url": "https://www.seismicportal.eu/eventdetails.html?unid=20240315_0000001",
+        "tsunami": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [11.2, 47.8, 8.0] },
+      "properties": {
+        "unid": "20240315_0000002",
+        "ml": 3.7,
+        "place": null,
+        "flynn_region": "BAVARIA, GERMANY",
+        "time": "2024-03-15T04:45:00.000Z",
+        "url": "https://www.seismicportal.eu/eventdetails.html?unid=20240315_0000002",
+        "tsunami": 0
+      }
+    }
+  ]
+}

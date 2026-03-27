@@ -340,5 +340,8 @@ gwt() {
             printf '  gwt clean\n'
             ;;
     esac
+    # preserve the subcommand's exit code — unset must not clobber it
+    _gwt_rc=$?
     unset _sub
+    return $_gwt_rc
 }
