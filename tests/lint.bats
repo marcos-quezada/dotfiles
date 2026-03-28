@@ -33,6 +33,11 @@ REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
     [ "$status" -eq 0 ]
 }
 
+@test "freebsd-adduser.sh: shellcheck clean" {
+    run shellcheck "$REPO_ROOT/scripts/freebsd-adduser.sh"
+    [ "$status" -eq 0 ]
+}
+
 @test "vim install.sh: shellcheck clean" {
     run shellcheck "$REPO_ROOT/vim/.config/vim/install.sh"
     [ "$status" -eq 0 ]

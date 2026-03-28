@@ -112,6 +112,46 @@ else
     ok "stow found"
 fi
 
+# ── doas (FreeBSD) ────────────────────────────────────────────────────────────
+# doas is the privilege escalation tool used on FreeBSD. install.sh itself uses
+# it for stow_vt and any pkg installs. check early so the rest of the script
+# can rely on it being present.
+if [ "$PLATFORM" = "freebsd" ]; then
+    printf '\n  checking doas...\n\n'
+    if command -v doas >/dev/null 2>&1; then
+        ok "doas found"
+        # confirm /usr/local/etc/doas.conf exists — without it doas blocks everything
+        if [ -f /usr/local/etc/doas.conf ]; then
+            ok "doas.conf found"
+        else
+            warn "doas is installed but /usr/local/etc/doas.conf does not exist"
+            info "minimal config to allow wheel group: permit persist :wheel"
+            if prompt_yn "write a minimal doas.conf now? (requires sudo)" n; then
+                printf 'permit persist :wheel\n' | sudo tee /usr/local/etc/doas.conf >/dev/null
+                chmod 640 /usr/local/etc/doas.conf
+                ok "wrote /usr/local/etc/doas.conf"
+            else
+                warn "doas will not work until doas.conf is created — run as root:"
+                info "  printf 'permit persist :wheel\\n' > /usr/local/etc/doas.conf"
+                info "  chmod 640 /usr/local/etc/doas.conf"
+            fi
+        fi
+    else
+        warn "doas not found"
+        if prompt_yn "install doas via pkg? (requires sudo)" y; then
+            sudo pkg install -y doas
+            ok "doas installed"
+            if [ ! -f /usr/local/etc/doas.conf ]; then
+                printf 'permit persist :wheel\n' | sudo tee /usr/local/etc/doas.conf >/dev/null
+                chmod 640 /usr/local/etc/doas.conf
+                ok "wrote /usr/local/etc/doas.conf"
+            fi
+        else
+            warn "doas is required for vt font install and pkg operations — install it manually"
+        fi
+    fi
+fi
+
 # ── core deps ─────────────────────────────────────────────────────────────────
 printf '\n  checking core dependencies...\n\n'
 MISSING_CORE=""

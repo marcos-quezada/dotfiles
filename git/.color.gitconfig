@@ -22,9 +22,11 @@
     branch = bold
     # detached head: bold reverse blink — alarming on any palette
     nobranch = bold reverse blink
-    # hint: bold — default cyan (slot 6 = 8bac0f on gameboy) is near-invisible on the
-    # 9bbc0f background; bold adds enough weight to distinguish it without touching colour
-    hint = bold
+    # hint: reverse — default cyan (slot 6 = 8bac0f on gameboy) is near-invisible
+    # against the 9bbc0f background (~3% luminance delta). reverse gives 9bbc0f text
+    # on 0f380f block — maximum contrast on gameboy. on VT the dark background makes
+    # reverse a light-on-dark block, equally readable. attribute-only: palette-independent.
+    hint = reverse
 
 [color "diff"]
     # meta and frag lines recede — they frame the diff, not the content
