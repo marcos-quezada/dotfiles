@@ -20,6 +20,9 @@ export TIMEFMT=$'\nreal\t%*E\nuser\t%*U\nsys\t%*S'
 # homebrew — don't autoupdate on every invocation
 export HOMEBREW_AUTO_UPDATE_SECS=604800
 
+# less — pass colour through, quit-if-one-screen, don't clear, case-insensitive search
+export LESS="-RFXi"
+
 # composer
 export COMPOSER_MEMORY_LIMIT=-1
 

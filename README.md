@@ -23,10 +23,18 @@ the installer detects your OS, checks dependencies, and prompts you to choose wh
 | `git` | all | `.gitconfig` + `.color.gitconfig` — personal identity, aliases, good defaults |
 | `vim` | all | `.vimrc` — syntax, indent, clipboard, visual tweaks |
 | `inputrc` | all | `.inputrc` — history search, case-insensitive completion |
+| `ssh` | all | `.ssh/config.template` — port-443 GitHub alias, ControlMaster, ServerAlive |
+| `tmux` | all | `.tmux.conf` — C-a prefix, vim keys, true colour, split/nav bindings |
+| `curl` | all | `.curlrc` — silent+show-error, follow redirects, fail-on-error, 30s timeout |
+| `cheatsheets` | all | `.config/cheatsheets/` — CLI and vim quick-reference |
 | `zsh` | macOS | `.zshrc` + `.git-worktree-functions.zsh` — prompt, aliases, mise, direnv |
 | `nvim` | macOS | `.config/nvim/` — lazy.nvim config (`lazy-lock.json` gitignored) |
 | `sketchybar` | macOS | `.config/sketchybar/` — statusbar items + plugins |
-| `quickshell` | FreeBSD only | `.config/quickshell/` — sway bar, workspaces, threatwatch widget |
+| `sh` | FreeBSD | `.profile` + `.shrc` — login env, editline bindings, gwt.sh |
+| `foot` | FreeBSD, Linux | `.config/foot/` — Wayland terminal config |
+| `sway` | FreeBSD, Linux | `.config/sway/` — window manager config |
+| `quickshell` | FreeBSD | `.config/quickshell/` — sway bar, workspaces, threatwatch widget |
+| `vt` | FreeBSD | `/boot/fonts/` — console bitmap font (requires doas/sudo) |
 | `threatwatch` | all | `.local/bin/threatwatch` + `.config/threatwatch/config.env.template` |
 
 ---
@@ -35,10 +43,10 @@ the installer detects your OS, checks dependencies, and prompts you to choose wh
 
 ```sh
 # from the repo root — stow any combination:
-stow git vim inputrc          # essentials, works on any machine
-stow zsh nvim sketchybar      # macOS extras
-stow quickshell               # FreeBSD/sway only
-stow threatwatch              # all platforms
+stow git vim inputrc ssh tmux curl   # essentials, works on any machine
+stow zsh nvim sketchybar             # macOS extras
+stow sh foot sway quickshell         # FreeBSD/Linux extras
+stow threatwatch                     # all platforms
 ```
 
 to remove a package:

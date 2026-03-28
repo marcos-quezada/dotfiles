@@ -239,6 +239,8 @@ DO_VIM=1
 DO_INPUTRC=1
 DO_CHEATSHEETS=1
 DO_SSH=1
+DO_TMUX=1
+DO_CURL=1
 
 # macOS-only packages
 DO_ZSH=0
@@ -255,6 +257,8 @@ if [ "$YES" = "0" ]; then
     prompt_yn "stow inputrc (.inputrc)?" y                   && DO_INPUTRC=1 || DO_INPUTRC=0
     prompt_yn "stow cheatsheets (.config/cheatsheets/)?" y   && DO_CHEATSHEETS=1 || DO_CHEATSHEETS=0
     prompt_yn "stow ssh (.ssh/config.template)?" y           && DO_SSH=1 || DO_SSH=0
+    prompt_yn "stow tmux (.tmux.conf)?" y                    && DO_TMUX=1 || DO_TMUX=0
+    prompt_yn "stow curl (.curlrc)?" y                       && DO_CURL=1 || DO_CURL=0
     prompt_yn "stow threatwatch (threat monitor)?" y         && DO_THREATWATCH=1 || DO_THREATWATCH=0
 
     if [ "$PLATFORM" = "macos" ]; then
@@ -331,6 +335,8 @@ stow_vt() {
 [ "$DO_INPUTRC"     = "1" ] && stow_pkg inputrc
 [ "$DO_CHEATSHEETS" = "1" ] && stow_pkg cheatsheets
 [ "$DO_SSH"         = "1" ] && stow_pkg ssh
+[ "$DO_TMUX"        = "1" ] && stow_pkg tmux
+[ "$DO_CURL"        = "1" ] && stow_pkg curl
 [ "$DO_SH"          = "1" ] && stow_pkg sh
 [ "$DO_ZSH"         = "1" ] && stow_pkg zsh
 [ "$DO_NVIM"        = "1" ] && stow_pkg nvim

@@ -6,6 +6,9 @@ export PATH="$HOME/.local/bin:$PATH"
 # ── environment ───────────────────────────────────────────────────────────────
 export EDITOR=vim
 export PAGER=less
+# -R: pass ANSI colour codes through; -F: quit if output fits on one screen;
+# -X: don't clear screen on exit; -i: case-insensitive search
+export LESS="-RFXi"
 
 # point sh(1) at the interactive config
 export ENV=$HOME/.shrc

@@ -571,15 +571,18 @@ manually.
 | package | stow target | platform | contents |
 |---|---|---|---|
 | `cheatsheets` | `$HOME` | all | `.config/cheatsheets/` |
+| `curl` | `$HOME` | all | `.curlrc` — silent, follow redirects, fail-on-error, 30s timeout |
 | `foot` | `$HOME` | FreeBSD + Linux | `.config/foot/` |
 | `git` | `$HOME` | all | `.gitconfig`, `.color.gitconfig`, `.gitignore`, `.local/bin/git-clone-bare-for-worktrees`, `.local/bin/new_script` |
 | `inputrc` | `$HOME` | all | `.inputrc` |
-| `nvim` | `$HOME` | FreeBSD | `.config/nvim/init.lua` — minimal single-file config, treesitter only |
+| `nvim` | `$HOME` | macOS | `.config/nvim/init.lua` — minimal single-file config, treesitter only |
 | `quickshell` | `$HOME` | FreeBSD | `.config/quickshell/` (bar + threatwatch QML, fonts) |
 | `sh` | `$HOME` | FreeBSD | `.profile`, `.shrc` |
 | `sketchybar` | `$HOME` | macOS | `.config/sketchybar/` |
+| `ssh` | `$HOME` | all | `.ssh/config.template` — port-443 GitHub alias, ControlMaster, ServerAlive |
 | `sway` | `$HOME` | FreeBSD + Linux | `.config/sway/config`, `walls/freebsd-kilmynda-wide.png`, `walls/metropolis.png` |
 | `threatwatch` | `$HOME` | all | `.local/bin/threatwatch`, `.config/threatwatch/config.env.template` |
+| `tmux` | `$HOME` | all | `.tmux.conf` — C-a prefix, vim keys, true colour, split/nav bindings |
 | `vim` | `$HOME` | all | `.vimrc`, `.config/vim/` |
 | `vt` | `/` | FreeBSD | `boot/fonts/12x22.fnt.gz`, `boot/fonts/INDEX.fonts` |
 | `zsh` | `$HOME` | macOS | `.zshrc`, `.git-worktree-functions.zsh` |
@@ -724,6 +727,14 @@ comment that precedes the dispatcher block.
 
 `qml.bats` skips gracefully when `qmltestrunner` is not installed — the
 availability test emits a `skip` rather than failing.
+
+**hermetic mock strategy in install.bats** — `install.sh` calls `install_pkg`
+which checks `command -v sudo` and `command -v doas`. on macOS the real
+`/usr/bin/sudo` is in `PATH` and will prompt for a password if found.
+`install.bats`'s `setup()` writes no-op `sudo` and `doas` stubs into `$MOCK_BIN`
+alongside the existing `brew`, `pkg`, and `apt-get` mocks. `PATH="$MOCK_BIN:$PATH"`
+ensures the stubs shadow the real binaries for every test in the file. the
+pattern must be followed for any new system command that install.sh might invoke.
 
 ### vim quality
 
