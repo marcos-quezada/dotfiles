@@ -62,9 +62,13 @@ must add that offset manually via `margins.top: 35` (matching `Bar.qml`'s
 `implicitHeight`).
 
 **pin coordinate safety**: `margins.top` shifts the window surface on screen but
-does not affect the coordinate space inside the surface. the map image fills the
-full 800×780 surface via `anchors.fill: parent`, so all pin hitbox `x`/`y`
-values from `pins.json` remain pixel-accurate relative to the image.
+does not affect the coordinate space inside the surface. the map image fills
+`contentArea` (the inset child of `PopupFrame`) via `anchors.fill: parent`.
+`PopupFrame` uses `default property alias content: contentArea.data`, so the
+`Repeater` pin delegates and the `pinTooltip` Rectangle are also children of
+`contentArea` — all three share the same coordinate space. `modelData.x/y` pixel
+values from `pins.json` map correctly to `contentArea`-relative positions without
+any offset adjustment.
 
 ---
 
@@ -578,7 +582,6 @@ manually.
 | `threatwatch` | `$HOME` | all | `.local/bin/threatwatch`, `.config/threatwatch/config.env.template` |
 | `vim` | `$HOME` | all | `.vimrc`, `.config/vim/` |
 | `vt` | `/` | FreeBSD | `boot/fonts/12x22.fnt.gz`, `boot/fonts/INDEX.fonts` |
-| `xdg` | `$HOME` | FreeBSD | `.config/mimeapps.list` |
 | `zsh` | `$HOME` | macOS | `.zshrc`, `.git-worktree-functions.zsh` |
 
 `vt` is the only package with a non-`$HOME` target. `install.sh` runs
