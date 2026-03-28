@@ -31,6 +31,13 @@ setup() {
     printf '#!/bin/sh\nprintf ""\n' > "$MOCK_BIN/apt-get"
     chmod +x "$MOCK_BIN/apt-get"
 
+    # mock sudo and doas — prevent the real binaries from being found and
+    # prompting for a password when install.sh calls install_pkg
+    printf '#!/bin/sh\nprintf ""\n' > "$MOCK_BIN/sudo"
+    chmod +x "$MOCK_BIN/sudo"
+    printf '#!/bin/sh\nprintf ""\n' > "$MOCK_BIN/doas"
+    chmod +x "$MOCK_BIN/doas"
+
     # MOCK_UNAME is read by the uname stub; tests set it before running
     export MOCK_BIN
 }
