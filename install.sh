@@ -238,6 +238,7 @@ DO_GIT=1
 DO_VIM=1
 DO_INPUTRC=1
 DO_CHEATSHEETS=1
+DO_SSH=1
 
 # macOS-only packages
 DO_ZSH=0
@@ -253,6 +254,7 @@ if [ "$YES" = "0" ]; then
     prompt_yn "stow vim (.vimrc)?" y                         && DO_VIM=1 || DO_VIM=0
     prompt_yn "stow inputrc (.inputrc)?" y                   && DO_INPUTRC=1 || DO_INPUTRC=0
     prompt_yn "stow cheatsheets (.config/cheatsheets/)?" y   && DO_CHEATSHEETS=1 || DO_CHEATSHEETS=0
+    prompt_yn "stow ssh (.ssh/config.template)?" y           && DO_SSH=1 || DO_SSH=0
     prompt_yn "stow threatwatch (threat monitor)?" y         && DO_THREATWATCH=1 || DO_THREATWATCH=0
 
     if [ "$PLATFORM" = "macos" ]; then
@@ -328,6 +330,7 @@ stow_vt() {
 [ "$DO_VIM"         = "1" ] && stow_pkg vim
 [ "$DO_INPUTRC"     = "1" ] && stow_pkg inputrc
 [ "$DO_CHEATSHEETS" = "1" ] && stow_pkg cheatsheets
+[ "$DO_SSH"         = "1" ] && stow_pkg ssh
 [ "$DO_SH"          = "1" ] && stow_pkg sh
 [ "$DO_ZSH"         = "1" ] && stow_pkg zsh
 [ "$DO_NVIM"        = "1" ] && stow_pkg nvim
@@ -356,6 +359,27 @@ if [ "$DO_THREATWATCH" = "1" ]; then
         info "get a free token (no credit card): https://account.mapbox.com"
     else
         warn "template not found at $TEMPLATE — stow may not have run correctly"
+    fi
+fi
+
+# ── ssh config template ───────────────────────────────────────────────────────
+if [ "$DO_SSH" = "1" ]; then
+    printf '\n  ssh config...\n\n'
+
+    SSH_TEMPLATE="$HOME/.ssh/config.template"
+    SSH_LIVE="$HOME/.ssh/config"
+
+    if [ -f "$SSH_LIVE" ]; then
+        ok "$HOME/.ssh/config already exists — not overwriting"
+    elif [ -f "$SSH_TEMPLATE" ]; then
+        mkdir -p "$HOME/.ssh"
+        chmod 700 "$HOME/.ssh"
+        cp "$SSH_TEMPLATE" "$SSH_LIVE"
+        chmod 600 "$SSH_LIVE"
+        ok "created ~/.ssh/config from template"
+        warn "edit $SSH_LIVE — replace placeholder host aliases and key paths"
+    else
+        warn "template not found at $SSH_TEMPLATE — stow may not have run correctly"
     fi
 fi
 

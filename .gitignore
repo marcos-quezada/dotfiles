@@ -2,6 +2,9 @@
 # the template (config.env.template) is safe to commit; the live file is not
 config.env
 
+# ssh — the template is committed; the live config has real hostnames and key paths
+ssh/.ssh/config
+
 # macos
 .DS_Store
 .AppleDouble

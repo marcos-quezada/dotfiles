@@ -103,8 +103,8 @@ _gwt_add() {
     cd "$_wt" || { unset _branch _base _root _wt; return 1; }
     _gwt_ok "worktree '$_branch' ready at: $_wt"
 
-    # open in $EDITOR — falls back to vi if EDITOR is unset
-    ${EDITOR:-vi} .
+    # post-add hook — default opens $EDITOR; zsh overrides with full automation
+    _gwt_hook_post_add "$_branch" "$_wt"
 
     unset _branch _base _root _wt
 }
@@ -161,6 +161,9 @@ _gwt_rm() {
             fi
             ;;
     esac
+
+    # post-rm hook — no-op by default; zsh may override
+    _gwt_hook_post_rm "$_branch"
 
     unset _branch _root _wt _reply
 }
@@ -344,4 +347,18 @@ gwt() {
     _gwt_rc=$?
     unset _sub
     return $_gwt_rc
+}
+
+# ── hooks ─────────────────────────────────────────────────────────────────────
+# no-op stubs — redefine in shell-specific configs to add automation.
+# _gwt_hook_post_add is called after cd into the new worktree.
+# _gwt_hook_post_rm  is called after the worktree is removed.
+# shellcheck disable=SC2317  # called indirectly via _gwt_add / _gwt_rm
+_gwt_hook_post_add() {
+    # $1 = branch name, $2 = worktree path
+    ${EDITOR:-vi} "$2"
+}
+# shellcheck disable=SC2317  # called indirectly via _gwt_rm
+_gwt_hook_post_rm() {
+    :  # $1 = branch name
 }
