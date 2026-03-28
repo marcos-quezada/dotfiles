@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+     xmlns:gdacs="http://www.gdacs.org"
+     xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#">
+  <channel>
+    <title>GDACS Alert Feed — fixture</title>
+    <item>
+      <title>Flood in Czech Republic</title>
+      <gdacs:alertlevel>Red</gdacs:alertlevel>
+      <geo:lat>50.08</geo:lat>
+      <geo:long>14.43</geo:long>
+    </item>
+    <item>
+      <title>Earthquake off Canary Islands</title>
+      <gdacs:alertlevel>Orange</gdacs:alertlevel>
+      <geo:lat>28.10</geo:lat>
+      <geo:long>-15.41</geo:long>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,41 @@
+[
+  {
+    "id": "fixture-1",
+    "title": "Will Russia invade a NATO member before 2026?",
+    "slug": "russia-invade-nato-2026",
+    "active": true,
+    "volume": 850000,
+    "markets": [
+      {
+        "id": "m1",
+        "outcomePrices": "[0.45, 0.55]"
+      }
+    ]
+  },
+  {
+    "id": "fixture-2",
+    "title": "Will there be a ceasefire in Ukraine by end of 2025?",
+    "slug": "ukraine-ceasefire-2025",
+    "active": true,
+    "volume": 620000,
+    "markets": [
+      {
+        "id": "m2",
+        "outcomePrices": "[0.22, 0.78]"
+      }
+    ]
+  },
+  {
+    "id": "fixture-3",
+    "title": "Will Germany hold early federal elections?",
+    "slug": "germany-early-elections",
+    "active": true,
+    "volume": 90000,
+    "markets": [
+      {
+        "id": "m3",
+        "outcomePrices": "[0.08, 0.92]"
+      }
+    ]
+  }
+]

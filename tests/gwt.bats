@@ -91,8 +91,10 @@ teardown() {
     # shellcheck disable=SC1090
     . "$GWT"
     cd "$HUB"
-    # suppress $EDITOR — gwt add opens it after creating the worktree
-    EDITOR=true
+    # suppress $EDITOR — gwt add opens it after creating the worktree;
+    # export is intentional: the variable must reach the gwt subprocess.
+    # shellcheck disable=SC2030
+    export EDITOR=true
     # use 'master' or 'main' — whichever the fixture remote has
     DEFAULT_BRANCH=$(git -C "$HUB/.bare" symbolic-ref --short HEAD 2>/dev/null || echo main)
     run gwt add "test-branch" "$DEFAULT_BRANCH"
@@ -106,8 +108,8 @@ teardown() {
     # shellcheck disable=SC1090
     . "$GWT"
     cd "$HUB"
-    # suppress $EDITOR — gwt add opens it after creating the worktree
-    EDITOR=true
+    # shellcheck disable=SC2031
+    export EDITOR=true
     DEFAULT_BRANCH=$(git -C "$HUB/.bare" symbolic-ref --short HEAD 2>/dev/null || echo main)
     gwt add "feature-xyz" "$DEFAULT_BRANCH" >/dev/null 2>&1 || true
     cd "$HUB"

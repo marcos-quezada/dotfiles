@@ -4,23 +4,6 @@
 
 REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
 
-# posix sh targets — all must be warning-clean
-POSIX_TARGETS=(
-    "git/.local/bin/new_script"
-    "git/.local/bin/git-clone-bare-for-worktrees"
-    "sh/.config/sh/gwt.sh"
-    "threatwatch/.local/bin/threatwatch"
-    "install.sh"
-    "vim/.config/vim/install.sh"
-)
-
-# bash targets — checked as bash
-BASH_TARGETS=(
-    "sketchybar/.config/sketchybar/plugins/battery.sh"
-    "sketchybar/.config/sketchybar/plugins/icon_map_fn.sh"
-    "sketchybar/.config/sketchybar/plugins/space.sh"
-)
-
 @test "shellcheck is available" {
     command -v shellcheck >/dev/null 2>&1
 }
@@ -67,5 +50,43 @@ BASH_TARGETS=(
 
 @test "sketchybar space.sh: shellcheck clean" {
     run shellcheck "$REPO_ROOT/sketchybar/.config/sketchybar/plugins/space.sh"
+    [ "$status" -eq 0 ]
+}
+
+# ── bats test files ───────────────────────────────────────────────────────────
+# bats files are bash; lint them so new tests can't silently introduce warnings.
+
+@test "threatwatch.bats: shellcheck clean" {
+    run shellcheck --shell=bash "$REPO_ROOT/tests/threatwatch.bats"
+    [ "$status" -eq 0 ]
+}
+
+@test "gwt.bats: shellcheck clean" {
+    run shellcheck --shell=bash "$REPO_ROOT/tests/gwt.bats"
+    [ "$status" -eq 0 ]
+}
+
+@test "git-clone-bare.bats: shellcheck clean" {
+    run shellcheck --shell=bash "$REPO_ROOT/tests/git-clone-bare.bats"
+    [ "$status" -eq 0 ]
+}
+
+@test "lint.bats: shellcheck clean" {
+    run shellcheck --shell=bash "$REPO_ROOT/tests/lint.bats"
+    [ "$status" -eq 0 ]
+}
+
+@test "new_script.bats: shellcheck clean" {
+    run shellcheck --shell=bash "$REPO_ROOT/tests/new_script.bats"
+    [ "$status" -eq 0 ]
+}
+
+@test "vim.bats: shellcheck clean" {
+    run shellcheck --shell=bash "$REPO_ROOT/tests/vim.bats"
+    [ "$status" -eq 0 ]
+}
+
+@test "qml.bats: shellcheck clean" {
+    run shellcheck --shell=bash "$REPO_ROOT/tests/qml.bats"
     [ "$status" -eq 0 ]
 }
