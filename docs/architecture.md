@@ -428,6 +428,28 @@ JetBrains Mono (Nerd Font), DejaVu Sans Mono, Liberation Mono, and SF Mono — i
 that order. if none are found, ImageMagick uses its built-in default font and
 the overlay is still applied.
 
+### why ImageMagick, not Ghostscript
+
+Ghostscript was evaluated as a lighter alternative for the map overlay step.
+it was rejected for three reasons:
+
+1. **no raster compositing** — Ghostscript is a PostScript/PDF interpreter. it
+   has no equivalent of ImageMagick's `composite` command. overlaying a
+   semi-transparent PNG panel onto a JPEG map requires raster blending, which
+   Ghostscript cannot do.
+
+2. **no `-annotate`** — the HUD text is drawn with `magick -annotate` using a
+   TTF font at a given point size. Ghostscript has `show` for PostScript text,
+   but there is no command-line interface for placing text at pixel coordinates
+   on a raster image.
+
+3. **no `-draw rectangle`** — the accent bar and legend borders use
+   `magick -draw 'rectangle x1,y1 x2,y2'`. Ghostscript's `rectfill` operator
+   works in PostScript coordinate space on a PostScript canvas, not on a PNG.
+
+ImageMagick stays. the `magick` binary (v7) or `convert` (v6 fallback) is the
+only tool with the full compositing, annotation, and drawing surface needed.
+
 ### secrets handling
 
 `MAPBOX_TOKEN` must never be committed. the script sources
@@ -622,8 +644,9 @@ run against every script before committing:
 shellcheck <file>
 ```
 
-the lint gate (`tests/lint.bats`) runs ShellCheck on all nine target files and
-is the CI entry point — it must pass before any other suite is run.
+the lint gate (`tests/lint.bats`) runs ShellCheck on all target shell scripts
+and all `.bats` files and is the CI entry point — it must pass before any
+other suite is run.
 
 **suppression rules** — only suppress with an inline comment explaining why:
 
@@ -660,7 +683,9 @@ ShellCheck and bats-core.
 
 ```
 tests/
-├── lint.bats             ShellCheck gate — run this first; all 9 scripts must pass
+├── common.sh             shared helpers: tmp dir setup/teardown, tw_funcs_strip
+├── lint.bats             ShellCheck gate — run this first; 19 tests covering all scripts + all .bats files
+├── install.bats          install.sh OS detection and pkg_name / install_pkg unit tests
 ├── vim.bats              headless vim sourcing tests for .vimrc, theme.vim, lsp.vim
 ├── qml.bats              Qt Quick Test gate — Utils.qml pure-logic tests (qmltestrunner)
 ├── new_script.bats       unit tests for new_script (flags, generated content, output ShellCheck)
@@ -668,9 +693,12 @@ tests/
 ├── git-clone-bare.bats   integration tests using a local bare repo
 ├── gwt.bats              tests sourcing gwt.sh against a local bare-worktree hub
 └── fixtures/
-    ├── quakes.json       2 EMSC events (M4.8 AUSTRIA, M3.7 BAVARIA)
-    ├── flights.json      OpenSky state vectors (GAF001, REACH42, DLH123)
-    └── summary.json      full summary output with threat_level=high
+    ├── quakes.json           2 EMSC events (M4.8 AUSTRIA, M3.7 BAVARIA)
+    ├── flights.json          OpenSky state vectors (GAF001, REACH42, DLH123)
+    ├── summary.json          full summary output with threat_level=high
+    ├── gdacs.xml             Red alert Prague (in-region) + Orange Canary Islands (out-of-region)
+    ├── polymarket.json       3 keyword-matching markets (Russia/NATO 45%, Ukraine 22%, Germany 8%)
+    └── mapbox_count.json     stale month 2025-01 / count 42 (for rollover test)
 ```
 
 run all suites:
@@ -685,9 +713,11 @@ run a single suite:
 bats tests/lint.bats
 ```
 
-all tests are network-free. `threatwatch.bats` mocks the cache directory with
-`$TMPDIR` and points `THREATWATCH_CACHE` at the fixtures directory so the
-script reads fixture JSON instead of live data.
+all tests are network-free. `threatwatch.bats` uses the `TW_FUNCS` pattern:
+`awk '/^# ── main/{exit}'` strips the case dispatcher from the script before
+sourcing, so individual functions can be tested without the top-level
+`tobar()` call polluting stdout. the sentinel `# ── main` is the existing
+comment that precedes the dispatcher block.
 
 `qml.bats` skips gracefully when `qmltestrunner` is not installed — the
 availability test emits a `skip` rather than failing.

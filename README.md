@@ -81,3 +81,46 @@ see [docs/architecture.md](docs/architecture.md) for data sources, threat level 
 ## docs
 
 - [docs/architecture.md](docs/architecture.md) — design decisions, data flow, MVC split, map calibration
+
+---
+
+## development
+
+### running tests
+
+```sh
+bats tests/
+```
+
+bats directory mode discovers all suites automatically — no separate runner
+needed. to run a single suite:
+
+```sh
+bats tests/lint.bats
+```
+
+all tests are network-free.
+
+### shellcheck
+
+```sh
+shellcheck <file>
+```
+
+or run the full lint gate (covers all scripts and all `.bats` files):
+
+```sh
+bats tests/lint.bats
+```
+
+### dev tool install
+
+answer yes to the dev tools prompt in the installer:
+
+```sh
+sh install.sh
+# … answer yes when asked about shellcheck / shfmt / bats-core
+```
+
+this installs `shellcheck`, `shfmt`, and `bats-core` via your platform's
+package manager.

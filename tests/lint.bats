@@ -90,3 +90,13 @@ REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
     run shellcheck --shell=bash "$REPO_ROOT/tests/qml.bats"
     [ "$status" -eq 0 ]
 }
+
+@test "common.sh: shellcheck clean" {
+    run shellcheck "$REPO_ROOT/tests/common.sh"
+    [ "$status" -eq 0 ]
+}
+
+@test "install.bats: shellcheck clean" {
+    run shellcheck --shell=bash "$REPO_ROOT/tests/install.bats"
+    [ "$status" -eq 0 ]
+}
