@@ -36,3 +36,6 @@ quickshell/.config/quickshell/.qmlls.ini
 # zsh — history and completion cache are runtime state
 zsh/.zsh_history
 zsh/.zcompdump*
+
+# staging — local drop zone for system info files; never committed
+staging/
