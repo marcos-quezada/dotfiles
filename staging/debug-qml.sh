@@ -2,7 +2,7 @@
 # debug-qml.sh — gather qmltestrunner diagnostics
 # run from the FreeBSD machine, then push staging/debug-qml-output.txt
 
-REPO="$HOME/dotfiles"
+REPO="$HOME/git/dotfiles"
 QS_DIR="$REPO/quickshell/.config/quickshell"
 RUNNER="/usr/local/lib/qt6/bin/qmltestrunner"
 OUT="$REPO/staging/debug-qml-output.txt"
