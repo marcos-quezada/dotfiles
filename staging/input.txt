@@ -1,0 +1,22 @@
+ℵ₀:auryn:~ ♥ › $ ls -la /dev/input/ 2>/dev/null || echo "/dev/input not present"
+total 1
+dr-xr-xr-x   2 root wheel  512 Mar 28 21:48 .
+dr-xr-xr-x  12 root wheel  512 Mar 28 21:48 ..
+crw-------   1 root wheel  0xe Mar 28 21:50 event0
+crw-------   1 root wheel 0x1b Mar 28 21:48 event1
+crw-------   1 root wheel 0x37 Mar 28 21:50 event2
+crw-------   1 root wheel 0x3b Mar 28 21:50 event3
+crw-------   1 root wheel 0x3c Mar 28 21:50 event4
+crw-------   1 root wheel 0x3f Mar 28 21:50 event5
+crw-------   1 root wheel 0x44 Mar 28 21:48 event6
+crw-------   1 root wheel 0x45 Mar 28 21:48 event7
+ℵ₀:auryn:~ ♥ › $ 
+ℵ₀:auryn:~ ♥ › $ stat -f '%g %p %N' /dev/input/event* 2>/dev/null || echo "no input event devices"
+0 20600 /dev/input/event0
+0 20600 /dev/input/event1
+0 20600 /dev/input/event2
+0 20600 /dev/input/event3
+0 20600 /dev/input/event4
+0 20600 /dev/input/event5
+0 20600 /dev/input/event6
+0 20600 /dev/input/event7

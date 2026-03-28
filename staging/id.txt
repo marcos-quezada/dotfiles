@@ -1,0 +1,1 @@
+uid=1001(mquezada) gid=1001(mquezada) groups=0(wheel),5(operator),44(video),116(u2f),145(webcamd),1001(mquezada)

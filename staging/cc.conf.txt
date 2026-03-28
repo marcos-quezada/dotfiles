@@ -1,0 +1,7 @@
+ℵ₀:auryn:~ ♥ › $ grep -E '(dbus|polkit|seatd|elogind|hald|devd|moused|kld|linux)' /etc/rc.conf 2>/dev/null || echo "no matching lines"
+# disable moused for now, there is native support in X and Wayland
+moused_nondefault_enable="NO"
+kld_list="if_iwlwifi i915_kbl_dmc_ver1_04_bin i915kms nvidia-drm fusefs nvidia-modeset"
+seatd_enable="YES"
+# enable dbus
+dbus_enable="YES"

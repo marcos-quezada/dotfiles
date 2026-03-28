@@ -1,0 +1,7 @@
+wheel:*:0:root,mquezada
+operator:*:5:root,mquezada
+video:*:44:mquezada
+dialer:*:68:
+network:*:69:
+cups:*:193:
+webcamd:*:145:mquezada

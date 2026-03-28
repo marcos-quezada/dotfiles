@@ -1,0 +1,8 @@
+ℵ₀:auryn:~ ♥ › $ which doas 2>/dev/null || echo "doas: not found"
+/usr/local/bin/doas
+ℵ₀:auryn:~ ♥ › $ which sudo 2>/dev/null || echo "sudo: not found"
+sudo: not found
+ℵ₀:auryn:~ ♥ › $ pkg info -e doas && echo "doas pkg: installed" || echo "doas pkg: not installed"
+doas pkg: installed
+ℵ₀:auryn:~ ♥ › $ pkg info -e sudo && echo "sudo pkg: installed" || echo "sudo pkg: not installed"
+sudo pkg: not installed

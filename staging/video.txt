@@ -1,0 +1,16 @@
+ℵ₀:auryn:~ ♥ › $ ls -la /dev/dri/ 2>/dev/null || echo "/dev/dri not present"
+total 1
+dr-xr-xr-x   2 root wheel 512 Mar 28 21:49 .
+dr-xr-xr-x  12 root wheel 512 Mar 28 21:48 ..
+lrwxr-xr-x   1 root wheel   8 Mar 28 21:49 card0 -> ../drm/0
+lrwxr-xr-x   1 root wheel   8 Mar 28 21:49 card1 -> ../drm/1
+lrwxr-xr-x   1 root wheel  10 Mar 28 21:49 renderD128 -> ../drm/128
+lrwxr-xr-x   1 root wheel  10 Mar 28 21:49 renderD129 -> ../drm/129
+ℵ₀:auryn:~ ♥ › $ ls -la /dev/video* 2>/dev/null || echo "no /dev/video* devices"
+crw-rw----  1 webcamd webcamd 0x19f Mar 28 21:49 /dev/video0
+crw-rw----  1 webcamd webcamd 0x1a0 Mar 28 21:49 /dev/video1
+ℵ₀:auryn:~ ♥ › $ stat -f '%g %p %N' /dev/dri/card* /dev/dri/renderD* 2>/dev/null
+0 120755 /dev/dri/card0
+0 120755 /dev/dri/card1
+0 120755 /dev/dri/renderD128
+0 120755 /dev/dri/renderD129
