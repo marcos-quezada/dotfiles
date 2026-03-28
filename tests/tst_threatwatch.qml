@@ -12,7 +12,7 @@ TestCase {
 
     // ── formatTimestamp ───────────────────────────────────────────────────────
 
-    property ThreatWatchUtils.Utils utils: ThreatWatchUtils.Utils {}
+    property Utils utils: Utils {}
 
     function test_formatTimestamp_basic() {
         compare(utils.formatTimestamp("2025-01-15T14:32:00Z"), "2025-01-15 14:32 UTC")
