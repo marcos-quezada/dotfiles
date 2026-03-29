@@ -105,3 +105,8 @@ REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
     run shellcheck --shell=bash "$REPO_ROOT/tests/install.bats"
     [ "$status" -eq 0 ]
 }
+
+@test "freebsd-adduser.bats: shellcheck clean" {
+    run shellcheck --shell=bash "$REPO_ROOT/tests/freebsd-adduser.bats"
+    [ "$status" -eq 0 ]
+}

@@ -89,6 +89,8 @@ see [docs/architecture.md](docs/architecture.md) for data sources, threat level 
 ## docs
 
 - [docs/architecture.md](docs/architecture.md) — design decisions, data flow, MVC split, map calibration
+- [docs/freebsd-setup/guide.md](docs/freebsd-setup/guide.md) — full FreeBSD desktop setup (hardware, graphics, Wayland, packages)
+- [docs/freebsd-setup/user-setup.md](docs/freebsd-setup/user-setup.md) — bootstrap sequence: create user, assign groups, doas, run installer
 
 ---
 

@@ -28,6 +28,11 @@ what it sets:
 - login shell: `/bin/sh` (`.profile` + `.shrc` are in the dotfiles)
 - home: `/home/<username>`
 - groups: `wheel`, `operator`, `video`, `webcamd`
+- GECOS/comment field: set to `<username>` (visible in `finger` and `/etc/passwd`)
+
+the script checks `/etc/group` before adding each group — if a group does not
+exist on the system (e.g. `webcamd` on a minimal install) it warns and skips
+rather than aborting.
 
 ### why these groups
 
@@ -87,7 +92,9 @@ login makes the bootstrap smoother.
 # from root, or reboot and log in directly
 login <username>
 
-# clone the dotfiles if not already present
+# clone the dotfiles — SSH requires a key already on the machine;
+# use HTTPS if no key is set up yet:
+#   git clone https://github.com/marcos-quezada/dotfiles.git ~/dotfiles
 git clone git@github.com:marcos-quezada/dotfiles.git ~/dotfiles
 
 # run the installer
