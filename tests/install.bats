@@ -390,9 +390,11 @@ _prompt_yn() {
     rm -rf "$_fake_home"
 }
 
-# ── stow_vt ───────────────────────────────────────────────────────────────────
+# ── stow_root ─────────────────────────────────────────────────────────────────
+# stow_root is the generic version of the old stow_vt; targets / with privilege
+# escalation.  tested with both vt and ly package names.
 
-@test "stow_vt: uses doas when available" {
+@test "stow_root: uses doas when available" {
     _fake_home="$(mktemp -d)"
     mkdir -p "$_fake_home/repo/vt"
     CALL_LOG="$MOCK_BIN/calls"
@@ -400,15 +402,16 @@ _prompt_yn() {
     chmod +x "$MOCK_BIN/doas"
     run env PATH="$MOCK_BIN:$PATH" sh -c "
         REPO_DIR='$_fake_home/repo'
-        stow_vt() {
-            if [ ! -d \"\$REPO_DIR/vt\" ]; then printf 'warn: vt not found\n'; return; fi
+        stow_root() {
+            _pkg=\"\$1\"
+            if [ ! -d \"\$REPO_DIR/\$_pkg\" ]; then printf 'warn: %s not found\n' \"\$_pkg\"; return; fi
             SUDO=''
             command -v doas >/dev/null 2>&1 && SUDO=doas
             command -v sudo >/dev/null 2>&1 && [ -z \"\$SUDO\" ] && SUDO=sudo
             if [ -z \"\$SUDO\" ]; then printf 'die: no escalation tool\n' >&2; exit 1; fi
-            \${SUDO} stow --dir=\"\$REPO_DIR\" --target='/' --restow vt && printf 'ok: stowed vt\n'
+            \${SUDO} stow --dir=\"\$REPO_DIR\" --target='/' --restow \"\$_pkg\" && printf 'ok: stowed %s\n' \"\$_pkg\"
         }
-        stow_vt
+        stow_root vt
     "
     [ "$status" -eq 0 ]
     [[ "$output" == *"ok: stowed vt"* ]]
@@ -416,22 +419,23 @@ _prompt_yn() {
     rm -rf "$_fake_home"
 }
 
-@test "stow_vt: warns and returns when vt package dir absent" {
+@test "stow_root: warns and returns when package dir absent" {
     _fake_home="$(mktemp -d)"
     run env PATH="$MOCK_BIN:$PATH" sh -c "
         REPO_DIR='$_fake_home/repo'
-        stow_vt() {
-            if [ ! -d \"\$REPO_DIR/vt\" ]; then printf 'warn: vt not found\n'; return; fi
-            printf 'ok: stowed vt\n'
+        stow_root() {
+            _pkg=\"\$1\"
+            if [ ! -d \"\$REPO_DIR/\$_pkg\" ]; then printf 'warn: %s not found\n' \"\$_pkg\"; return; fi
+            printf 'ok: stowed %s\n' \"\$_pkg\"
         }
-        stow_vt
+        stow_root vt
     "
     [ "$status" -eq 0 ]
     [[ "$output" == *"warn: vt not found"* ]]
     rm -rf "$_fake_home"
 }
 
-@test "stow_vt: exits non-zero when neither doas nor sudo available" {
+@test "stow_root: exits non-zero when neither doas nor sudo available" {
     _fake_home="$(mktemp -d)"
     mkdir -p "$_fake_home/repo/vt"
     # only stow in PATH — no doas, no sudo
@@ -443,17 +447,43 @@ _prompt_yn() {
     run /bin/sh -c "
         PATH='$MOCK_BIN'
         REPO_DIR='$_fake_home/repo'
-        stow_vt() {
-            if [ ! -d \"\$REPO_DIR/vt\" ]; then printf 'warn: vt not found\n'; return; fi
+        stow_root() {
+            _pkg=\"\$1\"
+            if [ ! -d \"\$REPO_DIR/\$_pkg\" ]; then printf 'warn: %s not found\n' \"\$_pkg\"; return; fi
             SUDO=''
             command -v doas >/dev/null 2>&1 && SUDO=doas
             command -v sudo >/dev/null 2>&1 && [ -z \"\$SUDO\" ] && SUDO=sudo
             if [ -z \"\$SUDO\" ]; then printf 'die: no escalation tool\n' >&2; exit 1; fi
-            \${SUDO} stow --dir=\"\$REPO_DIR\" --target='/' --restow vt
+            \${SUDO} stow --dir=\"\$REPO_DIR\" --target='/' --restow \"\$_pkg\"
         }
-        stow_vt
+        stow_root vt
     "
     [ "$status" -ne 0 ]
+    rm -rf "$_fake_home"
+}
+
+@test "stow_root: works for ly package path" {
+    _fake_home="$(mktemp -d)"
+    mkdir -p "$_fake_home/repo/ly/usr/local/etc/ly"
+    CALL_LOG="$MOCK_BIN/calls_ly"
+    printf '#!/bin/sh\nprintf "doas %%s\n" "$*" >> "%s"\n' "$CALL_LOG" > "$MOCK_BIN/doas"
+    chmod +x "$MOCK_BIN/doas"
+    run env PATH="$MOCK_BIN:$PATH" sh -c "
+        REPO_DIR='$_fake_home/repo'
+        stow_root() {
+            _pkg=\"\$1\"
+            if [ ! -d \"\$REPO_DIR/\$_pkg\" ]; then printf 'warn: %s not found\n' \"\$_pkg\"; return; fi
+            SUDO=''
+            command -v doas >/dev/null 2>&1 && SUDO=doas
+            command -v sudo >/dev/null 2>&1 && [ -z \"\$SUDO\" ] && SUDO=sudo
+            if [ -z \"\$SUDO\" ]; then printf 'die: no escalation tool\n' >&2; exit 1; fi
+            \${SUDO} stow --dir=\"\$REPO_DIR\" --target='/' --restow \"\$_pkg\" && printf 'ok: stowed %s\n' \"\$_pkg\"
+        }
+        stow_root ly
+    "
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"ok: stowed ly"* ]]
+    grep -q "doas stow" "$CALL_LOG"
     rm -rf "$_fake_home"
 }
 

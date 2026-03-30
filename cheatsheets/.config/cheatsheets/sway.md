@@ -59,12 +59,12 @@
 ## Utilities
 | Key                    | Action                          |
 |------------------------|---------------------------------|
-| `XF86AudioMute`        | toggle mute (pactl)             |
-| `XF86AudioLowerVolume` | volume −5% (pactl)              |
-| `XF86AudioRaiseVolume` | volume +5% (pactl)              |
-| `XF86AudioMicMute`     | toggle mic mute (pactl)         |
-| `XF86MonBrightnessDown`| brightness −5% (brightnessctl)  |
-| `XF86MonBrightnessUp`  | brightness +5% (brightnessctl)  |
+| `XF86AudioMute`        | toggle mute (mixer vol.mute)    |
+| `XF86AudioLowerVolume` | volume −5 (mixer vol -5)        |
+| `XF86AudioRaiseVolume` | volume +5 (mixer vol +5)        |
+| `XF86AudioMicMute`     | toggle mic mute (mixer mic.mute)|
+| `XF86MonBrightnessDown`| brightness −10% (backlight)     |
+| `XF86MonBrightnessUp`  | brightness +10% (backlight)     |
 | `Print`                | screenshot (grim)               |
 
 ## Quickshell dev workflow

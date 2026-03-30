@@ -13,6 +13,18 @@ export LESS="-RFXi"
 # point sh(1) at the interactive config
 export ENV=$HOME/.shrc
 
+# ── wayland ───────────────────────────────────────────────────────────────────
+# XDG_RUNTIME_DIR is normally set by seatd/pam_xdg, but set it here as a
+# fallback so tools launched from a terminal can find the Wayland socket.
+# /tmp/runtime-<uid> follows the XDG spec default when no login manager sets it.
+: "${XDG_RUNTIME_DIR:=/tmp/runtime-$(id -u)}"
+export XDG_RUNTIME_DIR
+# Firefox defaults to XWayland without this; set unconditionally since the
+# .profile only loads on FreeBSD where Wayland is the only display server.
+export MOZ_ENABLE_WAYLAND=1
+# Qt 6 Wayland backend; qt6-wayland is installed on this machine.
+export QT_QPA_PLATFORM=wayland
+
 # ── vt / serial helpers ───────────────────────────────────────────────────────
 # requery terminal size; useful on serial lines and after resize
 [ -x /usr/bin/resizewin ] && /usr/bin/resizewin -z

@@ -456,6 +456,24 @@ Key settings:
 | Bar           | `quickshell` (launched via `exec quickshell`) |
 | Idle lock     | `swaylock` at 300 s idle, DPMS off at 600 s |
 
+### Media keys
+
+Audio is handled by `mixer(8)` (FreeBSD base system, OSS). Brightness is
+handled by `backlight(8)` (base system, requires `acpi_video_load="YES"` in
+`loader.conf`). These are bound to the hardware keys in `sway/config`:
+
+| Key | Command |
+|-----|---------|
+| `XF86AudioMute` | `mixer vol.mute toggle` |
+| `XF86AudioLowerVolume` | `mixer vol -5` |
+| `XF86AudioRaiseVolume` | `mixer vol +5` |
+| `XF86AudioMicMute` | `mixer mic.mute toggle` |
+| `XF86MonBrightnessDown` | `backlight - 10%` |
+| `XF86MonBrightnessUp` | `backlight + 10%` |
+
+> If you migrate to pipewire-pulse in future, replace the `mixer` calls with
+> `pactl set-sink-{mute,volume}` and update `sway/config` accordingly.
+
 ### Wallpaper
 
 Downloaded from Vermaden's FreeBSD wallpaper collection:

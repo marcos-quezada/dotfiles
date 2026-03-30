@@ -272,6 +272,9 @@ DO_VT=0
 [ "$PLATFORM" = "linux" ]   && DO_SWAY=1
 # vt console font — FreeBSD only; stows to /boot/fonts/ (root-owned)
 [ "$PLATFORM" = "freebsd" ] && DO_VT=1
+# ly display manager config — FreeBSD only; stows to /usr/local/etc/ly/ (root-owned)
+DO_LY=0
+[ "$PLATFORM" = "freebsd" ] && DO_LY=1
 
 # core packages — available everywhere
 DO_GIT=1
@@ -323,6 +326,11 @@ if [ "$YES" = "0" ]; then
         else
             DO_VT=0
         fi
+        if prompt_yn "install ly config to /usr/local/etc/ly/ (requires doas/sudo)?" y; then
+            DO_LY=1
+        else
+            DO_LY=0
+        fi
     elif [ "$PLATFORM" = "linux" ]; then
         printf '\n  Linux packages:\n\n'
         prompt_yn "stow foot (Wayland terminal emulator)?" y && DO_FOOT=1 || DO_FOOT=0
@@ -332,6 +340,7 @@ if [ "$YES" = "0" ]; then
         info "foot skipped — Wayland terminal, FreeBSD/Linux only"
         info "sway skipped — Wayland window manager, FreeBSD/Linux only"
         info "quickshell skipped — sway/Wayland package, FreeBSD only"
+        info "ly skipped — FreeBSD display manager, FreeBSD only"
     fi
 fi
 
@@ -351,22 +360,24 @@ stow_pkg() {
     fi
 }
 
-# vt targets /boot/fonts/ which is root-owned; stow --target=/ with privilege escalation
-stow_vt() {
-    if [ ! -d "$REPO_DIR/vt" ]; then
-        warn "vt package dir not found — skipping"
+# stow_root pkg — stow a package that targets / (root-owned paths like /boot or /usr/local/etc).
+# requires doas or sudo; used for vt (console font) and ly (display manager config).
+stow_root() {
+    _pkg="$1"
+    if [ ! -d "$REPO_DIR/$_pkg" ]; then
+        warn "$_pkg package dir not found — skipping"
         return
     fi
     SUDO=""
     command -v doas >/dev/null 2>&1 && SUDO=doas
     command -v sudo >/dev/null 2>&1 && [ -z "$SUDO" ] && SUDO=sudo
     if [ -z "$SUDO" ]; then
-        die "doas or sudo required to stow vt (target is /boot/fonts/)"
+        die "doas or sudo required to stow $_pkg (target is /)"
     fi
-    if ${SUDO} stow --dir="$REPO_DIR" --target="/" --restow vt; then
-        ok "stowed vt → /boot/fonts/"
+    if ${SUDO} stow --dir="$REPO_DIR" --target="/" --restow "$_pkg"; then
+        ok "stowed $_pkg → /"
     else
-        die "stow failed for vt"
+        die "stow failed for $_pkg"
     fi
 }
 
@@ -385,7 +396,8 @@ stow_vt() {
 [ "$DO_SWAY"        = "1" ] && stow_pkg sway
 [ "$DO_THREATWATCH" = "1" ] && stow_pkg threatwatch
 [ "$DO_QUICKSHELL"  = "1" ] && stow_pkg quickshell
-[ "$DO_VT"          = "1" ] && stow_vt
+[ "$DO_VT"          = "1" ] && stow_root vt
+[ "$DO_LY"          = "1" ] && stow_root ly
 
 # ── config template ───────────────────────────────────────────────────────────
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/threatwatch"
