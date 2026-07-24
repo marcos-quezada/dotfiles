@@ -16,8 +16,7 @@ Singleton {
           "accent": "#207874",
           "text": "#000000",
           "outline": "#000000",
-          "outlineGradientFade": "#161616",
-          "defaultWallpaperPath": ""
+          "outlineGradientFade": "#161616"
       },
       "yorha": {
           "base": "#d9caba",
@@ -27,8 +26,7 @@ Singleton {
           "accent": "#626335",
           "text": "#3e3d38",
           "outline": "#3d3d39",
-          "outlineGradientFade": "#5b5b45",
-          "defaultWallpaperPath": ""
+          "outlineGradientFade": "#5b5b45"
       },
       "cherry": {
           "base": "#f4c9ef",
@@ -38,8 +36,7 @@ Singleton {
           "accent": "#c950bb",
           "text": "#321d32",
           "outline": "#20091d",
-          "outlineGradientFade": "#3e233e",
-          "defaultWallpaperPath": ""
+          "outlineGradientFade": "#3e233e"
       },
       "indigo": {
           "base": "#bac4e6",
@@ -49,8 +46,7 @@ Singleton {
           "accent": "#3e7c99",
           "text": "#0d0d19",
           "outline": "#1a2135",
-          "outlineGradientFade": "#223143",
-          "defaultWallpaperPath": ""
+          "outlineGradientFade": "#223143"
       },
       "gleep": {
           "base": "#bae6c5",
@@ -60,8 +56,7 @@ Singleton {
           "accent": "#3e9949",
           "text": "#0d1913",
           "outline": "#21351a",
-          "outlineGradientFade": "#284223",
-          "defaultWallpaperPath": ""
+          "outlineGradientFade": "#284223"
       }
   }
 
@@ -84,25 +79,9 @@ Singleton {
         id: settingsJsonAdapter
         property JsonObject settings: JsonObject {
             property string version: "0.1"
-            property bool militaryTimeClockFormat: true
-            property string systemProfileImageSource: "/home/username/Pictures/system_profile_picture.png"
             property string currentTheme: "default"
-            property bool setWallpaperToThemeWallpaper: true
-            property JsonObject execCommands: JsonObject {
-                property string terminal: "kitty"
-                property string files: "nemo"
-            }
-            property JsonObject systemDetails: JsonObject {
-                property string osName: "Linux Distro"
-                property string osVersion: "Distro Version"
-                property string ram: "Ram"
-                property string cpu: "CPU Name"
-                property string gpu: "GPU Name"
-            }
             property JsonObject bar: JsonObject {
                 property int fontSize: 12
-                property int trayIconSize: 16
-                property bool monochromeTrayIcons: true
             }
 
             onCurrentThemeChanged: {
