@@ -12,12 +12,12 @@
 
 ## 2. Phase 2 — Add colour slots to themes
 
-- [ ] 2.1 Add `accentDark`, `textLight`, `danger`, `warning` slots to the `default` theme in `Config.qml` with values appropriate for its `#d8d8d8` base
-- [ ] 2.2 Add the same four slots to the `yorha` theme
-- [ ] 2.3 Add the same four slots to the `cherry` theme
-- [ ] 2.4 Add the same four slots to the `indigo` theme
-- [ ] 2.5 Add the same four slots to the `gleep` theme
-- [ ] 2.6 Verify all five themes have non-empty values for all four new slots
+- [x] 2.1 Add `accentDark`, `textLight`, `danger`, `warning` slots to the `default` theme in `Config.qml` with values appropriate for its `#d8d8d8` base
+- [x] 2.2 Add the same four slots to the `yorha` theme
+- [x] 2.3 Add the same four slots to the `cherry` theme
+- [x] 2.4 Add the same four slots to the `indigo` theme
+- [x] 2.5 Add the same four slots to the `gleep` theme
+- [x] 2.6 Verify all five themes have non-empty values for all four new slots
 
 ## 3. Phase 2 — Wire threat-level colours through Config
 
