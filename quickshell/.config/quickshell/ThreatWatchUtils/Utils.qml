@@ -3,16 +3,17 @@
 // ThreatWatchModel uses these helpers; tests import this file directly.
 
 import QtQuick
+import "../"
 
 QtObject {
     // level → colour map — all widgets read this via ThreatWatchModel.levelColors.
-    // colours chosen for legibility on the light (#d8d8d8) default bar base.
-    readonly property var levelColors: ({
-        "critical": "#cc0000",
-        "high":     "#cc5500",
-        "medium":   "#997700",
-        "low":      "#336600",
-        "info":     "#444444",
+    // resolve through Config.colors so values stay in sync with theme changes.
+    property var levelColors: ({
+        "critical": Config.colors.danger,
+        "high":     Config.colors.urgent,
+        "medium":   Config.colors.warning,
+        "low":      Config.colors.accent,
+        "info":     Config.colors.shadow,
     })
 
     // parse a threat summary JSON string; return an object with the extracted

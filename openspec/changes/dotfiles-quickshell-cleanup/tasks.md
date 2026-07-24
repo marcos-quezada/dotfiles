@@ -21,9 +21,9 @@
 
 ## 3. Phase 2 — Wire threat-level colours through Config
 
-- [ ] 3.1 Change `levelColors` in `ThreatWatchUtils/Utils.qml` from `readonly property var` to `property var` with a JS object binding that references `Config.colors.danger`, `Config.colors.urgent`, `Config.colors.warning`, `Config.colors.accent`, and `Config.colors.shadow`
-- [ ] 3.2 Add `import "../"` (or the appropriate relative path) to `Utils.qml` so `Config` is accessible, if not already imported via `ThreatWatchModel`
-- [ ] 3.3 Confirm `ThreatWatchModel.qml` passes `levelColors` through to widgets without caching the values as constants
+- [x] 3.1 Change `levelColors` in `ThreatWatchUtils/Utils.qml` from `readonly property var` to `property var` with a JS object binding that references `Config.colors.danger`, `Config.colors.urgent`, `Config.colors.warning`, `Config.colors.accent`, and `Config.colors.shadow`
+- [x] 3.2 Add `import "../"` (or the appropriate relative path) to `Utils.qml` so `Config` is accessible, if not already imported via `ThreatWatchModel`
+- [x] 3.3 Confirm `ThreatWatchModel.qml` passes `levelColors` through to widgets without caching the values as constants
 - [ ] 3.4 Visually verify each threat level colour renders correctly on the `default` theme
 
 ## 4. Phase 3 — Interaction verification
