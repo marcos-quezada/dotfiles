@@ -1,5 +1,8 @@
 // PopupFrame.qml — reusable win95-style chrome for popup windows.
 //
+// depends on NewBorder.qml living in this same directory - moving either
+// file elsewhere requires re-adding an explicit import (see components/qmldir)
+// 
 // usage:
 //   PopupFrame {
 //       id: chrome
@@ -18,6 +21,7 @@
 
 import QtQuick
 import QtQuick.Layouts
+import ".."
 
 Rectangle {
     id: root

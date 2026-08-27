@@ -6,8 +6,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 
-import ".."
 import "."
+import ".."
+import "../components" as Components
 
 PanelWindow {
     id: popup
@@ -36,7 +37,7 @@ PanelWindow {
 
     color: "transparent"
 
-    PopupFrame {
+    Components.PopupFrame {
         id: chrome
         title: "THREATWATCH"
         icon:  "󱡣"

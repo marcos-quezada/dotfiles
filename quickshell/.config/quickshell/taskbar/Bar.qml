@@ -4,6 +4,7 @@ import Quickshell.Io
 import QtQuick
 
 import ".."
+import "../components" as Components
 
 Scope {
   Variants {
@@ -30,7 +31,7 @@ Scope {
         Item {
           id: taskbarBackground
           anchors.fill: parent
-          NewBorder {
+          Components.NewBorder {
             commonBorderWidth: 4
             commonBorder: false
             lBorderwidth: 10
@@ -39,7 +40,7 @@ Scope {
             bBorderwidth: 1
             borderColor: Config.colors.shadow
           }
-          NewBorder {
+          Components.NewBorder {
             commonBorderWidth: 4
             commonBorder: false
             lBorderwidth: 10

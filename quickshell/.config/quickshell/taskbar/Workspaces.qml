@@ -5,6 +5,7 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 
 import ".."
+import "../components" as Components
 
 RowLayout {
     id: workspaces
@@ -30,7 +31,7 @@ RowLayout {
                 color: Config.colors.text
             }
             onPressed: I3.dispatch(`workspace ` + modelData.number)
-            NewBorder {
+            Components.NewBorder {
                 commonBorderWidth: 2
                 commonBorder: false
                 lBorderwidth: -2
