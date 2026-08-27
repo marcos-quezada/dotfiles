@@ -88,7 +88,7 @@ PanelWindow {
                 text:        pinTooltip.tipText
                 color:       Config.colors.text
                 font.pixelSize: 12
-                font.family:    fontCharcoal.name
+                font.family: Fonts.title
                 wrapMode:    Text.NoWrap
             }
         }

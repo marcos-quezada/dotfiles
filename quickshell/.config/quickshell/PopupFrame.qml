@@ -106,7 +106,7 @@ Rectangle {
             Text {
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment:   Text.AlignVCenter
-                font.family:    iconFont.name
+                font.family:    Fonts.icon
                 font.pixelSize: 14
                 opacity: 0.8
                 text:  root.icon
@@ -116,7 +116,7 @@ Rectangle {
             Text {
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment:   Text.AlignVCenter
-                font.family:    fontCharcoal.name
+                font.family:    Fonts.title
                 font.pixelSize: 12
                 text:  root.title
                 color: Config.colors.text

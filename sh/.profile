@@ -1,7 +1,7 @@
 # .profile — /bin/sh login shell config (FreeBSD)
 
 # ── path ──────────────────────────────────────────────────────────────────────
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
 
 # ── environment ───────────────────────────────────────────────────────────────
 export EDITOR=vim

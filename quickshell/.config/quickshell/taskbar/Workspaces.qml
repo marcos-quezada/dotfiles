@@ -23,7 +23,7 @@ RowLayout {
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 text: modelData.number
-                font.family: fontMonaco.name
+                font.family: Fonts.body
                 width: 10
                 height: 10
                 font.pixelSize: Config.settings.bar.fontSize

@@ -454,6 +454,21 @@ it was rejected for three reasons:
 ImageMagick stays. the `magick` binary (v7) or `convert` (v6 fallback) is the
 only tool with the full compositing, annotation, and drawing surface needed.
 
+### Fonts.qml - centralized font resources
+
+`Fonts.qml` is the single source of truth for font resources, mirroring
+`Config.qml`'s role for colours. It owns the three `FonLoader` instances
+(`body` -> Monaco, `icon` -> Material Symbols Nerd variant, `title` -> Charcoal)
+and exposes semantic roles: `Fonts.body`, `Fonts.icon`, `Fonts.title`, and
+`Fonts.iconBody` (a `[icon, body]` reference array - not a native fallback
+chain; this Qt build doesn't support list-valued `font.families`).
+
+no widget should reference a `FontLoader`id directly - always go through
+`Fonts.*` this is what prevents the class bug where two widgets render
+the same icon codepoint against different fonts and silently diverge (see
+the `ThreatWatchWidget` vs `PopupFrame` icon-font mismatch, fixed in
+dotfiles-quickshell-cleanup).
+
 ### secrets handling
 
 `MAPBOX_TOKEN` must never be committed. the script sources

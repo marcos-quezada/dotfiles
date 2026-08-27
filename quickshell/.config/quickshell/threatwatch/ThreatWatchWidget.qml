@@ -30,7 +30,7 @@ Item {
             text: "󱡣"
             color: ThreatWatchModel.levelColors[ThreatWatchModel.level] ?? Config.colors.text
             font.pixelSize: Config.settings.bar.fontSize
-            font.family:    fontMonaco.name
+            font.family: Fonts.icon
             verticalAlignment: Text.AlignVCenter
         }
 
@@ -41,7 +41,7 @@ Item {
             text:    ThreatWatchModel.barText
             color:   ThreatWatchModel.levelColors[ThreatWatchModel.level] ?? Config.colors.text
             font.pixelSize: Config.settings.bar.fontSize
-            font.family:    fontMonaco.name
+            font.family: Fonts.body
             verticalAlignment: Text.AlignVCenter
         }
 
@@ -53,7 +53,7 @@ Item {
             text:    ThreatWatchModel.mapHardLimit ? "󰋮" : "󰴱"
             color:   ThreatWatchModel.mapHardLimit ? "#ff4444" : "#ff8800"
             font.pixelSize: Config.settings.bar.fontSize
-            font.family:    fontMonaco.name
+            font.family: Fonts.icon
             verticalAlignment: Text.AlignVCenter
         }
     }

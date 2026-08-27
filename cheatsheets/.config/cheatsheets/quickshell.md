@@ -48,6 +48,7 @@ root structure).
 ├── Bar.qml            # top-level bar component (one instance per screen)
 ├── Time.qml           # clock widget
 ├── PopupFrame.qml     # shared popup chrome
+├── Fonts.qml          # centralized font resources 
 ├── settings.json      # runtime tunables (colours, sizes, etc.)
 ├── .qmlls.ini         # qmlls LSP import paths (auto-populated by Quickshell)
 ├── taskbar/           # workspace switcher

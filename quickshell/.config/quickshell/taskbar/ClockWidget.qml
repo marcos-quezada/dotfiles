@@ -5,7 +5,7 @@ Text {
   text: Time.time
   color: Config.colors.text
   font.pixelSize: Config.settings.bar.fontSize
-  font.family: fontMonaco.name
+  font.family: Fonts.body
   horizontalAlignment: Text.AlignHCenter
   verticalAlignment: Text.AlignVCenter
 }

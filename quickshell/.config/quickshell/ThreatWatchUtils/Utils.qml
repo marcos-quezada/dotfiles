@@ -3,7 +3,7 @@
 // ThreatWatchModel uses these helpers; tests import this file directly.
 
 import QtQuick
-import "../"
+import ".."
 
 QtObject {
     // level → colour map — all widgets read this via ThreatWatchModel.levelColors.
@@ -13,7 +13,7 @@ QtObject {
         "high":     Config.colors.urgent,
         "medium":   Config.colors.warning,
         "low":      Config.colors.accent,
-        "info":     Config.colors.shadow,
+        "info":     Config.colors.text,
     })
 
     // parse a threat summary JSON string; return an object with the extracted
