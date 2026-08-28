@@ -30,7 +30,7 @@ Singleton {
 
     readonly property string cacheDir: Quickshell.env("HOME") + "/.cache/threatwatch"
 
-    // ── threat state — consumed y ThreatWatchPopup ─────
+    // ── threat state  ─────────────────────────────────────────────────────────
 
     // one-line bar string, e.g. "󰒙 󰈌3 ✈2"
     property string barText: ""
@@ -41,7 +41,9 @@ Singleton {
     // last update timestamp from summary.json — "YYYY-MM-DD HH:MM UTC"
     property string updatedAt: ""
 
-    // level → colour map — all widgets read this; never hardcode colours elsewhere
+    // level → colour map — currently unused (ThreatWatchWidget removed); kept for
+    // the planned popup status summary, do not delete without deciding what
+    // replaces it (see docs/architecture.md)
     readonly property var levelColors: utils.levelColors
 
     property bool mapWarn:      false   // usage >= 40,000 this month

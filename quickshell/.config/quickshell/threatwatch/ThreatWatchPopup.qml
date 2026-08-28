@@ -1,6 +1,6 @@
 // ThreatWatchPopup.qml — map overlay panel.
 // must be instantiated at shell.qml root scope — cannot nest inside Bar's PanelWindow.
-// chrome (border stack, title bar, fade) lives in PopupFrame.qml.
+// chrome (border stack, title bar, fade) lives in components/PopupFrame.qml.
 
 import QtQuick
 import Quickshell

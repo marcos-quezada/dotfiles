@@ -6,8 +6,9 @@ import QtQuick
 import ".."
 
 QtObject {
-    // level → colour map — all widgets read this via ThreatWatchModel.levelColors.
-    // resolve through Config.colors so values stay in sync with theme changes.
+  // level → colour map — currently unused (ThreatWatchWidget removed); kept for
+  // the planned popup statussummary, do not delete without deciding what
+  // replaces it (see docs/architecture.md)
     property var levelColors: ({
         "critical": Config.colors.danger,
         "high":     Config.colors.urgent,
