@@ -30,7 +30,7 @@ Singleton {
 
     readonly property string cacheDir: Quickshell.env("HOME") + "/.cache/threatwatch"
 
-    // ── threat state — consumed by ThreatWatchWidget and ThreatWatchPopup ─────
+    // ── threat state — consumed y ThreatWatchPopup ─────
 
     // one-line bar string, e.g. "󰒙 󰈌3 ✈2"
     property string barText: ""

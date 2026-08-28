@@ -13,7 +13,6 @@ import "../components" as Components
 PanelWindow {
     id: popup
 
-    // driven by the singleton — ThreatWatchWidget toggles mapExpanded
     visible: ThreatWatchModel.mapExpanded
 
     // overlay: above sway windows, below lockscreen; no exclusive zone, no keyboard steal
