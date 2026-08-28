@@ -40,5 +40,5 @@ export QT_QPA_PLATFORM=wayland
 if [ "$PWD" != "$HOME" ] && [ "$PWD" -ef "$HOME" ]; then cd; fi
 
 # ── keychain agent initialization ─────────────────────────────────────────────
-# eval "$(keychain --eval --quiet ~/.ssh/id_github_personal)"
+ eval "$(keychain --eval --quiet ~/.ssh/id_github_personal)"
 
