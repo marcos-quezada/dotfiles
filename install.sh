@@ -153,7 +153,7 @@ if [ "$PLATFORM" = "freebsd" ]; then
 fi
 
 if [ "$PLATFORM" = "freebsd" ]; then
-    if ! pkg info -s keychain > /dev/null 2>&1; then
+    if ! pkg info -e keychain > /dev/null 2>&1; then
         if prompt_yn "Install keychain (persistent ssh-agent)?" y; then
             doas pkg install -y keychain
         fi
