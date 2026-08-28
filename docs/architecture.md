@@ -875,8 +875,23 @@ ShellCheck's direct-call analysis flags it as unused without the directive.
 | `qmlformat` | `qt6-declarative` | formatter only — no semantic checks. use `-i` for in-place edit |
 | `qmlls6` | `qt6-declarative` | LSP server — completions, go-to-definition, hover in Vim |
 
-all three binaries ship in the same package. on FreeBSD the LSP binary has a
-`6` suffix (`qmlls6`) — this is what `lsp.vim` registers.
+all three binaries ship in the same package, but FreeBSD only symlinks a
+subset into `/usr/local/bin/` with a `6` suffix (`qml6`, `qmlls6`,
+`qmlscene6`, ...) — `qmllint` and `qmlformat` are **not** among them.
+their real (unsuffixed) location is `/usr/local/lib/qt6/bin/`, which is not
+on `PATH` by default:
+
+```sh
+/usr/local/lib/qt6/bin/qmllint
+/usr/local/lib/qt6/bin/qmlformat
+```
+
+`lsp.vim` resolves this the same way `tests/qml.bats` resolves
+`qmltestrunner`: check `PATH` first, fall back to the known FreeBSD path.
+don't assume `qmllint` is bare-callable on FreeBSD — verify with
+`pkg info -l qt6-declarative | grep bin` rather than guessing at a naming
+convention (the `6`-suffix pattern that applies to `qmlls6` does **not**
+apply to `qmllint`/`qmlformat`).
 
 `qmllint` exits non-zero on any `error`-level finding. strictness is
 per-category (e.g. `--unused-imports=error`) — there is no global `--strict`
