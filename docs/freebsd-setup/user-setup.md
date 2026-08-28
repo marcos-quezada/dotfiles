@@ -86,14 +86,42 @@ login makes the bootstrap smoother.
 
 ---
 
-## 4. log in and run the installer
+## 4. ssh agent (keychain)
+
+git over SSH needs a running `ssh-agent` with your key loaded. without this,
+each new shell/terminal requires manually running `ssh-add` again. `keychain`
+persists one agent across logins and terminals so you only unlock it once per
+boot.
+
+`install.sh` prompts to install it on FreeBSD (`pkg info -e keychain` checks
+first), so it's likely already present if you've run the installer once. to
+install it manually:
+
+```sh
+pkg install -y keychain
+```
+
+the dotfiles' `sh/.profile` already ships the activation line, **commented
+out by default**:
+
+```sh
+# eval "$(keychain --eval --quiet ~/.ssh/id_github_personal)"
+```
+
+uncomment it once `keychain` is installed and your key exists at that path.
+first shell after boot prompts for the key's passphrase once; every
+subsequent shell/terminal reuses the same agent silently.
+
+---
+
+## 5. log in and run the installer
 
 ```sh
 # from root, or reboot and log in directly
 login <username>
 
-# clone the dotfiles — SSH requires a key already on the machine;
-# use HTTPS if no key is set up yet:
+# clone the dotfiles — SSH requires a key already on the machine *and* an
+# agent with it loaded (see step 4 above); use HTTPS if neither is set up yet:
 #   git clone https://github.com/marcos-quezada/dotfiles.git ~/dotfiles
 git clone git@github.com:marcos-quezada/dotfiles.git ~/dotfiles
 

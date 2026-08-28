@@ -657,7 +657,7 @@ manually.
 | `quickshell` | `$HOME` | FreeBSD | `.config/quickshell/` (bar + threatwatch QML, fonts) |
 | `sh` | `$HOME` | FreeBSD | `.profile`, `.shrc` |
 | `sketchybar` | `$HOME` | macOS | `.config/sketchybar/` |
-| `ssh` | `$HOME` | all | `.ssh/config.template` — port-443 GitHub alias, ControlMaster, ServerAlive |
+| `ssh` | `$HOME` | all | `.ssh/config.template` — port-443 GitHub alias, ControlMaster, ServerAlive; FreeBSD also wants `keychain` for a persistent agent (see `docs/freebsd-setup/user-setup.md`) — the activation line in `sh/.profile` ships commented out until you've installed it |
 | `sway` | `$HOME` | FreeBSD + Linux | `.config/sway/config`, `walls/freebsd-kilmynda-wide.png`, `walls/metropolis.png` |
 | `threatwatch` | `$HOME` | all | `.local/bin/threatwatch`, `.config/threatwatch/config.env.template` |
 | `tmux` | `$HOME` | all | `.tmux.conf` — C-a prefix, vim keys, true colour, split/nav bindings |
