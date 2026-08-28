@@ -54,6 +54,9 @@ Singleton {
     // popup visibility — widget writes, popup reads
     property bool mapExpanded: false
 
+    // horizontal position tracking `threatWatchButton` for popup display
+    property real mapTriggerX: 0
+
     // ── processes ─────────────────────────────────────────────────────────────
 
     // fast path — reads cache, emits one bar text line

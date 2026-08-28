@@ -7,7 +7,8 @@ Button {
   id: root
 
   property bool isToggled: false
-  property string icon: ""
+  property string glyph: ""
+  property string toggledGlyph: glyph
 
   implicitWidth: 22
   implicitHeight: 22
@@ -23,7 +24,7 @@ Button {
       anchors.centerIn: parent
       font.family: Fonts.icon
       font.pixelSize: root.isToggled ? 18 : 14
-      text: root.icon
+      text: root.isToggled ? root.toggledGlyph : root.glyph
       color: root.isToggled ? Config.colors.accent : Config.colors.text
     }
   }

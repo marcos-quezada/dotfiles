@@ -22,7 +22,6 @@ PanelWindow {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
     // germany.png is rendered at 1600×1560 @2x — display at half size.
-    // anchored top-right so the popup sits flush to the right edge just below the bar.
     // topMargin: 35 matches Bar.qml implicitHeight so it clears the bar surface.
     // ExclusionMode.Ignore means we must add the bar height manually.
     implicitWidth:  800
@@ -30,10 +29,11 @@ PanelWindow {
     anchors {
         top:    true
         bottom: false
-        left:   false
-        right:  true
+        left:   true 
+        right:  false
     }
-    margins.top: 35
+    margins.top:  35
+    margins.left: ThreatWatchModel.mapTriggerX
 
     color: "transparent"
 

@@ -5,6 +5,7 @@ import QtQuick
 
 import ".."
 import "../components" as Components
+import "../threatwatch" as ThreatWatch
 
 Scope {
   Variants {
@@ -84,6 +85,21 @@ Scope {
                 anchors.leftMargin: 2
                 anchors.rightMargin: 0
             }
+          }
+
+        // threat watch button - toggle button to show the threatwatch map
+        Components.TaskbarButton {
+          id: threatWatchButton
+          glyph: "󱡣"
+          toggledGlyph: "\ue5c5"
+          isToggled: ThreatWatch.ThreatWatchModel.mapExpanded
+          anchors.left: parent.left
+          anchors.verticalCenter: parent.verticalCenter
+          anchors.leftMargin: workspacesPanel.width + 20
+          onClicked: ThreatWatch.ThreatWatchModel.mapExpanded = !ThreatWatch.ThreatWatchModel.mapExpanded
+          Component.onCompleted: ThreatWatch.ThreatWatchModel.mapTriggerX = x
+          onXChanged: ThreatWatch.ThreatWatchModel.mapTriggerX = x
+
         }
 
         // system tray panel — same shadow treatment, anchored right for clock + widgets
