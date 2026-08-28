@@ -152,6 +152,14 @@ if [ "$PLATFORM" = "freebsd" ]; then
     fi
 fi
 
+if [ "$PLATFORM" = "freebsd" ]; then
+    if ! pkg info -s keychain > /dev/null 2>&1; then
+        if prompt_yn "Install keychain (persistent ssh-agent)?" y; then
+            doas pkg install -y keychain
+        fi
+    fi
+fi
+
 # ── core deps ─────────────────────────────────────────────────────────────────
 printf '\n  checking core dependencies...\n\n'
 MISSING_CORE=""
