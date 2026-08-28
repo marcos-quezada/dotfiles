@@ -40,3 +40,7 @@ zsh/.zcompdump*
 # staging — drop zone for system info files; ignore everything except the instructions
 staging/*
 !staging/INSTRUCTIONS.md
+
+# openspec / pi agent scaffolding — local planning tooling, not part of the shipped dotfiles
+openspec/
+.pi/

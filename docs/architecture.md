@@ -18,16 +18,27 @@ shell.qml
 │   │                                (Bar.qml wraps this in Scope > Variants { model: Quickshell.screens }
 │   │                                 so one instance spawns per monitor)
 │   ├── workspacesPanel            — left side: sway workspace switcher (Workspaces.qml)
+│   │   └── Components.TaskbarButton — ThreatWatch trigger, sits next to Workspaces (see below)
 │   └── trayPanel                  — right side: system tray row
-│       └── SysTray                — SysTray.qml (contains ThreatWatchWidget + ClockWidget internally)
+│       └── SysTray                — SysTray.qml (contains ClockWidget only — ThreatWatch moved out, see below)
 └── ThreatWatch.ThreatWatchPopup   — PanelWindow, WlrLayer.Overlay (see below)
 ```
 
 ### widget interactions
 
+`ThreatWatch` is triggered from a `Components.TaskbarButton` next to the
+workspace switcher — not from the tray. this replaced an earlier design where
+the trigger (icon + threat-count label + mapbox warn badge) lived inline in
+`SysTray`; that inline label was crowded and its click handling was a bespoke
+`Item + MouseArea` wrapper prone to the geometry bugs described in the QML
+gotchas section below. `TaskbarButton` uses `Button`'s native hit-testing
+instead, and the detail that used to live in the crowded label has moved into
+`ThreatWatchPopup` (see “threatwatch script” section for the current field
+mapping).
+
 | action | result |
 |---|---|
-| left click | toggle `ThreatWatchPopup` (map overlay with HUD) |
+| left click | toggle `ThreatWatchPopup` (map overlay with HUD); button glyph switches to a chevron while open |
 
 ### why ThreatWatchPopup lives in shell.qml, not Bar.qml
 
@@ -43,22 +54,31 @@ solution: instantiate `ThreatWatchPopup` once at root scope in `shell.qml`,
 alongside `Taskbar.Bar`. visibility is driven by `ThreatWatchModel.mapExpanded`
 so the widget in the bar can toggle it with a single property write.
 
-### popup position: top-right, just below the bar
+### popup position: tracks the trigger button, just below the bar
 
-the popup is anchored to the top-right corner of the screen:
+the popup no longer anchors to a fixed screen corner. it tracks the
+horizontal position of the `TaskbarButton` that triggers it:
 
 ```qml
-anchors { top: true; right: true }
-margins.top: 35
+anchors { top: true; left: true }
+margins.top:  35
+margins.left: ThreatWatchModel.mapTriggerX
 ```
+
+`mapTriggerX` is a plain property on the `ThreatWatchModel` singleton, written
+by `Bar.qml` whenever the button's `x` changes (`onXChanged`). the popup and
+the taskbar are separate top-level `PanelWindow`s — they can't share layout
+directly — so the singleton is the coordination point, same role `Config`
+plays for colours and `Fonts` plays for typefaces.
 
 `margins` is a grouped property on `PanelWindow` (sub-properties `left`, `top`,
 `right`, `bottom`). per the Quickshell docs, **margins only apply to anchored
-edges** — `margins.top` is effective because `top: true` is set.
+edges** — `margins.top` is effective because `top: true` is set, and
+`margins.left` is effective because `left: true` is set.
 
 `ExclusionMode.Ignore` means the compositor does not shift the popup's top anchor
 down for the bar's exclusive zone — the bar occupies the top 35 px, and the popup
-must add that offset manually via `margins.top: 35` (matching `Bar.qml`'s
+must add that offset manually via `margins.top: 35` (matching `taskbar/Bar.qml`'s
 `implicitHeight`).
 
 **pin coordinate safety**: `margins.top` shifts the window surface on screen but
@@ -454,20 +474,47 @@ it was rejected for three reasons:
 ImageMagick stays. the `magick` binary (v7) or `convert` (v6 fallback) is the
 only tool with the full compositing, annotation, and drawing surface needed.
 
-### Fonts.qml - centralized font resources
+### Fonts.qml — centralized font resources
 
 `Fonts.qml` is the single source of truth for font resources, mirroring
-`Config.qml`'s role for colours. It owns the three `FonLoader` instances
-(`body` -> Monaco, `icon` -> Material Symbols Nerd variant, `title` -> Charcoal)
+`Config.qml`'s role for colours. It owns the three `FontLoader` instances
+(`body` → Monaco, `icon` → Material Symbols Nerd variant, `title` → Charcoal)
 and exposes semantic roles: `Fonts.body`, `Fonts.icon`, `Fonts.title`, and
-`Fonts.iconBody` (a `[icon, body]` reference array - not a native fallback
+`Fonts.iconBody` (a `[icon, body]` reference array — not a native fallback
 chain; this Qt build doesn't support list-valued `font.families`).
 
-no widget should reference a `FontLoader`id directly - always go through
-`Fonts.*` this is what prevents the class bug where two widgets render
+no widget should reference a `FontLoader` id directly — always go through
+`Fonts.*`. this is what prevents the class of bug where two widgets render
 the same icon codepoint against different fonts and silently diverge (see
 the `ThreatWatchWidget` vs `PopupFrame` icon-font mismatch, fixed in
 dotfiles-quickshell-cleanup).
+
+### components/ — shared, generic UI atoms
+
+`components/` holds QML types with no feature-specific knowledge — currently
+`NewBorder`, `PopupFrame`, and `TaskbarButton`. it has its own `qmldir`
+(`module Components`), same convention as `taskbar/` and `threatwatch/`, so
+consumers import it explicitly:
+
+```qml
+import "../components" as Components
+...
+Components.NewBorder { ... }
+```
+
+the bar you're reading about above the fold — `Bar.qml`, `Workspaces.qml`,
+`ThreatWatchPopup.qml` — all import `components/` this way. `Config.qml` and
+`Fonts.qml` are not in `components/`: they're singletons with process-wide
+state, a different category from stateless, reusable view chrome.
+
+**gotcha discovered moving `PopupFrame.qml` here:** a file can depend on a
+sibling in the same directory with zero import statement — QML resolves
+same-directory types automatically, `qmldir` or not. `PopupFrame.qml`
+references `NewBorder` this way. that dependency is real but invisible to a
+`grep` of its imports: if `NewBorder.qml` is ever moved to a different
+subdirectory of `components/`, `PopupFrame.qml` breaks silently at load time,
+in a file nobody touched. QML has no way to declare "depends on this sibling"
+explicitly — the only mitigation is a comment at the point of use.
 
 ### secrets handling
 
@@ -574,6 +621,22 @@ never fires — `MouseArea` swallows all pointer events including hover by defau
 
 fix: set `hoverEnabled: true` on the `MouseArea` and drive visibility from
 `containsMouse`. do not use a separate `HoverHandler`.
+
+### a colour slot must be checked against every background it can render over, not just colors.base
+
+`ThreatWatchUtils/Utils.qml`'s `levelColors` mapped the idle (`"info"`) level
+to `Config.colors.shadow`, reasoned as "muted, readable on the bar base." it
+was readable on `colors.base` — but `taskbar/Bar.qml`'s `trayBg` rectangle,
+the panel sitting directly behind the tray icons, is *also* filled with
+`colors.shadow`. the idle-state icon rendered in a colour identical to the
+surface behind it: invisible by exact colour match, not a font or rendering
+bug, and only discoverable by actually looking at the running bar — nothing
+about the code was wrong in isolation.
+
+fix: remapped to `colors.text`, which nothing else in the tray area uses as a
+background fill. lesson: when choosing a `Config.colors.*` slot for a
+foreground element, check every background layer it can appear over in situ,
+not just the outermost bar colour.
 
 ---
 
