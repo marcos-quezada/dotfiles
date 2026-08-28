@@ -16,12 +16,33 @@ call LspAddServer([#{
 " ── qmllint quickfix ──────────────────────────────────────────────────────────
 " <leader>lq runs qmllint on the current file and populates the quickfix list.
 " :copen / :cclose toggle the window; :cn / :cp navigate between findings.
-augroup qml_lint
-    autocmd!
-    autocmd FileType qml setlocal makeprg=qmllint\ %
-    autocmd FileType qml setlocal errorformat=%f:%l:%c:\ %m
-augroup END
-nnoremap <silent> <leader>lq :make<CR>:copen<CR>
+"
+" qmllint location varies vy platform, same as qmltestrunner (see
+" tests/qml.bats):
+"   FreeBSD: /usr/local/lib/qt6/bin/qmllint (qt6-declarative; not on PATH by
+"   default)
+"   macOS:   qmllint on PATH via the qt brew formula
+function! s:FindQmllint() abort
+    if executable('qmllint')
+        return 'qmllint'
+    elseif executable('/usr/local/lib/qt6/bin/qmllint')
+        return '/usr/local/lib/qt6/bin/qmllint'
+    endif
+    return ''
+endfunction
+
+let s:qmllint_bin = s:FindQmllint()
+
+function! s:RunQmllint() abort
+    if empty(s:qmllint_bin)
+        echoerr 'qmllint not fount on PATH or at /usr/local/lib/qt6/bin/qmllint'
+        return
+    endif
+    let l:output = systemlist(s:qmllint_bin . ' ' . shellescape(expand('%')) . ' 2>&1')
+    copen 10
+endfunction
+
+nnoremap <silent> <leader>lq :call <SID>RunQmllint()<CR>
 
 " ── keymaps ───────────────────────────────────────────────────────────────────
 nnoremap <leader>gd :LspGotoDefinition<CR>     " go to definition
