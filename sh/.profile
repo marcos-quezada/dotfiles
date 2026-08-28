@@ -1,7 +1,7 @@
 # .profile — /bin/sh login shell config (FreeBSD)
 
 # ── path ──────────────────────────────────────────────────────────────────────
-export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH:/usr/local/lib/qt6/bin"
 
 # ── environment ───────────────────────────────────────────────────────────────
 export EDITOR=vim
