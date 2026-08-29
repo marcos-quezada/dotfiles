@@ -6,7 +6,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 
-import "."
 import qs 
 import "../components" as Components
 
