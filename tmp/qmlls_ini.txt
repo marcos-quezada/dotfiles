@@ -1,0 +1,4 @@
+[General]
+no-cmake-calls=true
+buildDir="/var/run/xdg/mquezada/quickshell/vfs/9e4b7cf31485f3f2f70bf0cc4db31f79"
+importPaths="/usr/local/bin:/usr/local/lib/qt6/qml"
