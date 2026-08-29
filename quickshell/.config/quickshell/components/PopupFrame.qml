@@ -21,7 +21,7 @@
 
 import QtQuick
 import QtQuick.Layouts
-import ".."
+import qs 
 
 Rectangle {
     id: root

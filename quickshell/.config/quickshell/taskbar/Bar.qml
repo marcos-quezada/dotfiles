@@ -3,7 +3,7 @@ import Quickshell.Wayland
 import Quickshell.Io
 import QtQuick
 
-import ".."
+import qs 
 import "../components" as Components
 import "../threatwatch" as ThreatWatch
 

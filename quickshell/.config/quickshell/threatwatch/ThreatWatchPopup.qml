@@ -7,7 +7,7 @@ import Quickshell
 import Quickshell.Wayland
 
 import "."
-import ".."
+import qs 
 import "../components" as Components
 
 PanelWindow {

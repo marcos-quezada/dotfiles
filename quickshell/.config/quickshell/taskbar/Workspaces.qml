@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
 
-import ".."
+import qs 
 import "../components" as Components
 
 RowLayout {

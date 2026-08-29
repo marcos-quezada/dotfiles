@@ -3,7 +3,7 @@
 // ThreatWatchModel uses these helpers; tests import this file directly.
 
 import QtQuick
-import ".."
+import qs 
 
 QtObject {
       // level → colour map — currently unused (ThreatWatchWidget removed); kept for

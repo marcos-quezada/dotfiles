@@ -1,5 +1,5 @@
 import QtQuick
-import ".."
+import qs
 
 Text {
   text: Time.time

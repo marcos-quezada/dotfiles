@@ -5,7 +5,7 @@ import QtQuick.Layouts
 import Quickshell.Services.SystemTray
 import QtQuick.Effects
 
-import ".."
+import qs 
 
 RowLayout {
     id: sysTrayRow
