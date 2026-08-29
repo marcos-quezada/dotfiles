@@ -76,13 +76,6 @@ Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:121:29: 
 Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
 pragma ComponentBehavior: Bound
 // ThreatWatchPopup.qml — map overlay panel.
-Warning: quickshell/.config/quickshell/ThreatWatchUtils/Utils.qml:6:1: Warnings occurred while importing module "qs": [import]
-import qs 
-^^^^^^
----
-Warning: 6:1: Failed to import qs. Are your import paths set up properly? [import]
----
-
 Warning: quickshell/.config/quickshell/ThreatWatchUtils/Utils.qml:13:21: Unqualified access [unqualified]
         "critical": Config.colors.danger,
                     ^^^^^^
@@ -98,13 +91,6 @@ Warning: quickshell/.config/quickshell/ThreatWatchUtils/Utils.qml:16:21: Unquali
 Warning: quickshell/.config/quickshell/ThreatWatchUtils/Utils.qml:17:21: Unqualified access [unqualified]
         "info":     Config.colors.text,
                     ^^^^^^
-Warning: quickshell/.config/quickshell/components/PopupFrame.qml:24:1: Warnings occurred while importing module "qs": [import]
-import qs 
-^^^^^^
----
-Warning: 24:1: Failed to import qs. Are your import paths set up properly? [import]
----
-
 Warning: quickshell/.config/quickshell/components/PopupFrame.qml:30:12: Unqualified access [unqualified]
     color: Config.colors.base
            ^^^^^^
@@ -165,13 +151,6 @@ Warning: quickshell/.config/quickshell/components/TaskbarButton.qml:25:20: Unqua
 Info: Did you mean "font"?
       font.family: font.icon
                    ^^^^
-Warning: quickshell/.config/quickshell/taskbar/Workspaces.qml:7:1: Warnings occurred while importing module "qs": [import]
-import qs 
-^^^^^^
----
-Warning: 7:1: Failed to import qs. Are your import paths set up properly? [import]
----
-
 Info: quickshell/.config/quickshell/taskbar/Workspaces.qml:1:1: Unused import [unused-imports]
 import Quickshell
 ^^^^^^
