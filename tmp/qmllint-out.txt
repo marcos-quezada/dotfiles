@@ -1,0 +1,246 @@
+Warning: quickshell/.config/quickshell/Config.qml:98:5: Property "adapter" has incomplete type "FileViewAdapter". You may be missing an import. [unresolved-type]
+    JsonAdapter {
+    ^^^^^^^^^^^
+Warning: quickshell/.config/quickshell/Config.qml:9:47: Member "currentTheme" not found on type "qs::io::JsonObject" [missing-property]
+  property var colors: themes[themes[settings.currentTheme] == null ? 'default' : settings.currentTheme]
+                                              ^^^^^^^^^^^^
+Warning: quickshell/.config/quickshell/Config.qml:9:92: Member "currentTheme" not found on type "qs::io::JsonObject" [missing-property]
+  property var colors: themes[themes[settings.currentTheme] == null ? 'default' : settings.currentTheme]
+                                                                                           ^^^^^^^^^^^^
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchModel.qml:81:9: Type QProcess::ExitStatus of parameter exitStatus in signal called exited was not found, but is required to compile onExited. Did you add all imports and dependencies? [signal-handler-parameters]
+        onExited: (code, signal) => {
+        ^^^^^^^^
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:12:1: Type PanelWindow is not creatable. [uncreatable-type]
+PanelWindow {
+^^^^^^^^^^^
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:33:5: unknown grouped property scope margins. [unqualified]
+    margins.top:  35
+    ^^^^^^^
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:33:5: Type margins is used but it is not resolved [unresolved-type]
+    margins.top:  35
+    ^^^^^^^
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:69:22: Unqualified access [unqualified]
+            color:   Config.colors.base
+                     ^^^^^^
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:70:27: Unqualified access [unqualified]
+            border.color: Config.colors.outline
+                          ^^^^^^
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:88:30: Unqualified access [unqualified]
+                color:       Config.colors.text
+                             ^^^^^^
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:90:30: Unqualified access [unqualified]
+                font.family: Fonts.title
+                             ^^^^^
+Info: Did you mean "font"?
+                font.family: font.title
+                             ^^^^
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:100:25: Unqualified access [unqualified]
+                x:      modelData.x - 12
+                        ^^^^^^^^^
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:101:25: Unqualified access [unqualified]
+                y:      modelData.y - 30
+                        ^^^^^^^^^
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:115:29: Unqualified access [unqualified]
+                            pinTooltip.tipText = modelData.title + "\n" + ThreatWatchModel.pinTypeLabel(modelData.type)
+                            ^^^^^^^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+pragma ComponentBehavior: Bound
+// ThreatWatchPopup.qml — map overlay panel.
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:115:50: Unqualified access [unqualified]
+                            pinTooltip.tipText = modelData.title + "\n" + ThreatWatchModel.pinTypeLabel(modelData.type)
+                                                 ^^^^^^^^^
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:115:105: Unqualified access [unqualified]
+                            pinTooltip.tipText = modelData.title + "\n" + ThreatWatchModel.pinTypeLabel(modelData.type)
+                                                                                                        ^^^^^^^^^
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:117:29: Unqualified access [unqualified]
+                            pinTooltip.pinX = pinZone.x + pinZone.width  / 2
+                            ^^^^^^^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+pragma ComponentBehavior: Bound
+// ThreatWatchPopup.qml — map overlay panel.
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:118:29: Unqualified access [unqualified]
+                            pinTooltip.pinY = pinZone.y + pinZone.height
+                            ^^^^^^^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+pragma ComponentBehavior: Bound
+// ThreatWatchPopup.qml — map overlay panel.
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:119:29: Unqualified access [unqualified]
+                            pinTooltip.visible = true
+                            ^^^^^^^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+pragma ComponentBehavior: Bound
+// ThreatWatchPopup.qml — map overlay panel.
+Warning: quickshell/.config/quickshell/threatwatch/ThreatWatchPopup.qml:121:29: Unqualified access [unqualified]
+                            pinTooltip.visible = false
+                            ^^^^^^^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+pragma ComponentBehavior: Bound
+// ThreatWatchPopup.qml — map overlay panel.
+Warning: quickshell/.config/quickshell/ThreatWatchUtils/Utils.qml:13:21: Unqualified access [unqualified]
+        "critical": Config.colors.danger,
+                    ^^^^^^
+Warning: quickshell/.config/quickshell/ThreatWatchUtils/Utils.qml:14:21: Unqualified access [unqualified]
+        "high":     Config.colors.urgent,
+                    ^^^^^^
+Warning: quickshell/.config/quickshell/ThreatWatchUtils/Utils.qml:15:21: Unqualified access [unqualified]
+        "medium":   Config.colors.warning,
+                    ^^^^^^
+Warning: quickshell/.config/quickshell/ThreatWatchUtils/Utils.qml:16:21: Unqualified access [unqualified]
+        "low":      Config.colors.accent,
+                    ^^^^^^
+Warning: quickshell/.config/quickshell/ThreatWatchUtils/Utils.qml:17:21: Unqualified access [unqualified]
+        "info":     Config.colors.text,
+                    ^^^^^^
+Warning: quickshell/.config/quickshell/components/PopupFrame.qml:30:12: Unqualified access [unqualified]
+    color: Config.colors.base
+           ^^^^^^
+Warning: quickshell/.config/quickshell/components/PopupFrame.qml:88:28: Unqualified access [unqualified]
+                    color: Config.colors.shadow
+                           ^^^^^^
+Warning: quickshell/.config/quickshell/components/PopupFrame.qml:117:24: Unqualified access [unqualified]
+                color: Config.colors.text
+                       ^^^^^^
+Warning: quickshell/.config/quickshell/components/PopupFrame.qml:113:33: Unqualified access [unqualified]
+                font.family:    Fonts.icon
+                                ^^^^^
+Info: Did you mean "font"?
+                font.family:    font.icon
+                                ^^^^
+Warning: quickshell/.config/quickshell/components/PopupFrame.qml:126:24: Unqualified access [unqualified]
+                color: Config.colors.text
+                       ^^^^^^
+Warning: quickshell/.config/quickshell/components/PopupFrame.qml:123:33: Unqualified access [unqualified]
+                font.family:    Fonts.title
+                                ^^^^^
+Info: Did you mean "font"?
+                font.family:    font.title
+                                ^^^^
+Warning: quickshell/.config/quickshell/components/PopupFrame.qml:146:22: Unqualified access [unqualified]
+        borderColor: Config.colors.highlight
+                     ^^^^^^
+Warning: quickshell/.config/quickshell/components/PopupFrame.qml:155:22: Unqualified access [unqualified]
+        borderColor: Config.colors.shadow
+                     ^^^^^^
+Warning: quickshell/.config/quickshell/components/PopupFrame.qml:164:22: Unqualified access [unqualified]
+        borderColor: Config.colors.outline
+                     ^^^^^^
+Warning: quickshell/.config/quickshell/components/PopupFrame.qml:174:22: Unqualified access [unqualified]
+        borderColor: Config.colors.outline
+                     ^^^^^^
+Warning: quickshell/.config/quickshell/components/PopupFrame.qml:184:22: Unqualified access [unqualified]
+        borderColor: Config.colors.outline
+                     ^^^^^^
+Warning: quickshell/.config/quickshell/components/PopupFrame.qml:197:23: Unqualified access [unqualified]
+        border.color: Config.colors.outline
+                      ^^^^^^
+Warning: quickshell/.config/quickshell/components/TaskbarButton.qml:19:36: Unqualified access [unqualified]
+    border.color: root.isToggled ? Config.colors.accent : Config.colors.outline
+                                   ^^^^^^
+Warning: quickshell/.config/quickshell/components/TaskbarButton.qml:19:59: Unqualified access [unqualified]
+    border.color: root.isToggled ? Config.colors.accent : Config.colors.outline
+                                                          ^^^^^^
+Warning: quickshell/.config/quickshell/components/TaskbarButton.qml:28:31: Unqualified access [unqualified]
+      color: root.isToggled ? Config.colors.accent : Config.colors.text
+                              ^^^^^^
+Warning: quickshell/.config/quickshell/components/TaskbarButton.qml:28:54: Unqualified access [unqualified]
+      color: root.isToggled ? Config.colors.accent : Config.colors.text
+                                                     ^^^^^^
+Warning: quickshell/.config/quickshell/components/TaskbarButton.qml:25:20: Unqualified access [unqualified]
+      font.family: Fonts.icon
+                   ^^^^^
+Info: Did you mean "font"?
+      font.family: font.icon
+                   ^^^^
+Info: quickshell/.config/quickshell/taskbar/Workspaces.qml:1:1: Unused import [unused-imports]
+import Quickshell
+^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Workspaces.qml:15:88: Unqualified access [unqualified]
+    property var currentWorkspaces: I3.workspaces.values.filter(w => w.monitor.name == taskbar.screen.name)
+                                                                                       ^^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Workspaces.qml:33:51: Unqualified access [unqualified]
+            onPressed: I3.dispatch(`workspace ` + modelData.number)
+                                                  ^^^^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Workspaces.qml:26:23: Unqualified access [unqualified]
+                text: modelData.number
+                      ^^^^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Workspaces.qml:31:24: Unqualified access [unqualified]
+                color: Config.colors.text
+                       ^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Workspaces.qml:27:30: Unqualified access [unqualified]
+                font.family: Fonts.body
+                             ^^^^^
+Info: Did you mean "font"?
+                font.family: font.body
+                             ^^^^
+Warning: quickshell/.config/quickshell/taskbar/Workspaces.qml:30:33: Unqualified access [unqualified]
+                font.pixelSize: Config.settings.bar.fontSize
+                                ^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Workspaces.qml:41:30: Unqualified access [unqualified]
+                borderColor: Config.colors.outline
+                             ^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Workspaces.qml:52:25: Unqualified access [unqualified]
+                color: (modelData.active || mouse.hovered) ? Config.colors.shadow : (modelData.urgent ? Config.colors.urgent : Config.colors.base)
+                        ^^^^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Workspaces.qml:52:62: Unqualified access [unqualified]
+                color: (modelData.active || mouse.hovered) ? Config.colors.shadow : (modelData.urgent ? Config.colors.urgent : Config.colors.base)
+                                                             ^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Workspaces.qml:52:86: Unqualified access [unqualified]
+                color: (modelData.active || mouse.hovered) ? Config.colors.shadow : (modelData.urgent ? Config.colors.urgent : Config.colors.base)
+                                                                                     ^^^^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Workspaces.qml:52:105: Unqualified access [unqualified]
+                color: (modelData.active || mouse.hovered) ? Config.colors.shadow : (modelData.urgent ? Config.colors.urgent : Config.colors.base)
+                                                                                                        ^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Workspaces.qml:52:128: Unqualified access [unqualified]
+                color: (modelData.active || mouse.hovered) ? Config.colors.shadow : (modelData.urgent ? Config.colors.urgent : Config.colors.base)
+                                                                                                                               ^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Workspaces.qml:49:31: Unqualified access [unqualified]
+                border.color: Config.colors.outline
+                              ^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Bar.qml:17:7: Type PanelWindow is not creatable. [uncreatable-type]
+      PanelWindow {
+      ^^^^^^^^^^^
+Info: quickshell/.config/quickshell/taskbar/Bar.qml:3:1: Unused import [unused-imports]
+import Quickshell.Io
+^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Bar.qml:31:16: Unqualified access [unqualified]
+        color: Config.colors.base
+               ^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Bar.qml:42:26: Unqualified access [unqualified]
+            borderColor: Config.colors.shadow
+                         ^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Bar.qml:51:26: Unqualified access [unqualified]
+            borderColor: Config.colors.highlight
+                         ^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Bar.qml:72:28: Unqualified access [unqualified]
+                    color: Config.colors.shadow
+                           ^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/Bar.qml:122:28: Unqualified access [unqualified]
+                    color: Config.colors.shadow
+                           ^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/ClockWidget.qml:5:9: Unqualified access [unqualified]
+  text: Time.time
+        ^^^^
+Warning: quickshell/.config/quickshell/taskbar/ClockWidget.qml:6:10: Unqualified access [unqualified]
+  color: Config.colors.text
+         ^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/ClockWidget.qml:7:19: Unqualified access [unqualified]
+  font.pixelSize: Config.settings.bar.fontSize
+                  ^^^^^^
+Warning: quickshell/.config/quickshell/taskbar/ClockWidget.qml:8:16: Unqualified access [unqualified]
+  font.family: Fonts.body
+               ^^^^^
+Info: Did you mean "font"?
+  font.family: font.body
+               ^^^^
+Info: quickshell/.config/quickshell/taskbar/SysTray.qml:2:1: Unused import [unused-imports]
+import Quickshell.Widgets
+^^^^^^
+Info: quickshell/.config/quickshell/taskbar/SysTray.qml:5:1: Unused import [unused-imports]
+import Quickshell.Services.SystemTray
+^^^^^^
+Info: quickshell/.config/quickshell/taskbar/SysTray.qml:6:1: Unused import [unused-imports]
+import QtQuick.Effects
+^^^^^^
+Info: quickshell/.config/quickshell/taskbar/SysTray.qml:1:1: Unused import [unused-imports]
+import Quickshell
+^^^^^^
