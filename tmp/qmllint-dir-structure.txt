@@ -1,0 +1,49 @@
+total 23
+drwxr-xr-x  3 mquezada mquezada   5 Aug 30 07:12 .
+drwxr-xr-x  4 mquezada mquezada   4 Aug 30 16:42 ..
+-rw-r--r--  1 mquezada mquezada 163 Aug 30 07:12 .qmlls.ini
+drwxr-xr-x  6 mquezada mquezada  10 Aug 30 17:02 qs
+-rw-r--r--  1 mquezada mquezada   0 Aug 30 07:12 tooling.lock
+
+/var/run/xdg/mquezada/quickshell/vfs/9e4b7cf31485f3f2f70bf0cc4db31f79/qs:
+total 21
+drwxr-xr-x  6 mquezada mquezada 10 Aug 30 17:02 .
+drwxr-xr-x  3 mquezada mquezada  5 Aug 30 07:12 ..
+lrwxr-xr-x  1 mquezada mquezada 44 Aug 30 17:02 Config.qml -> /home/mquezada/.config/quickshell/Config.qml
+lrwxr-xr-x  1 mquezada mquezada 43 Aug 27 08:49 Fonts.qml -> /home/mquezada/.config/quickshell/Fonts.qml
+drwxr-xr-x  2 mquezada mquezada  3 Aug 26 13:22 ThreatWatchUtils
+lrwxr-xr-x  1 mquezada mquezada 42 Aug 26 13:22 Time.qml -> /home/mquezada/.config/quickshell/Time.qml
+drwxr-xr-x  2 mquezada mquezada  5 Aug 28 09:55 components
+lrwxr-xr-x  1 mquezada mquezada 43 Aug 26 13:22 shell.qml -> /home/mquezada/.config/quickshell/shell.qml
+drwxr-xr-x  2 mquezada mquezada  6 Aug 28 09:55 taskbar
+drwxr-xr-x  2 mquezada mquezada  4 Aug 28 12:16 threatwatch
+
+/var/run/xdg/mquezada/quickshell/vfs/9e4b7cf31485f3f2f70bf0cc4db31f79/qs/ThreatWatchUtils:
+total 10
+drwxr-xr-x  2 mquezada mquezada  3 Aug 26 13:22 .
+drwxr-xr-x  6 mquezada mquezada 10 Aug 30 17:02 ..
+lrwxr-xr-x  1 mquezada mquezada 60 Aug 26 13:22 Utils.qml -> /home/mquezada/.config/quickshell/ThreatWatchUtils/Utils.qml
+
+/var/run/xdg/mquezada/quickshell/vfs/9e4b7cf31485f3f2f70bf0cc4db31f79/qs/components:
+total 11
+drwxr-xr-x  2 mquezada mquezada  5 Aug 28 09:55 .
+drwxr-xr-x  6 mquezada mquezada 10 Aug 30 17:02 ..
+lrwxr-xr-x  1 mquezada mquezada 58 Aug 27 11:20 NewBorder.qml -> /home/mquezada/.config/quickshell/components/NewBorder.qml
+lrwxr-xr-x  1 mquezada mquezada 59 Aug 27 11:20 PopupFrame.qml -> /home/mquezada/.config/quickshell/components/PopupFrame.qml
+lrwxr-xr-x  1 mquezada mquezada 62 Aug 28 09:55 TaskbarButton.qml -> /home/mquezada/.config/quickshell/components/TaskbarButton.qml
+
+/var/run/xdg/mquezada/quickshell/vfs/9e4b7cf31485f3f2f70bf0cc4db31f79/qs/taskbar:
+total 19
+drwxr-xr-x  2 mquezada mquezada  6 Aug 28 09:55 .
+drwxr-xr-x  6 mquezada mquezada 10 Aug 30 17:02 ..
+lrwxr-xr-x  1 mquezada mquezada 49 Aug 27 12:19 Bar.qml -> /home/mquezada/.config/quickshell/taskbar/Bar.qml
+lrwxr-xr-x  1 mquezada mquezada 57 Aug 26 13:22 ClockWidget.qml -> /home/mquezada/.config/quickshell/taskbar/ClockWidget.qml
+lrwxr-xr-x  1 mquezada mquezada 53 Aug 26 13:22 SysTray.qml -> /home/mquezada/.config/quickshell/taskbar/SysTray.qml
+lrwxr-xr-x  1 mquezada mquezada 56 Aug 26 13:22 Workspaces.qml -> /home/mquezada/.config/quickshell/taskbar/Workspaces.qml
+
+/var/run/xdg/mquezada/quickshell/vfs/9e4b7cf31485f3f2f70bf0cc4db31f79/qs/threatwatch:
+total 10
+drwxr-xr-x  2 mquezada mquezada  4 Aug 28 12:16 .
+drwxr-xr-x  6 mquezada mquezada 10 Aug 30 17:02 ..
+lrwxr-xr-x  1 mquezada mquezada 66 Aug 28 08:22 ThreatWatchModel.qml -> /home/mquezada/.config/quickshell/threatwatch/ThreatWatchModel.qml
+lrwxr-xr-x  1 mquezada mquezada 66 Aug 26 13:22 ThreatWatchPopup.qml -> /home/mquezada/.config/quickshell/threatwatch/ThreatWatchPopup.qml
