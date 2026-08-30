@@ -1,0 +1,3 @@
+Warning: taskbar/ClockWidget.qml:7:35: Member "bar" not found on type "qs::io::JsonObject" [missing-property]
+  font.pixelSize: Config.settings.bar.fontSize
+                                  ^^^
