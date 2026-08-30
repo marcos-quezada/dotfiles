@@ -1,4 +1,5 @@
 # qmldir files use # for comments, not // - see docs/architecture.md gotchas
+module Config
 singleton Config 1.0 Config.qml
 singleton Fonts  1.0 Fonts.qml
 singleton Time   1.0 Time.qml
