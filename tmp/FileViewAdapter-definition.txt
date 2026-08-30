@@ -1,0 +1,59 @@
+        Property {
+            name: "adapter"
+            type: "FileViewAdapter"
+            isPointer: true
+            read: "adapter"
+            write: "setAdapter"
+            notify: "adapterChanged"
+            index: 3
+            lineNumber: 230
+        }
+        Property {
+            name: "__path"
+            type: "QString"
+            read: "path"
+            write: "setPath"
+            notify: "pathChanged"
+            index: 4
+            lineNumber: 232
+--
+        file: "fileview.hpp"
+        lineNumber: 436
+        name: "qs::io::FileViewAdapter"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        exports: ["Quickshell.Io/FileViewAdapter 0.0"]
+        isCreatable: false
+        exportMetaObjectRevisions: [0]
+        Signal { name: "adapterUpdated"; lineNumber: 448 }
+        Method { name: "onDataChanged"; lineNumber: 451 }
+    }
+    Component {
+        file: "fileview.hpp"
+        lineNumber: 25
+        name: "qs::io::FileViewError"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        exports: ["Quickshell.Io/FileViewError 0.0"]
+        isCreatable: false
+        isSingleton: true
+        exportMetaObjectRevisions: [0]
+--
+        name: "qs::io::JsonAdapter"
+        accessSemantics: "reference"
+        prototype: "qs::io::FileViewAdapter"
+        interfaces: ["QQmlParserStatus"]
+        exports: ["Quickshell.Io/JsonAdapter 0.0"]
+        exportMetaObjectRevisions: [0]
+        Method { name: "onPropertyChanged"; lineNumber: 104 }
+    }
+    Component {
+        file: "jsonadapter.hpp"
+        lineNumber: 19
+        name: "qs::io::JsonObject"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        exports: ["Quickshell.Io/JsonObject 0.0"]
+        exportMetaObjectRevisions: [0]
+    }
+    Component {
