@@ -73,9 +73,9 @@
 ## QML (Leader = Space)
 | Key / Command              | Action                                                  |
 |----------------------------|---------------------------------------------------------|
-| `<leader>lq`               | Run qmllint on current file, populate quickfix list     |
-| `:copen` / `:cclose`       | Open / close the quickfix window                        |
-| `:cn` / `:cp`              | Jump to next / previous quickfix entry                  |
+| `<leader>df`               | Show LSP diagnostics for current file (live, from `qmlls`) |
+| `[d` / `]d`                | Jump to previous / next diagnostic                       |
+| `:LspHover`                | Show hover info (type manually — a `K` keybinding to this doesn't reliably show the popup, cause unknown) |
 | `:!qmlformat -i %`         | Format current QML file in place                        |
 | `<leader>gd`, `K`, etc.    | LSP keymaps work for QML files (qmlls via .qmlls.ini)   |
 

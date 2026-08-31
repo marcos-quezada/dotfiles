@@ -899,11 +899,27 @@ flag.
 
 ### vim integration
 
-`:make` is wired to `qmllint %` for QML files via the `qml_lint` augroup in
-`lsp.vim`. `<leader>lq` triggers `:make<CR>:copen<CR>` to run the linter and
-immediately show the quickfix list.
+live diagnostics come from `qmlls` (the LSP server, wired up via `yegappan/lsp`
+in `lsp.vim`) — `<leader>df` shows diagnostics for the current file, `[d`/`]d`
+jump between them, `K` shows hover info (though `K` specifically has a known
+issue, see below).
 
-`errorformat` is set to `%f:%l:%c: %m` which matches qmllint's output format.
+an earlier version of this file wired `qmllint` into Vim's quickfix list via
+`:make`/`<leader>lq`, separate from `qmlls`'s live diagnostics. it was removed:
+`:make`'s implicit jump-to-first-error was creating a second, unloaded buffer
+for the file already open instead of reusing it (diagnostic signs appeared,
+the window went blank). replacing `:make` with `setqflist()` fixed that but
+surfaced a second Vim quirk — `E282: Cannot read from` — tied to `system()`'s
+temp-file capture mechanism. workarounds existed for both, but `qmllint` run
+this way never added anything `qmlls`'s live diagnostics didn't already cover,
+so the whole mechanism was dropped rather than kept working through Vim
+internals for no real benefit. run `qmllint` directly from a terminal instead
+when you want a full-tree batch report (see below).
+
+**known issue:** mapping `K` (or any key) to `:LspHover`/`<Cmd>LspHover` does
+not reliably show the popup — it flashes and the cursor may jump, even though
+typing `:LspHover<CR>` manually works every time. cause unknown; use the
+manual command instead of a keybinding for hover.
 
 formatting is manual: `:!qmlformat -i %` rewrites the current file in place.
 there is no autoformat-on-save — qmlformat is a separate concern from the LSP.
@@ -916,6 +932,81 @@ valid completions. the correct approach is an empty `.qmlls.ini` in
 `~/.config/quickshell/`. Quickshell auto-populates it with its module import
 paths on first run. the file is committed as a placeholder so the stow package
 creates it — Quickshell fills it in on startup.
+
+per Quickshell's own changelog: *"LSP support for Singletons and Root-Relative
+imports can be enabled by creating a file named `.qmlls.ini` in the shell root
+directory... The generated configuration also includes QML import paths
+available to Quickshell, meaning QMLLS no longer requires the `-E` flag."*
+this is why `.qmlls.ini` exists and why `-E`/`QML_IMPORT_PATH` are not needed
+in `lsp.vim`'s `qmlls` config on current Quickshell versions.
+
+a real `.qmlls.ini` looks like:
+```ini
+[General]
+no-cmake-calls=true
+buildDir="/var/run/xdg/<user>/quickshell/vfs/<hash>"
+importPaths="/usr/local/bin:/usr/local/lib/qt6/qml"
+```
+`buildDir` points at an ephemeral, per-process VFS directory Quickshell
+materializes at runtime — it contains real symlinks mirroring the project
+(`qs/Config.qml -> .../Config.qml`, etc.), confirmed by direct inspection.
+it does **not** contain a `qmldir` for that mirror, which is why external
+tooling (see below) can't fully resolve `import qs` even when pointed at it.
+
+### `import qs` vs `import ".."` — a deliberate trade-off, not an oversight
+
+this project uses `import qs` (Quickshell's own module scheme, `qs.<path>`
+imports the shell root, available since Quickshell v0.2.0) for root singleton
+access (`Config`, `Fonts`, `Time`), **not** relative-path imports
+(`import ".."`) — even though `qs` cannot currently be resolved by standalone
+`qmllint`/`qmlls` on this Quickshell/Qt version, producing `Unqualified
+access`/`Failed to import qs` warnings across every consumer file.
+
+this was verified exhaustively, not assumed:
+- confirmed via a minimal, from-scratch repro (one singleton, one consumer
+  one directory down, a proper `qmldir`, a fresh `.qmlls.ini`) that `import qs`
+  from a subdirectory to a root singleton fails identically in both `qmllint`
+  and `qmlls`, ruling out anything project-specific
+- confirmed `import ".."` for the *same* singleton, *same* file, resolves
+  cleanly — the only variable was the import style
+- confirmed the VFS mirror Quickshell generates for `qs` lacks a `qmldir`,
+  which is why no combination of `-I`/`-E`/`QML_IMPORT_PATH`/working directory
+  changes anything — there's nothing for standard QML tooling to find
+- ruled out caelestia-shell's approach as a model to copy: their `qs.services`
+  imports rely on a real CMake-generated `build/qml` (via a C++ plugin this
+  project deliberately doesn't have), not on Quickshell's VFS mirror
+
+**the decision:** `qs` is the correct, documented, future-facing mechanism
+(*"much more LSP friendly"* per Quickshell's own docs) and the noise is fully
+understood and traced to specific upstream gaps, not ambiguity about our code.
+accepting known, explained noise was judged better than reverting to a
+mechanism that works today but isn't the one Quickshell's own tooling is
+moving toward.
+
+**subdirectory `qs.<path>` imports** (`qs.taskbar`, `qs.components`, etc.) are
+not yet adopted — `qs.<path>` requires path segments to start with an
+uppercase letter, and our subdirectories (`components/`, `taskbar/`,
+`threatwatch/`) are lowercase. renaming them is a queued, separate follow-up.
+
+### known, accepted qmllint/qmlls warnings
+
+four warning categories are structural — real Quickshell/Qt types, used
+correctly, with incomplete external type metadata. each was confirmed by
+directly inspecting Quickshell's own `.qmltypes` files, not assumed:
+
+| warning | type | evidence |
+|---|---|---|
+| `Type PanelWindow is not creatable` | `PanelWindow` | `isCreatable: false` in `quickshell-window.qmltypes` — deliberate, `PanelWindow` requires a live compositor |
+| `Property "adapter" has incomplete type "FileViewAdapter"` | `FileViewAdapter` | `isCreatable: false` — abstract base class; `JsonAdapter` (`prototype: "qs::io::FileViewAdapter"`) is the real, creatable subclass we correctly use |
+| `unknown grouped property scope margins` / `Type margins is used but it is not resolved` | `Margins` | referenced as a property type (`type: "Margins"`) but never given its own exported `Component` declaration anywhere in Quickshell's `.qmltypes` |
+| `Type QProcess::ExitStatus ... was not found` | `QProcess::ExitStatus` | same shape as `Margins` — referenced, never exported; no import can ever resolve it |
+
+plus every `import qs`-related `Unqualified access` warning, per the section
+above.
+
+worth reporting upstream (two independent repro cases ready to file):
+type-export gaps for `Margins`/`QProcess::ExitStatus`, and `qs`-from-
+subdirectory resolution failing in standalone `qmllint`/`qmlls`.
 
 ### testing approach
 

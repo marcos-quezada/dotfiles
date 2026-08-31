@@ -94,6 +94,15 @@ Batch linter, separate from `qmlls`'s live diagnostics. Requires the
 install manually with `doas pkg install qt6-declarative` until that gap is
 closed.
 
-`<leader>lq` in Vim runs `qmllint` on the current file and populates the
-quickfix list (`:copen`/`:cclose`, `:cn`/`:cp` to navigate). See
-`docs/architecture.md`'s "QML quality" section for the full tool reference.
+`<leader>lq` no longer exists — it was removed after causing more Vim quirks
+than it solved (see `docs/architecture.md`'s "vim integration" section for
+why). Run it directly from a terminal for a full-tree batch report instead:
+
+```sh
+cd ~/.config/quickshell
+qmllint -I . $(find . -name "*.qml")
+```
+
+Live diagnostics in Vim come from `qmlls` instead — `<leader>df`, `[d`/`]d`.
+See `docs/architecture.md`'s "QML quality" section for the full tool reference
+and the current list of known, accepted warnings.
