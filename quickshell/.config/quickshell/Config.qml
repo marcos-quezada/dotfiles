@@ -130,17 +130,23 @@ Singleton {
 
     JsonAdapter {
         id: settingsJsonAdapter
-        property JsonObject settings: JsonObject {
-            property string version: "0.1"
-            property string currentTheme: "default"
-            property JsonObject bar: JsonObject {
-                property int fontSize: 12
-            }
-
-            onCurrentThemeChanged: {
-                console.info("Updated theme to: " + currentTheme);
-            }
-        }
+        property AppSettings settings: AppSettings{}
     }
+  }
+
+  component AppSettings: JsonObject {
+      property string version: "0.1"
+    property string currentTheme: "default"
+    property BarSettings bar: BarSettings{}
+
+    onCurrentThemeChanged: {
+        console.info("Updated theme to: " + currentTheme);
+    }
+
+  }
+
+  component BarSettings: JsonObject {
+      property int fontSize: 12
+
   }
 }

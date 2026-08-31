@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 // ThreatWatchPopup.qml — map overlay panel.
 // must be instantiated at shell.qml root scope — cannot nest inside Bar's PanelWindow.
 // chrome (border stack, title bar, fade) lives in components/PopupFrame.qml.
@@ -97,6 +99,8 @@ PanelWindow {
 
             delegate: Item {
                 id:     pinZone
+                required property var modelData
+
                 x:      modelData.x - 12
                 y:      modelData.y - 30
                 width:  24
@@ -112,7 +116,7 @@ PanelWindow {
 
                     onContainsMouseChanged: {
                         if (containsMouse) {
-                            pinTooltip.tipText = modelData.title + "\n" + ThreatWatchModel.pinTypeLabel(modelData.type)
+                            pinTooltip.tipText = pinZone.modelData.title + "\n" + ThreatWatchModel.pinTypeLabel(pinZone.modelData.type)
                             // tip anchors to pin tip: centre of hitbox bottom, in content area coords
                             pinTooltip.pinX = pinZone.x + pinZone.width  / 2
                             pinTooltip.pinY = pinZone.y + pinZone.height

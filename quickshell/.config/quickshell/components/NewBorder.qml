@@ -14,7 +14,7 @@ Rectangle {
 
     z: zValue
 
-    property string borderColor: "white"
+    property color borderColor: "white"
     property Gradient borderGradient
 
     color: "transparent"
