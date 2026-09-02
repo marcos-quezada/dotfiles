@@ -4,7 +4,7 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 
 import qs 
-import "../components" as Components
+import qs.Components as Components
 
 RowLayout {
     id: workspaces

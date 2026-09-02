@@ -9,7 +9,7 @@ import Quickshell
 import Quickshell.Wayland
 
 import qs 
-import "../components" as Components
+import qs.Components as Components
 
 PanelWindow {
     id: popup

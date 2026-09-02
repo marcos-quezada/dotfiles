@@ -8,14 +8,14 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "../ThreatWatchUtils" as Utils
+import qs.ThreatWatchUtils
 
 Singleton {
     id: root
 
     // ── pure-logic helpers ────────────────────────────────────────────────────
     // Utils has no Quickshell imports — instantiated as a plain child object.
-    Utils.Utils { id: utils }
+    Utils { id: utils }
 
     // ── configuration ─────────────────────────────────────────────────────────
 

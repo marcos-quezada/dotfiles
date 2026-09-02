@@ -2,8 +2,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-import "taskbar" as Taskbar
-import "threatwatch" as ThreatWatch
+import qs.Taskbar as Taskbar
+import qs.ThreatWatch as ThreatWatch
 
 Scope {
     id: root

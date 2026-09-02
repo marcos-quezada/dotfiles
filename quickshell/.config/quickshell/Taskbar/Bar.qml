@@ -3,8 +3,8 @@ import Quickshell.Wayland
 import QtQuick
 
 import qs 
-import "../components" as Components
-import "../threatwatch" as ThreatWatch
+import qs.Components as Components
+import qs.ThreatWatch as ThreatWatch
 
 Scope {
   Variants {
