@@ -52,20 +52,19 @@ root structure).
 ├── Time.qml            # clock singleton
 ├── settings.json       # runtime tunables (colours, sizes, etc.)
 ├── .qmlls.ini          # qmlls LSP import paths (auto-populated by Quickshell)
-├── components/         # shared, generic UI atoms — no feature-specific knowledge
+├── Components/         # shared, generic UI atoms — no feature-specific knowledge
 │   ├── NewBorder.qml       # retro bevel border effect
 │   ├── PopupFrame.qml      # shared popup chrome (title bar, borders, fade)
 │   ├── TaskbarButton.qml   # icon-only toggle button (Button-based, native hit-testing)
 │   └── qmldir
-├── taskbar/            # workspace switcher, tray, clock
+├── Taskbar/            # workspace switcher, tray, clock
 │   ├── Bar.qml             # PanelWindow, one per screen
 │   ├── Workspaces.qml      # sway workspace switcher
 │   ├── SysTray.qml         # system tray row (clock only — ThreatWatch moved to a TaskbarButton)
 │   ├── ClockWidget.qml
 │   └── qmldir
-├── threatwatch/         # threat feed model + popup
+├── ThreatWatch/         # threat feed model + popup
 │   ├── ThreatWatchModel.qml   # singleton data layer
-│   ├── ThreatWatchWidget.qml  # deprecated — superseded by components/TaskbarButton, pending removal
 │   ├── ThreatWatchPopup.qml   # map overlay + status summary
 │   └── qmldir
 ├── ThreatWatchUtils/     # pure logic (no Quickshell imports; testable with qmltestrunner)
@@ -74,12 +73,15 @@ root structure).
 └── fonts/               # bundled fonts loaded by Fonts.qml
 ```
 
-`components/`, `taskbar/`, and `threatwatch/` each have their own `qmldir` and
-are imported with an explicit `as Namespace` (e.g. `import "../components" as
-Components`, `Components.NewBorder { ... }`). `Config.qml`, `Fonts.qml`, and
-`Time.qml` are root-level singletons with no `qmldir` — any file can reference
-them directly by name without an import, as long as it isn't nested more than
-one directory deep (subdirectories still need `import ".."` to reach root).
+`Components/`, `Taskbar/`, `ThreatWatch/`, and `ThreatWatchUtils/` each have
+their own `qmldir` and are imported via Quickshell's own module scheme:
+`import qs.Components`, `NewBorder { ... }` — no relative path, no `as
+Namespace` alias. `Config.qml`, `Fonts.qml`, and `Time.qml` are root-level
+singletons, reached the same way from anywhere in the tree via bare
+`import qs` (root-relative, no subpath).
+
+all four subdirectories are capitalized deliberately — `qs.<path>` requires
+an uppercase first letter on every path segment.
 
 ## qmlls (language server)
 

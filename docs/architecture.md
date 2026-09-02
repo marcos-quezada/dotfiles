@@ -14,14 +14,14 @@ Quickshell.screens }` so one `Bar` instance is spawned per monitor.
 
 ```
 shell.qml
-├── Taskbar.Bar                    — PanelWindow, WlrLayer.Bottom
+├── Bar                             — PanelWindow, WlrLayer.Bottom
 │   │                                (Bar.qml wraps this in Scope > Variants { model: Quickshell.screens }
 │   │                                 so one instance spawns per monitor)
 │   ├── workspacesPanel            — left side: sway workspace switcher (Workspaces.qml)
 │   │   └── Components.TaskbarButton — ThreatWatch trigger, sits next to Workspaces (see below)
 │   └── trayPanel                  — right side: system tray row
 │       └── SysTray                — SysTray.qml (contains ClockWidget only — ThreatWatch moved out, see below)
-└── ThreatWatch.ThreatWatchPopup   — PanelWindow, WlrLayer.Overlay (see below)
+└── ThreatWatchPopup                — PanelWindow, WlrLayer.Overlay (see below)
 ```
 
 ### widget interactions
@@ -51,7 +51,7 @@ the popup also needs a different layer (`WlrLayer.Overlay`) than the bar
 parent object.
 
 solution: instantiate `ThreatWatchPopup` once at root scope in `shell.qml`,
-alongside `Taskbar.Bar`. visibility is driven by `ThreatWatchModel.mapExpanded`
+alongside `Bar`. visibility is driven by `ThreatWatchModel.mapExpanded`
 so the widget in the bar can toggle it with a single property write.
 
 ### popup position: tracks the trigger button, just below the bar
@@ -78,7 +78,7 @@ edges** — `margins.top` is effective because `top: true` is set, and
 
 `ExclusionMode.Ignore` means the compositor does not shift the popup's top anchor
 down for the bar's exclusive zone — the bar occupies the top 35 px, and the popup
-must add that offset manually via `margins.top: 35` (matching `taskbar/Bar.qml`'s
+must add that offset manually via `margins.top: 35` (matching `Taskbar/Bar.qml`'s
 `implicitHeight`).
 
 **pin coordinate safety**: `margins.top` shifts the window surface on screen but
@@ -489,22 +489,22 @@ the same icon codepoint against different fonts and silently diverge (see
 the `ThreatWatchWidget` vs `PopupFrame` icon-font mismatch, fixed in
 dotfiles-quickshell-cleanup).
 
-### components/ — shared, generic UI atoms
+### Components/ — shared, generic UI atoms
 
-`components/` holds QML types with no feature-specific knowledge — currently
+`Components/` holds QML types with no feature-specific knowledge — currently
 `NewBorder`, `PopupFrame`, and `TaskbarButton`. it has its own `qmldir`
-(`module Components`), same convention as `taskbar/` and `threatwatch/`, so
-consumers import it explicitly:
+(`module Components`), same convention as `Taskbar/` and `ThreatWatch/`, so
+consumers import it via Quickshell's own module scheme:
 
 ```qml
-import "../components" as Components
+import qs.Components
 ...
-Components.NewBorder { ... }
+NewBorder { ... }
 ```
 
 the bar you're reading about above the fold — `Bar.qml`, `Workspaces.qml`,
-`ThreatWatchPopup.qml` — all import `components/` this way. `Config.qml` and
-`Fonts.qml` are not in `components/`: they're singletons with process-wide
+`ThreatWatchPopup.qml` — all import `Components/` this way. `Config.qml` and
+`Fonts.qml` are not in `Components/`: they're singletons with process-wide
 state, a different category from stateless, reusable view chrome.
 
 **gotcha discovered moving `PopupFrame.qml` here:** a file can depend on a
@@ -512,7 +512,7 @@ sibling in the same directory with zero import statement — QML resolves
 same-directory types automatically, `qmldir` or not. `PopupFrame.qml`
 references `NewBorder` this way. that dependency is real but invisible to a
 `grep` of its imports: if `NewBorder.qml` is ever moved to a different
-subdirectory of `components/`, `PopupFrame.qml` breaks silently at load time,
+subdirectory of `Components/`, `PopupFrame.qml` breaks silently at load time,
 in a file nobody touched. QML has no way to declare "depends on this sibling"
 explicitly — the only mitigation is a comment at the point of use.
 
@@ -626,7 +626,7 @@ fix: set `hoverEnabled: true` on the `MouseArea` and drive visibility from
 
 `ThreatWatchUtils/Utils.qml`'s `levelColors` mapped the idle (`"info"`) level
 to `Config.colors.shadow`, reasoned as "muted, readable on the bar base." it
-was readable on `colors.base` — but `taskbar/Bar.qml`'s `trayBg` rectangle,
+was readable on `colors.base` — but `Taskbar/Bar.qml`'s `trayBg` rectangle,
 the panel sitting directly behind the tray icons, is *also* filled with
 `colors.shadow`. the idle-state icon rendered in a colour identical to the
 surface behind it: invisible by exact colour match, not a font or rendering
@@ -983,10 +983,13 @@ accepting known, explained noise was judged better than reverting to a
 mechanism that works today but isn't the one Quickshell's own tooling is
 moving toward.
 
-**subdirectory `qs.<path>` imports** (`qs.taskbar`, `qs.components`, etc.) are
-not yet adopted — `qs.<path>` requires path segments to start with an
-uppercase letter, and our subdirectories (`components/`, `taskbar/`,
-`threatwatch/`) are lowercase. renaming them is a queued, separate follow-up.
+**subdirectory `qs.<path>` imports** (`qs.Taskbar`, `qs.Components`,
+`qs.ThreatWatch`, `qs.ThreatWatchUtils`) are now fully adopted. `components/`,
+`taskbar/`, and `threatwatch/` were renamed to `Components/`, `Taskbar/`, and
+`ThreatWatch/` — `qs.<path>` requires an uppercase first letter, and those
+were the last lowercase directories blocking it. every consumer now imports
+`qs.<Path>` directly (no `as Namespace`, matching how root singletons are
+accessed) instead of a relative path + namespace alias.
 
 ### known, accepted qmllint/qmlls warnings
 
