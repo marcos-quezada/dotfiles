@@ -160,8 +160,8 @@ if [ "$PLATFORM" = "freebsd" ]; then
     fi
 fi
 
-if [ "$PLAFORM" = "freebsd" ]; then
-  for pkg in mpv mpv-mpris phyton3; do
+if [ "$PLATFORM" = "freebsd" ]; then
+  for pkg in mpv mpv-mpris python3; do
     if ! pkg info -e "$pkg" >/dev/null 2>&1; then
       if prompt_yn "install $pkg (required for music playback)?" y; then
         doas pkg install -y "$pkg"
