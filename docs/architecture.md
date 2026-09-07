@@ -696,6 +696,17 @@ often than a quarterly `pkg` release cycle supports. `install.sh` only checks
 for its presence (`command -v yt-dlp`) and points at the wiki if missing —
 it does not try to install or manage it.
 
+**caveat**: `yt-dlp -U` checks GitHub's API for the latest release, which is
+rate-limited per IP (unauthenticated) — on a shared or frequently-checking
+connection this can silently fail rather than update. per
+[yt-dlp#8175](https://github.com/yt-dlp/yt-dlp/issues/8175), the workaround
+is bypassing the API lookup entirely and updating to a specific known tag:
+```sh
+yt-dlp --update-to stable@2023.09.24   # pin to a specific release directly
+```
+no general fix exists upstream beyond this — worth remembering if `-U`
+starts reporting failures without an obvious cause.
+
 ### gotcha: `env: python3: No such file or directory`
 
 `yt-dlp`'s generic release asset (the one both the official installer and
