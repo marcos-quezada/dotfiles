@@ -4,10 +4,32 @@ design decisions for the quickshell + threatwatch configuration.
 
 ---
 
+## standing convention: prefer a native Quickshell service over a shell-out
+
+whenever a native Quickshell service exists for something, use it instead of
+shelling out to (or wrapping) an external CLI tool. surfaced independently
+twice during an explore session, for two different concerns:
+
+- **media playback**: `Quickshell.Services.Mpris` instead of parsing
+  `playerctl` output (see "music playback" below)
+- **audio output**: `Quickshell.Services.Pipewire` instead of `pactl`/`jq`
+  (noted while evaluating `BreadOnPenguins/scripts`' `audioswitch`; not yet
+  implemented, but the same principle applies if/when it is)
+
+the reasoning generalizes: a native service is reactive by construction (no
+polling, no subprocess spawned per update), and Quickshell's own type system
+can describe it (unlike a `Process` wrapping a CLI tool's text output, which
+is opaque to `qmllint`/`qmlls`). before reaching for a shell-out when adding
+a new bar feature, check whether `Quickshell.Services.*` already covers it.
+
+---
+
 ## quickshell bar
 
 ### bar structure
 
+
+[1119 more lines in file. Use offset=11 to continue.]
 the bar runs on sway (wlroots compositor) using Quickshell's `PanelWindow` +
 `WlrLayershell`. `Bar.qml` wraps its content in `Scope > Variants { model:
 Quickshell.screens }` so one `Bar` instance is spawned per monitor.
@@ -637,6 +659,60 @@ fix: remapped to `colors.text`, which nothing else in the tray area uses as a
 background fill. lesson: when choosing a `Config.colors.*` slot for a
 foreground element, check every background layer it can appear over in situ,
 not just the outermost bar colour.
+
+---
+
+## music playback (mpv + yt-dlp + mpv-mpris)
+
+### why not shellbeats
+
+an explore session considered `shellbeats` (a full C/ncurses YouTube client)
+for ad-free YouTube audio. the actual requirement — ads live in the web
+player UI, not the raw stream `yt-dlp` extracts — doesn't need a dedicated
+client at all. plain `mpv` bundles `ytdl_hook.lua` as a built-in script
+(compiled in, not a separate installed file — it won't show up in
+`pkg info -l mpv`'s file listing, which is expected, not a sign it's missing).
+adding `mpv-mpris` (a small Lua script) makes that `mpv` instance visible to
+`Quickshell.Services.Mpris`, the same native-service pattern already used for
+everything else in this project (see the "prefer a native Quickshell service
+over a shell-out" convention below).
+
+`shellbeats` would have built on FreeBSD (its includes are standard POSIX/BSD,
+nothing Linux-specific) but its dependency shape — a self-updating binary
+fetched from GitHub at runtime outside `pkg`, a JS runtime (`deno`/`node`)
+solely to defeat YouTube's anti-bot checks, an optional third-party cloud
+sync feature baked into the binary — conflicts with this project's
+pkg-managed, minimal-dependency-chain preference.
+
+### `yt-dlp` is deliberately not `pkg`-managed
+
+unlike `mpv`/`mpv-mpris`/`python3` (all installed via `pkg`, checked by
+`install.sh`), `yt-dlp` is installed per the
+[official wiki instructions](https://github.com/yt-dlp/yt-dlp/wiki/Installation)
+and kept current via its own `yt-dlp -U` self-update, independent of `pkg`'s
+release cadence. this is a deliberate exception, not an inconsistency:
+YouTube changes frequently enough that `yt-dlp` needs to update far more
+often than a quarterly `pkg` release cycle supports. `install.sh` only checks
+for its presence (`command -v yt-dlp`) and points at the wiki if missing —
+it does not try to install or manage it.
+
+### gotcha: `env: python3: No such file or directory`
+
+`yt-dlp`'s generic release asset (the one both the official installer and
+`shellbeats`' own bundled copy use — there is no FreeBSD-specific standalone
+build) is a Python script with a `#!/usr/bin/env python3` shebang. FreeBSD
+ports commonly install versioned binaries (`python3.12`, etc.) without a bare
+`python3` symlink unless the generic meta-port is also installed. this
+surfaces as `mpv`/`ytdl_hook` failing to run `yt-dlp` at all, which can look
+like a much more exotic problem (YouTube anti-bot detection, a stale `yt-dlp`
+version, `player_client` extractor-arg mismatches — all real, documented
+issues in general, all ruled out here) before the actual, mundane cause is
+found.
+
+fix: `doas pkg install -y python3` (FreeBSD's meta-port for the
+default-version symlink) — not a manual `ln -s`, which would be unmanaged
+and untracked by `pkg`. `install.sh` checks for this alongside `mpv`/
+`mpv-mpris`.
 
 ---
 
