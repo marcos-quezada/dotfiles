@@ -160,6 +160,23 @@ if [ "$PLATFORM" = "freebsd" ]; then
     fi
 fi
 
+if [ "$PLAFORM" = "freebsd" ]; then
+  for pkg in mpv mpv-mpris phyton3; do
+    if ! pkg info -e "$pkg" >/dev/null 2>&1; then
+      if prompt_yn "install $pkg (required for music playback)?" y; then
+        doas pkg install -y "$pkg"
+      fi
+    fi
+  done
+fi
+
+# yt-dlp deliberately NOT pkg-managed - installed per official wiki instructions
+# specifically so it can self update (yt-dlp -U) independent of pkg's release
+# cadence. check presence, don't try to install/manage it here.
+if ! command -v yt-dlp >/dev/null 2>&1; then
+  warn "yt-dlp not found - install per https://github.com/yt-dlp/yt-dlp/wiki/Installation"
+fi
+
 # ── core deps ─────────────────────────────────────────────────────────────────
 printf '\n  checking core dependencies...\n\n'
 MISSING_CORE=""
