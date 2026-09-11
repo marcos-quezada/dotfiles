@@ -1,0 +1,81 @@
+#!/bin/sh
+# ---------------------------------------------------------------------------
+# queue-track - append a YouTube URL to the quickshell playlist inbox (invoked via the quickshell-add: URI scheme)
+#
+# Copyright 2026, Marcos Quezada Pérez <mquezada@auryn>
+# All rights reserved.
+#
+# Usage: queue-track [-h|--help]
+#
+# Revision history:
+# 2026-09-11  Created by new_script ver. 3.3-posix
+# ---------------------------------------------------------------------------
+
+PROGNAME="${0##*/}"
+VERSION="0.1"
+
+clean_up() { # perform pre-exit housekeeping
+    return
+}
+
+error_exit() {
+    printf '%s: %s\n' "$PROGNAME" "${1:-unknown error}" >&2
+    clean_up
+    exit 1
+}
+
+graceful_exit() {
+    clean_up
+    exit 0
+}
+
+# shellcheck disable=SC2329  # called via trap string, not directly
+signal_exit() { # handle trapped signals
+    case "$1" in
+        INT)  error_exit "program interrupted by user" ;;
+        TERM) printf '\n%s: program terminated\n' "$PROGNAME" >&2; graceful_exit ;;
+        *)    error_exit "terminating on unknown signal" ;;
+    esac
+}
+
+usage() {
+    printf '%s\n' "queue-track [-h|--help]"
+}
+
+help_message() {
+    cat <<- _EOF_
+	$PROGNAME ver. $VERSION
+	append a YouTube URL to the quickshell playlist inbox (invoked via the quickshell-add: URI scheme)
+
+	$(usage)
+
+	Options:
+
+	  -h, --help  Display this help message and exit.
+
+	_EOF_
+}
+
+# trap signals
+trap "signal_exit TERM" TERM HUP
+trap "signal_exit INT"  INT
+
+
+
+# parse command-line
+while [ -n "${1:-}" ]; do
+    case "$1" in
+        -h | --help) help_message; graceful_exit ;;
+        -*)
+            usage
+            error_exit "unknown option $1" ;;
+        *)
+            # positional argument: $1
+            ;;
+    esac
+    shift
+done
+
+# main logic
+
+graceful_exit
