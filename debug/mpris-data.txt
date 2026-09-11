@@ -1,0 +1,80 @@
+    Component {
+        file: "player.hpp"
+        lineNumber: 20
+        name: "qs::service::mpris::MprisPlaybackState"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        exports: ["Quickshell.Services.Mpris/MprisPlaybackState 0.0"]
+        isCreatable: false
+        isSingleton: true
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "Enum"
+            type: "quint8"
+            lineNumber: 26
+            values: ["Stopped", "Playing", "Paused"]
+        }
+        Method {
+            name: "toString"
+            type: "QString"
+            lineNumber: 33
+            Parameter { name: "status"; type: "qs::service::mpris::MprisPlaybackState::Enum" }
+        }
+    }
+    Component {
+        file: "player.hpp"
+        lineNumber: 87
+        name: "qs::service::mpris::MprisPlayer"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        exports: ["Quickshell.Services.Mpris/MprisPlayer 0.0"]
+        isCreatable: false
+        exportMetaObjectRevisions: [0]
+        Property {
+            name: "canControl"
+            type: "bool"
+            bindable: "bindableCanControl"
+--
+            isReadonly: true
+        }
+        Property {
+            name: "playbackState"
+            type: "qs::service::mpris::MprisPlaybackState::Enum"
+            read: "playbackState"
+            write: "setPlaybackState"
+            notify: "playbackStateChanged"
+            index: 27
+            lineNumber: 194
+        }
+        Property {
+            name: "isPlaying"
+            type: "bool"
+            read: "isPlaying"
+            write: "setPlaying"
+            notify: "isPlayingChanged"
+            index: 28
+            lineNumber: 199
+        }
+        Property {
+            name: "loopState"
+            type: "qs::service::mpris::MprisLoopState::Enum"
+--
+        Signal { name: "trackAlbumChanged"; lineNumber: 390 }
+        Signal { name: "trackAlbumArtistChanged"; lineNumber: 391 }
+        Signal { name: "trackArtUrlChanged"; lineNumber: 392 }
+        Signal { name: "playbackStateChanged"; lineNumber: 393 }
+        Signal { name: "isPlayingChanged"; lineNumber: 394 }
+        Signal { name: "loopStateChanged"; lineNumber: 395 }
+        Signal { name: "loopSupportedChanged"; lineNumber: 396 }
+        Signal { name: "rateChanged"; lineNumber: 397 }
+        Signal { name: "minRateChanged"; lineNumber: 398 }
+        Signal { name: "maxRateChanged"; lineNumber: 399 }
+        Signal { name: "shuffleChanged"; lineNumber: 400 }
+        Signal { name: "shuffleSupportedChanged"; lineNumber: 401 }
+        Signal { name: "fullscreenChanged"; lineNumber: 402 }
+        Signal { name: "supportedUriSchemesChanged"; lineNumber: 403 }
+        Signal { name: "supportedMimeTypesChanged"; lineNumber: 404 }
+        Method { name: "onGetAllFinished"; lineNumber: 407 }
+        Method { name: "onExportedPositionChanged"; lineNumber: 408 }
+        Method {
+            name: "onSeek"
