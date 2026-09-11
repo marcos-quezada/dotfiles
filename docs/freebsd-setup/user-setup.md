@@ -134,6 +134,40 @@ optional ones. on FreeBSD it will also verify doas is configured correctly.
 
 ---
 
+## 6. Firefox bookmarklet (queue music from a YouTube video page)
+
+requires the `bin` and `quickshell` packages already stowed (step 5 covers
+this), and `quickshell-add.desktop` registered as the `quickshell-add:` URI
+scheme handler:
+
+```sh
+xdg-mime default quickshell-add.desktop x-scheme-handler/quickshell-add
+update-desktop-database ~/.local/share/applications/ 2>/dev/null
+```
+
+bookmarks live inside Firefox's profile (a SQLite database in a randomly
+named profile directory), not something stow can symlink into place, so
+this one manual import step is unavoidable on a fresh profile:
+
+1. Bookmarks Manager (`Ctrl+Shift+O`) → Import and Backup →
+   Import Bookmarks from HTML…
+2. select `docs/freebsd-setup/quickshell-add-bookmark.html` from the cloned
+   repo
+3. drag the imported "Add to quickshell" bookmark onto the bookmarks
+   toolbar for a one-click button while on a video page
+
+first use will likely prompt a confirmation dialog for launching an
+external application for an unrecognized URI scheme — expected, not a bug;
+tick "remember my choice" to skip it on subsequent uses.
+
+clicking the bookmark on a `youtube.com`/`music.youtube.com` video page
+opens a new (immediately closed) tab that hands the page URL off to
+`queue-track` via the registered scheme handler, which appends it to
+`~/.local/share/quickshell/playlist-inbox.txt` — see `docs/architecture.md`'s
+music playback section for the rest of the chain.
+
+---
+
 ## reference: group membership on this machine
 
 observed on auryn (MSI PS42 8RB, FreeBSD 15.0):
