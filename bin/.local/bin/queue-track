@@ -83,6 +83,37 @@ while [ -n "${1:-}" ]; do
     shift
 done
 
+# urldecode - portable, POSIX-only percent-decode. avoids printf '%b' \xHH
+# entirely (not reliably supported across /bin/sh implementations - FreeBSD's
+# printf, builtin or standalone, only decoded it as a literal 'x3a' when
+# tested here). walks the string one character at a time instead, using
+# shell arithmetic (hex literals are POSIX-guaranteed) and printf's octal
+# escapes in the *format string itself* - the same mechanism any 'printf
+# \n' already relies on, universally supported.
+urldecode() {
+    _s="$1"
+    _out=""
+    while [ -n "$_s" ]; do
+        case "$_s" in
+            %[0-9A-Fa-f][0-9A-Fa-f]*)
+                _hex=$(printf '%s' "$_s" | cut -c2-3)
+                _oct=$(printf '%03o' "$((16#$_hex))")
+                _out="$_out$(printf "\\${_oct}")"
+                _s="${_s#???}"
+                ;;
+            +*)
+                _out="$_out "
+                _s="${_s#?}"
+                ;;
+            *)
+                _out="$_out$(printf '%s' "$_s" | cut -c1)"
+                _s="${_s#?}"
+                ;;
+        esac
+    done
+    printf '%s' "$_out"
+}
+
 # main logic
 
 [ -n "$url" ] || { usage; error_exit "no URL given"; }
@@ -93,9 +124,7 @@ done
 case "$url" in
     quickshell-add:*)
         url="${url#quickshell-add:}"
-        # percent-decode: %XX -> \xXX, then let printf interpret the escapes
-        url=$(printf '%s' "$url" | sed 's/+/ /g; s/%\([0-9A-Fa-f][0-9A-Fa-f]\)/\\x\1/g')
-        url=$(printf '%b' "$url")
+        url=$(urldecode "$url")
         ;;
 esac
 
