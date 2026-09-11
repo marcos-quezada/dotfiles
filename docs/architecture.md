@@ -760,6 +760,69 @@ default-version symlink) — not a manual `ln -s`, which would be unmanaged
 and untracked by `pkg`. `install.sh` checks for this alongside `mpv`/
 `mpv-mpris`.
 
+### audio output: why `mpv` needed rebuilding from ports
+
+MPRIS control (`Services/Players.qml`) works regardless of which audio
+backend `mpv` uses underneath — that's a separate protocol. actual audio
+routing (volume, switching between speakers/headphones) is not, and getting
+that working surfaced three independent, stacked findings:
+
+1. the HDA codec genuinely supports hardware jack-sensing (`UNSOL` capability
+   on a distinct `Headphones` pin, confirmed via `sysctl dev.hdaa`) — the
+   hardware was never the limitation.
+2. PulseAudio's FreeBSD backend, `module-oss.c`, has no port abstraction at
+   all (`pactl list sinks` shows flat, portless sinks — one per detected PCM
+   device, via `module-devd-detect`). `module-switch-on-port-available` has
+   nothing to attach to here, so automatic switching on plug/unplug can't
+   work no matter how `default.pa` is configured — this is an architectural
+   limit of the backend, not a config gap.
+3. the pkg-built `mpv` itself has PulseAudio (and PipeWire) disabled at
+   compile time (`-Dpulse=disabled -Dpipewire=disabled` in its build
+   configuration) — it was talking directly to `/dev/dsp` (OSS), bypassing
+   PulseAudio entirely. `pactl list sink-inputs` staying empty while audio
+   plays is the tell — nothing was ever registered with PulseAudio to
+   switch in the first place.
+
+given (2), automatic switching isn't achievable without a much larger,
+unverified change (migrating the whole system to PipeWire, on the chance its
+FreeBSD backend handles HDA port-switching better — never confirmed). manual
+switching was the pragmatic target instead, which only needed (3) fixed.
+
+**fix**: rebuilt `mpv` from ports with the PulseAudio option enabled
+(`cd /usr/ports/multimedia/mpv && doas make config` — enable PulseAudio in
+the options menu — `doas make install clean`), then locked it against `pkg`
+overwriting the custom build:
+
+```sh
+doas pkg lock mpv
+```
+
+with `ao=pulse` set in `mpv.conf` (see the `mpv` stow package below), manual
+switching now works reliably in both directions regardless of playback
+state:
+
+```sh
+pactl set-default-sink oss_output.dsp1   # headphones
+pactl set-default-sink oss_output.dsp0   # speakers
+```
+
+**updating this custom `mpv` build later**: `pkg upgrade` will skip it
+entirely while locked (that's the point), so updates have to go back through
+ports:
+
+```sh
+cd /usr/ports && doas git pull
+cd /usr/ports/multimedia/mpv && doas make deinstall reinstall clean
+doas pkg lock mpv   # re-confirm the lock survived the reinstall; re-apply if not
+```
+
+**why not pursue automatic switching further**: it would require PipeWire,
+a materially heavier system change than anything else in this project, to
+fix a problem manual switching already solves — worth revisiting only if
+automatic switching becomes a real, recurring annoyance rather than a nice-
+to-have. binding the manual `pactl` commands to sway keybindings is the
+more proportionate next step (not yet implemented).
+
 ---
 
 ## stow layout
@@ -775,6 +838,7 @@ manually.
 | `foot` | `$HOME` | FreeBSD + Linux | `.config/foot/` |
 | `git` | `$HOME` | all | `.gitconfig`, `.color.gitconfig`, `.gitignore`, `.local/bin/git-clone-bare-for-worktrees`, `.local/bin/new_script` |
 | `inputrc` | `$HOME` | all | `.inputrc` |
+| `mpv` | `$HOME` | FreeBSD | `.config/mpv/mpv.conf` — `ao=pulse`; requires `mpv` rebuilt from ports with PulseAudio enabled, see `docs/architecture.md`'s "audio output" section |
 | `nvim` | `$HOME` | macOS | `.config/nvim/init.lua` — minimal single-file config, treesitter only |
 | `quickshell` | `$HOME` | FreeBSD | `.config/quickshell/` (bar + threatwatch QML, fonts) |
 | `sh` | `$HOME` | FreeBSD | `.profile`, `.shrc` |
