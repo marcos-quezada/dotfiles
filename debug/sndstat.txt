@@ -1,0 +1,5 @@
+Installed devices:
+pcm0: <Realtek ALC298 (Internal Analog)> (play/rec) default
+pcm1: <Realtek ALC298 (Right Analog)> (play/rec)
+pcm2: <Intel Kaby Lake (HDMI/DP 8ch)> (play)
+No devices installed from userspace.
