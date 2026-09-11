@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 
-import qs 
+import qs.Services
 
 Button {
   id: root

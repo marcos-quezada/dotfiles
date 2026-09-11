@@ -9,5 +9,4 @@
 # architectural overview: see ThreatWatchModel.qml and docs/architecture.md
 
 module ThreatWatch
-singleton ThreatWatchModel 1.0 ThreatWatchModel.qml
 ThreatWatchPopup           1.0 ThreatWatchPopup.qml

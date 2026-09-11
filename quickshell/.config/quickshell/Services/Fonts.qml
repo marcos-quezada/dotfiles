@@ -10,15 +10,15 @@ Singleton {
 
     FontLoader {
       id:     bodyLoader
-      source: "fonts/Monaco.ttf"
+      source: "../fonts/Monaco.ttf"
     }
     FontLoader {
       id:     iconLoader
-      source: "fonts/MaterialSymbolsSharp_Filled_36pt-Regular.ttf"
+      source: "../fonts/MaterialSymbolsSharp_Filled_36pt-Regular.ttf"
     }
     FontLoader {
       id:     titleLoader
-      source: "fonts/Charcoal.ttf"
+      source: "../fonts/Charcoal.ttf"
     }
 
     readonly property string body:  bodyLoader.name

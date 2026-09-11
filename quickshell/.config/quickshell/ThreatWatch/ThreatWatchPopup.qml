@@ -8,8 +8,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 
-import qs 
 import qs.Components as Components
+import qs.Services
 
 PanelWindow {
     id: popup

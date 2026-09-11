@@ -1,5 +1,5 @@
 import QtQuick
-import qs 
+import qs.Services
 
 Text {
   text: Time.time

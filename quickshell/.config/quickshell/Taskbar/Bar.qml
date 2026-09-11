@@ -2,9 +2,8 @@ import Quickshell
 import Quickshell.Wayland
 import QtQuick
 
-import qs 
 import qs.Components as Components
-import qs.ThreatWatch as ThreatWatch
+import qs.Services
 
 Scope {
   Variants {
@@ -91,13 +90,13 @@ Scope {
           id: threatWatchButton
           glyph: "󱡣"
           toggledGlyph: "\ue5c5"
-          isToggled: ThreatWatch.ThreatWatchModel.mapExpanded
+          isToggled: ThreatWatchModel.mapExpanded
           anchors.left: parent.left
           anchors.verticalCenter: parent.verticalCenter
           anchors.leftMargin: workspacesPanel.width + 20
-          onClicked: ThreatWatch.ThreatWatchModel.mapExpanded = !ThreatWatch.ThreatWatchModel.mapExpanded
-          Component.onCompleted: ThreatWatch.ThreatWatchModel.mapTriggerX = x
-          onXChanged: ThreatWatch.ThreatWatchModel.mapTriggerX = x
+          onClicked: ThreatWatchModel.mapExpanded = !ThreatWatchModel.mapExpanded
+          Component.onCompleted: ThreatWatchModel.mapTriggerX = x
+          onXChanged: ThreatWatchModel.mapTriggerX = x
 
         }
 

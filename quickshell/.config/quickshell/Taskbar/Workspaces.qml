@@ -3,8 +3,8 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
 
-import qs 
 import qs.Components as Components
+import qs.Services
 
 RowLayout {
     id: workspaces
