@@ -2,5 +2,6 @@ module Services
 singleton Config            1.0 Config.qml
 singleton Fonts             1.0 Fonts.qml
 singleton Players           1.0 Players.qml
+singleton Playlist          1.0 Playlist.qml
 singleton Time              1.0 Time.qml
 singleton ThreatWatchModel  1.0 ThreatWatchModel.qml
