@@ -1,0 +1,77 @@
+Sink #0
+	State: SUSPENDED
+	Name: oss_output.dsp0
+	Description: 0 - Realtek ALC298 (Internal Analog)
+	Driver: module-oss.c
+	Sample Specification: s16le 2ch 44100Hz
+	Channel Map: front-left,front-right
+	Owner Module: 6
+	Mute: no
+	Volume: front-left: 37355 /  57%,   front-right: 37355 /  57%
+	        balance 0.00
+	Base Volume: 65536 / 100%
+	Monitor Source: oss_output.dsp0.monitor
+	Latency: 0 usec, configured 0 usec
+	Flags: HARDWARE HW_VOLUME_CTRL LATENCY 
+	Properties:
+		device.string = "/dev/dsp0"
+		device.api = "oss"
+		device.description = "0 - Realtek ALC298 (Internal Analog)"
+		device.access_mode = "mmap"
+		device.buffering.buffer_size = "16384"
+		device.buffering.fragment_size = "4096"
+		device.icon_name = "audio-card"
+	Formats:
+		pcm
+
+Sink #1
+	State: SUSPENDED
+	Name: oss_output.dsp1
+	Description: 1 - Realtek ALC298 (Right Analog)
+	Driver: module-oss.c
+	Sample Specification: s16le 2ch 44100Hz
+	Channel Map: front-left,front-right
+	Owner Module: 7
+	Mute: no
+	Volume: front-left: 55050 /  84%,   front-right: 55050 /  84%
+	        balance 0.00
+	Base Volume: 65536 / 100%
+	Monitor Source: oss_output.dsp1.monitor
+	Latency: 0 usec, configured 0 usec
+	Flags: HARDWARE HW_VOLUME_CTRL LATENCY 
+	Properties:
+		device.string = "/dev/dsp1"
+		device.api = "oss"
+		device.description = "1 - Realtek ALC298 (Right Analog)"
+		device.access_mode = "mmap"
+		device.buffering.buffer_size = "16384"
+		device.buffering.fragment_size = "4096"
+		device.icon_name = "audio-card"
+	Formats:
+		pcm
+
+Sink #2
+	State: SUSPENDED
+	Name: oss_output.dsp2
+	Description: 2 - Intel Kaby Lake (HDMI/DP 8ch)
+	Driver: module-oss.c
+	Sample Specification: s16le 2ch 44100Hz
+	Channel Map: front-left,front-right
+	Owner Module: 8
+	Mute: no
+	Volume: front-left: 65536 / 100%,   front-right: 65536 / 100%
+	        balance 0.00
+	Base Volume: 65536 / 100%
+	Monitor Source: oss_output.dsp2.monitor
+	Latency: 0 usec, configured 0 usec
+	Flags: HARDWARE HW_VOLUME_CTRL LATENCY 
+	Properties:
+		device.string = "/dev/dsp2"
+		device.api = "oss"
+		device.description = "2 - Intel Kaby Lake (HDMI/DP 8ch)"
+		device.access_mode = "mmap"
+		device.buffering.buffer_size = "16384"
+		device.buffering.fragment_size = "4096"
+		device.icon_name = "audio-card"
+	Formats:
+		pcm
