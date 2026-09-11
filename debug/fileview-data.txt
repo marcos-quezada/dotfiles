@@ -1,0 +1,16 @@
+// The C++ side can't force bindings to be resolved in a specific order so
+	// its done here. Functions are used to avoid the eager loading aspect of properties.
+
+	// Preload is set as it is below to avoid starting an async read from a preload
+	// if the user wants an initial blocking read.
+
+	function text(): string {
+		if (!this.preload) this.__preload = false;
+		this.__blockLoading = this.blockLoading;
+		this.__blockAllReads = this.blockAllReads;
+		this.__printErrors = this.printErrors;
+		this.__path = this.path;
+		const text = this.__text;
+		if (this.preload) this.__preload = true;
+		return text;
+	}
