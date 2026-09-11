@@ -116,15 +116,21 @@ mode "resize" {
 bindsym $mod+r mode "resize"
 
 # ── utilities ─────────────────────────────────────────────────────────────────
-# audio: mixer(8) is in base — no extra packages needed.
-# vol.mute and mic.mute use the .mute subcommand available since FreeBSD 13.
+# audio: pactl (PulseAudio) controls the active default sink/source directly
+# so volume follows whichever output (speakers/headphones) is selected via
+# `pactl set-default-sink` — see docs/architecture.md's "audio output" section.
 bindsym --locked XF86AudioMute        exec pactl set-sink-mute @DEFAULT_SINK@ toggle
 bindsym --locked XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5%
 bindsym --locked XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5%
 bindsym --locked XF86AudioMicMute     exec pactl set-source-mute @DEFAULT_SOURCE@ toggle
 # brightness: backlight(8) is in base; acpi_video_load="YES" in loader.conf.
+# XF86MonBrightness* bindings kept in case they ever fire, but this hardware's
+# Fn-key combo produces no observable event at any OS layer (checked via both
+# libinput and devd) — $mod+F5/$mod+F6 are the actual working bindings.
 bindsym --locked XF86MonBrightnessDown exec backlight - 10%
 bindsym --locked XF86MonBrightnessUp   exec backlight + 10%
+bindsym $mod+F5 exec backlight - 10%
+bindsym $mod+F6 exec backlight + 10%
 bindsym Print exec grim
 
 # ── bar ───────────────────────────────────────────────────────────────────────
