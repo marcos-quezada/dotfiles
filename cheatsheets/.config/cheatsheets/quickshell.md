@@ -47,11 +47,14 @@ root structure).
 ```
 ~/.config/quickshell/
 ├── shell.qml           # root Scope — entry point, IpcHandler
-├── Config.qml          # colours + settings singleton
-├── Fonts.qml           # font resources singleton — semantic roles (body/icon/title)
-├── Time.qml            # clock singleton
 ├── settings.json       # runtime tunables (colours, sizes, etc.)
 ├── .qmlls.ini          # qmlls LSP import paths (auto-populated by Quickshell)
+├── Services/           # every process-wide singleton, one place
+│   ├── Config.qml            # colours + settings singleton
+│   ├── Fonts.qml             # font resources singleton — semantic roles (body/icon/title)
+│   ├── Time.qml              # clock singleton
+│   ├── ThreatWatchModel.qml  # threat feed data layer (moved out of ThreatWatch/)
+│   └── qmldir
 ├── Components/         # shared, generic UI atoms — no feature-specific knowledge
 │   ├── NewBorder.qml       # retro bevel border effect
 │   ├── PopupFrame.qml      # shared popup chrome (title bar, borders, fade)
@@ -63,24 +66,25 @@ root structure).
 │   ├── SysTray.qml         # system tray row (clock only — ThreatWatch moved to a TaskbarButton)
 │   ├── ClockWidget.qml
 │   └── qmldir
-├── ThreatWatch/         # threat feed model + popup
-│   ├── ThreatWatchModel.qml   # singleton data layer
+├── ThreatWatch/         # view only — data layer lives in Services/ now
 │   ├── ThreatWatchPopup.qml   # map overlay + status summary
 │   └── qmldir
 ├── ThreatWatchUtils/     # pure logic (no Quickshell imports; testable with qmltestrunner)
 │   ├── Utils.qml
 │   └── qmldir
-└── fonts/               # bundled fonts loaded by Fonts.qml
+└── fonts/               # bundled fonts loaded by Services/Fonts.qml
 ```
 
-`Components/`, `Taskbar/`, `ThreatWatch/`, and `ThreatWatchUtils/` each have
-their own `qmldir` and are imported via Quickshell's own module scheme:
-`import qs.Components`, `NewBorder { ... }` — no relative path, no `as
-Namespace` alias. `Config.qml`, `Fonts.qml`, and `Time.qml` are root-level
-singletons, reached the same way from anywhere in the tree via bare
-`import qs` (root-relative, no subpath).
+`Services/`, `Components/`, `Taskbar/`, `ThreatWatch/`, and `ThreatWatchUtils/`
+each have their own `qmldir` and are imported via Quickshell's own module
+scheme: `import qs.Services`, `Config.colors.base` — no relative path, no
+`as Namespace` alias. this replaced an earlier split where `Config`/`Fonts`/
+`Time` lived at the project root and `ThreatWatchModel` lived inside
+`ThreatWatch/` alongside its own view — everything singleton-shaped now lives
+in one place, matching how caelestia (this project's architecture reference)
+splits by layer (service vs view) rather than by feature.
 
-all four subdirectories are capitalized deliberately — `qs.<path>` requires
+all subdirectories are capitalized deliberately — `qs.<path>` requires
 an uppercase first letter on every path segment.
 
 ## qmlls (language server)

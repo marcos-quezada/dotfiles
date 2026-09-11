@@ -126,15 +126,17 @@ without Singleton: every `ThreatWatchWidget` instantiation would create its own
 times, each writing to the same cache files and racing each other.
 
 with Singleton: one timer, one update cycle, one set of file watchers. all UI
-components (`ThreatWatchWidget`, `ThreatWatchPopup`) read shared reactive
-properties — a change propagates to both instantly via QML bindings.
+components reading from it (currently `ThreatWatchPopup`, previously also
+`ThreatWatchWidget` before it was deleted as dead code) read shared reactive
+properties — a change propagates to all of them instantly via QML bindings.
 
-this is the same pattern used by `Config.qml` and `Time.qml` in the retroism
-base config. see https://quickshell.org/docs/v0.2.1/guide/qml-language/#singletons
+this is the same pattern used by every other file in `Services/`
+(`Config`, `Fonts`, `Time`). see
+https://quickshell.org/docs/v0.2.1/guide/qml-language/#singletons
 
 ### what belongs in the model vs the view
 
-| model (`ThreatWatchModel`) | view (`ThreatWatchWidget`, `ThreatWatchPopup`) |
+| model (`Services/ThreatWatchModel.qml`) | view (`ThreatWatch/ThreatWatchPopup.qml`) |
 |---|---|
 | `Process`, `Timer`, `FileView` | `Text`, `Rectangle`, `Image` |
 | parsed state (`level`, `barText`, `pins`, `updatedAt`) | layout, colours, click handlers |
@@ -511,6 +513,38 @@ the same icon codepoint against different fonts and silently diverge (see
 the `ThreatWatchWidget` vs `PopupFrame` icon-font mismatch, fixed in
 dotfiles-quickshell-cleanup).
 
+### Services/ — every singleton, one place
+
+`Services/` holds every process-wide singleton: `Config` (colours +
+settings), `Fonts` (font resources), `Time` (clock), and `ThreatWatchModel`
+(threat feed data layer). this replaced an earlier, inconsistent split —
+`Config`/`Fonts`/`Time` used to sit at the project root ("global"), while
+`ThreatWatchModel.qml` sat *with* `ThreatWatchPopup.qml` in `ThreatWatch/`
+("feature-grouped"). caelestia's actual convention (our architecture
+reference) splits by **layer** — `services/` for state/logic, `modules/`
+for the UI that consumes it — not by feature or by "how global is this,"
+so `Services/` now matches that: `ThreatWatch/` is view-only
+(`ThreatWatchPopup.qml` + `qmldir`), its data layer lives in `Services/`
+alongside everything else.
+
+consumers import it the same way as any other `qs.<Path>` module:
+```qml
+import qs.Services
+...
+color: Config.colors.base
+text: Time.time
+```
+no `as Namespace` — bare, matching how root-level singletons were always
+referenced before this move.
+
+**gotcha hit during the migration, worth remembering**: relative paths
+inside a moved singleton resolve from the *file's own location*, not the
+project root. `Fonts.qml`'s `FontLoader` sources (`"fonts/Monaco.ttf"`) and
+`Config.qml`'s `settings.json` path both needed a `../` prefix added after
+moving one directory deeper — the `settings.json` case was the more
+dangerous one, since it didn't error, it silently wrote a fresh,
+defaults-only file in the wrong place instead of failing loudly.
+
 ### Components/ — shared, generic UI atoms
 
 `Components/` holds QML types with no feature-specific knowledge — currently
@@ -525,8 +559,9 @@ NewBorder { ... }
 ```
 
 the bar you're reading about above the fold — `Bar.qml`, `Workspaces.qml`,
-`ThreatWatchPopup.qml` — all import `Components/` this way. `Config.qml` and
-`Fonts.qml` are not in `Components/`: they're singletons with process-wide
+`ThreatWatchPopup.qml` — all import `Components/` this way. `Config` and
+`Fonts` are not in `Components/`: they live in `Services/` (see above), a
+different category from stateless, reusable view chrome.
 state, a different category from stateless, reusable view chrome.
 
 **gotcha discovered moving `PopupFrame.qml` here:** a file can depend on a
@@ -1036,8 +1071,8 @@ importPaths="/usr/local/bin:/usr/local/lib/qt6/qml"
 ```
 `buildDir` points at an ephemeral, per-process VFS directory Quickshell
 materializes at runtime — it contains real symlinks mirroring the project
-(`qs/Config.qml -> .../Config.qml`, etc.), confirmed by direct inspection.
-it does **not** contain a `qmldir` for that mirror, which is why external
+(`qs/Services/Config.qml -> .../Services/Config.qml`, etc.), confirmed by
+direct inspection. it does **not** contain a `qmldir` for that mirror, which is why external
 tooling (see below) can't fully resolve `import qs` even when pointed at it.
 
 ### `import qs` vs `import ".."` — a deliberate trade-off, not an oversight
