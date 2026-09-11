@@ -1,0 +1,20 @@
+[ao] Trying audio driver 'oss'
+[ao/oss] requested format: 48000 Hz, stereo channels, floatp
+[ao/oss] Using '/dev/dsp' audio device.
+[ao/oss] Sample format: float
+[ao/oss] Channel layouts:
+[ao/oss]  - mono
+[ao/oss]  - stereo
+[ao/oss]  - 2.1
+[ao/oss]  - quad
+[ao/oss]  - 5.0(alsa)
+[ao/oss]  - 5.1(alsa)
+[ao/oss]  - fl-fr-bl-br-fc-lfe-bc
+[ao/oss]  - 7.1(alsa)
+[ao/oss] result: stereo
+[ao/oss] Using 2 channels (requested: 2).
+[ao/oss] Using 48000 Hz samplerate.
+[ao/oss] device buffer: 16384 samples.
+[ao/oss] using soft-buffer of 16384 samples.
+[cplayer] AO: [oss] 48000Hz stereo 2ch float
+[cplayer] AO: Description: OSS/ioctl audio output
