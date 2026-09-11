@@ -1,0 +1,22 @@
+  INFO: Reloading configuration...
+  INFO: Configuration Loaded
+  INFO: Reloading configuration...
+  INFO: Configuration Loaded
+  INFO: Reloading configuration...
+  INFO: Configuration Loaded
+  INFO: Reloading configuration...
+  INFO: Configuration Loaded
+  WARN quickshell.dbus.properties: Error updating property org.mpris.MediaPlayer2.mpv/org/mpris/MediaPlayer2/org.mpris.MediaPlayer2.Player:Position
+  WARN quickshell.dbus.properties: QDBusError("org.freedesktop.DBus.Error.ServiceUnknown", "The name org.mpris.MediaPlayer2.mpv was not provided by any .service files")
+  WARN quickshell.dbus.properties: Error updating property org.mpris.MediaPlayer2.firefox.instance_1_18/org/mpris/MediaPlayer2/org.mpris.MediaPlayer2.Player:Position
+  WARN quickshell.dbus.properties: QDBusError("org.freedesktop.DBus.Error.ServiceUnknown", "The name org.mpris.MediaPlayer2.firefox.instance_1_18 was not provided by any .service files")
+  WARN quickshell.dbus.properties: Error updating property org.mpris.MediaPlayer2.firefox.instance_1_18/org/mpris/MediaPlayer2/org.mpris.MediaPlayer2.Player:Metadata
+  WARN quickshell.dbus.properties: QDBusError("org.freedesktop.DBus.Error.ServiceUnknown", "The name org.mpris.MediaPlayer2.firefox.instance_1_18 was not provided by any .service files")
+  WARN quickshell.dbus.properties: Error updating property org.mpris.MediaPlayer2.firefox.instance_1_18/org/mpris/MediaPlayer2/org.mpris.MediaPlayer2.Player:Position
+  WARN quickshell.dbus.properties: QDBusError("org.freedesktop.DBus.Error.UnknownMethod", "Object does not exist at path “/org/mpris/MediaPlayer2”")
+  WARN quickshell.dbus.properties: Error updating property org.mpris.MediaPlayer2.firefox.instance_1_18/org/mpris/MediaPlayer2/org.mpris.MediaPlayer2.Player:Position
+  WARN quickshell.dbus.properties: QDBusError("org.freedesktop.DBus.Error.ServiceUnknown", "The name org.mpris.MediaPlayer2.firefox.instance_1_18 was not provided by any .service files")
+  WARN quickshell.dbus.properties: Error updating property org.mpris.MediaPlayer2.firefox.instance_1_18/org/mpris/MediaPlayer2/org.mpris.MediaPlayer2.Player:Position
+  WARN quickshell.dbus.properties: QDBusError("org.freedesktop.DBus.Error.ServiceUnknown", "The name org.mpris.MediaPlayer2.firefox.instance_1_18 was not provided by any .service files")
+  WARN quickshell.dbus.properties: Error updating property org.mpris.MediaPlayer2.firefox.instance_1_18/org/mpris/MediaPlayer2/org.mpris.MediaPlayer2.Player:Position
+  WARN quickshell.dbus.properties: QDBusError("org.freedesktop.DBus.Error.ServiceUnknown", "The name org.mpris.MediaPlayer2.firefox.instance_1_18 was not provided by any .service files")
