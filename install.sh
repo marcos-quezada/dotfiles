@@ -307,6 +307,7 @@ DO_MPV=0
 
 # core packages — available everywhere
 DO_GIT=1
+DO_BIN=1
 DO_VIM=1
 DO_INPUTRC=1
 DO_CHEATSHEETS=1
@@ -325,6 +326,7 @@ DO_SKETCHYBAR=0
 if [ "$YES" = "0" ]; then
     printf '\n  core packages (all platforms):\n\n'
     prompt_yn "stow git (.gitconfig + .color.gitconfig)?" y && DO_GIT=1 || DO_GIT=0
+    prompt_yn "stow bin (.local/bin/new_script — general-purpose tools)?" y && DO_BIN=1 || DO_BIN=0
     prompt_yn "stow vim (.vimrc)?" y                         && DO_VIM=1 || DO_VIM=0
     prompt_yn "stow inputrc (.inputrc)?" y                   && DO_INPUTRC=1 || DO_INPUTRC=0
     prompt_yn "stow cheatsheets (.config/cheatsheets/)?" y   && DO_CHEATSHEETS=1 || DO_CHEATSHEETS=0
@@ -412,6 +414,7 @@ stow_root() {
 }
 
 [ "$DO_GIT"         = "1" ] && stow_pkg git
+[ "$DO_BIN"         = "1" ] && stow_pkg bin
 [ "$DO_VIM"         = "1" ] && stow_pkg vim
 [ "$DO_INPUTRC"     = "1" ] && stow_pkg inputrc
 [ "$DO_CHEATSHEETS" = "1" ] && stow_pkg cheatsheets

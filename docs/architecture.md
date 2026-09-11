@@ -825,6 +825,19 @@ more proportionate next step (not yet implemented).
 
 ---
 
+## script placement
+
+a script goes in a thematic package (like `threatwatch/.local/bin/threatwatch`)
+only when it's genuinely coupled to that package's other files — the
+threatwatch script and its `config.env.template` are a cohesive unit,
+meaningfully paired. everything else general-purpose goes in `bin`, so
+`.local/bin/` doesn't end up fragmented across whichever unrelated package a
+tool happened to be added alongside when it was written. `new_script` moved
+out of `git` for exactly this reason — it's a general script generator with
+nothing to do with git, it just historically landed there.
+
+---
+
 ## stow layout
 
 every top-level directory (except `docs/`) is a stow package. `install.sh`
@@ -833,10 +846,11 @@ manually.
 
 | package | stow target | platform | contents |
 |---|---|---|---|
+| `bin` | `$HOME` | all | `.local/bin/new_script` — general-purpose POSIX sh script template generator; the canonical home for standalone tools not tightly coupled to another package's own files |
 | `cheatsheets` | `$HOME` | all | `.config/cheatsheets/` |
 | `curl` | `$HOME` | all | `.curlrc` — silent, follow redirects, fail-on-error, 30s timeout |
 | `foot` | `$HOME` | FreeBSD + Linux | `.config/foot/` |
-| `git` | `$HOME` | all | `.gitconfig`, `.color.gitconfig`, `.gitignore`, `.local/bin/git-clone-bare-for-worktrees`, `.local/bin/new_script` |
+| `git` | `$HOME` | all | `.gitconfig`, `.color.gitconfig`, `.gitignore`, `.local/bin/git-clone-bare-for-worktrees` |
 | `inputrc` | `$HOME` | all | `.inputrc` |
 | `mpv` | `$HOME` | FreeBSD | `.config/mpv/mpv.conf` — `ao=pulse`; requires `mpv` rebuilt from ports with PulseAudio enabled, see `docs/architecture.md`'s "audio output" section |
 | `nvim` | `$HOME` | macOS | `.config/nvim/init.lua` — minimal single-file config, treesitter only |
