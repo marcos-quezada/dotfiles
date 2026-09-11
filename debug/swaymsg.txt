@@ -1,0 +1,141 @@
+[
+  {
+    "identifier": "0:0:Control_Method_Lid_Switch",
+    "name": "Control Method Lid Switch",
+    "type": "switch",
+    "libinput": {
+      "send_events": "enabled"
+    },
+    "vendor": 0,
+    "product": 0
+  },
+  {
+    "identifier": "2:7:SynPS\/2_Synaptics_TouchPad",
+    "name": "SynPS\/2 Synaptics TouchPad",
+    "type": "touchpad",
+    "scroll_factor": 1.0,
+    "libinput": {
+      "send_events": "enabled",
+      "tap": "enabled",
+      "tap_button_map": "lrm",
+      "tap_drag": "enabled",
+      "tap_drag_lock": "disabled",
+      "accel_speed": 0.0,
+      "accel_profile": "adaptive",
+      "natural_scroll": "disabled",
+      "left_handed": "disabled",
+      "click_method": "button_areas",
+      "clickfinger_button_map": "lrm",
+      "middle_emulation": "enabled",
+      "scroll_method": "two_finger",
+      "dwt": "enabled",
+      "dwtp": "enabled"
+    },
+    "vendor": 2,
+    "product": 7
+  },
+  {
+    "identifier": "1:1:AT_keyboard",
+    "name": "AT keyboard",
+    "type": "keyboard",
+    "repeat_delay": 600,
+    "repeat_rate": 25,
+    "xkb_layout_names": [
+      "German"
+    ],
+    "xkb_active_layout_index": 0,
+    "xkb_active_layout_name": "German",
+    "libinput": {
+      "send_events": "enabled"
+    },
+    "vendor": 1,
+    "product": 1
+  },
+  {
+    "identifier": "0:0:Power_Button",
+    "name": "Power Button",
+    "type": "keyboard",
+    "repeat_delay": 600,
+    "repeat_rate": 25,
+    "xkb_layout_names": [
+      "German"
+    ],
+    "xkb_active_layout_index": 0,
+    "xkb_active_layout_name": "German",
+    "libinput": {
+      "send_events": "enabled"
+    },
+    "vendor": 0,
+    "product": 0
+  },
+  {
+    "identifier": "0:0:Sleep_Button",
+    "name": "Sleep Button",
+    "type": "keyboard",
+    "repeat_delay": 600,
+    "repeat_rate": 25,
+    "xkb_layout_names": [
+      "German"
+    ],
+    "xkb_active_layout_index": 0,
+    "xkb_active_layout_name": "German",
+    "libinput": {
+      "send_events": "enabled"
+    },
+    "vendor": 0,
+    "product": 0
+  },
+  {
+    "identifier": "0:0:ACPI_video_extension",
+    "name": "ACPI video extension",
+    "type": "keyboard",
+    "repeat_delay": 600,
+    "repeat_rate": 25,
+    "xkb_layout_names": [
+      "German"
+    ],
+    "xkb_active_layout_index": 0,
+    "xkb_active_layout_name": "German",
+    "libinput": {
+      "send_events": "enabled"
+    },
+    "vendor": 0,
+    "product": 0
+  },
+  {
+    "identifier": "0:0:System_mouse",
+    "name": "System mouse",
+    "type": "pointer",
+    "scroll_factor": 1.0,
+    "libinput": {
+      "send_events": "enabled",
+      "accel_speed": 0.0,
+      "accel_profile": "adaptive",
+      "natural_scroll": "disabled",
+      "left_handed": "disabled",
+      "middle_emulation": "disabled",
+      "scroll_method": "none",
+      "scroll_button": 274,
+      "scroll_button_lock": "disabled"
+    },
+    "vendor": 0,
+    "product": 0
+  },
+  {
+    "identifier": "0:0:System_keyboard_multiplexer",
+    "name": "System keyboard multiplexer",
+    "type": "keyboard",
+    "repeat_delay": 600,
+    "repeat_rate": 25,
+    "xkb_layout_names": [
+      "German"
+    ],
+    "xkb_active_layout_index": 0,
+    "xkb_active_layout_name": "German",
+    "libinput": {
+      "send_events": "enabled"
+    },
+    "vendor": 0,
+    "product": 0
+  }
+]
