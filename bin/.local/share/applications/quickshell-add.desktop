@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Queue track for quickshell
+Comment=Adds a YouTube URL to the quickshell playlist inbox
+Exec=sh -c 'exec "$HOME/.local/bin/queue-track" "$1"' -- %u
+NoDisplay=true
+Terminal=false
+MimeType=x-scheme-handler/quickshell-add;

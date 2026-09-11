@@ -56,6 +56,9 @@ help_message() {
 	appends <url> to \$XDG_DATA_HOME/quickshell/playlist-inbox.txt (default
 	~/.local/share/quickshell/playlist-inbox.txt), one line per call. quickshell's
 	Services/Playlist.qml watches that file and processes new lines from there.
+	<url> may also be a full 'quickshell-add:<percent-encoded-url>' URI, as
+	passed by the quickshell-add.desktop scheme handler - the prefix is
+	stripped and the remainder percent-decoded automatically.
 	_EOF_
 }
 
@@ -83,6 +86,18 @@ done
 # main logic
 
 [ -n "$url" ] || { usage; error_exit "no URL given"; }
+
+# unwrap the quickshell-add: URI scheme, if that's what we were handed
+# (a browser invoking the .desktop handler passes the whole URI, not just
+# the percent-encoded URL inside it)
+case "$url" in
+    quickshell-add:*)
+        url="${url#quickshell-add:}"
+        # percent-decode: %XX -> \xXX, then let printf interpret the escapes
+        url=$(printf '%s' "$url" | sed 's/+/ /g; s/%\([0-9A-Fa-f][0-9A-Fa-f]\)/\\x\1/g')
+        url=$(printf '%b' "$url")
+        ;;
+esac
 
 case "$url" in
     http://*|https://*) ;;
