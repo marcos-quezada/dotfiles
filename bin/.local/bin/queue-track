@@ -39,7 +39,7 @@ signal_exit() { # handle trapped signals
 }
 
 usage() {
-    printf '%s\n' "queue-track [-h|--help]"
+    printf '%s\n' "queue-track [-h|--help] <url>"
 }
 
 help_message() {
@@ -53,6 +53,9 @@ help_message() {
 
 	  -h, --help  Display this help message and exit.
 
+	appends <url> to \$XDG_DATA_HOME/quickshell/playlist-inbox.txt (default
+	~/.local/share/quickshell/playlist-inbox.txt), one line per call. quickshell's
+	Services/Playlist.qml watches that file and processes new lines from there.
 	_EOF_
 }
 
@@ -63,6 +66,7 @@ trap "signal_exit INT"  INT
 
 
 # parse command-line
+url=""
 while [ -n "${1:-}" ]; do
     case "$1" in
         -h | --help) help_message; graceful_exit ;;
@@ -70,12 +74,25 @@ while [ -n "${1:-}" ]; do
             usage
             error_exit "unknown option $1" ;;
         *)
-            # positional argument: $1
+            url="$1"
             ;;
     esac
     shift
 done
 
 # main logic
+
+[ -n "$url" ] || { usage; error_exit "no URL given"; }
+
+case "$url" in
+    http://*|https://*) ;;
+    *) error_exit "'$url' doesn't look like a URL" ;;
+esac
+
+data_dir="${XDG_DATA_HOME:-$HOME/.local/share}/quickshell"
+inbox_file="$data_dir/playlist-inbox.txt"
+
+mkdir -p "$data_dir" || error_exit "could not create $data_dir"
+printf '%s\n' "$url" >> "$inbox_file" || error_exit "could not write to $inbox_file"
 
 graceful_exit
