@@ -136,7 +136,7 @@ Singleton {
     // ── private helpers ───────────────────────────────────────────────────────
 
     function _refreshFromSummary() {
-        var result = utils.parseSummary(String(summaryWatcher.text))
+        var result = utils.parseSummary(String(summaryWatcher.text()))
         if (!result) return
         if (result.level)     root.level     = result.level
         if (result.updatedAt) root.updatedAt = result.updatedAt
@@ -146,7 +146,7 @@ Singleton {
     }
 
     function _refreshPins() {
-        var result = utils.parsePins(pinsWatcher.text)
+        var result = utils.parsePins(pinsWatcher.text())
         if (result !== null) root.pins = result
         // null means partial write in progress — keep previous pins, retry next cycle
     }

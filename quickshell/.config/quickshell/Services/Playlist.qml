@@ -54,7 +54,7 @@ Singleton {
     }
 
     function _processInbox() {
-        var lines = String(inboxWatcher.text).split("\n")
+        var lines = String(inboxWatcher.text()).split("\n")
         for (var i = 0; i < lines.length; i++) {
             var url = lines[i].trim()
             if (url !== "") root.addFromUrl(url)
@@ -93,7 +93,7 @@ Singleton {
         root._currentUrl  = next
         root._downloading = true
         downloadProc.command = [
-            "yt-dlp", "-x", "--audio-format", "m4a",
+            "yt-dlp", "-x", "--audio-format", "m4a", "--no-playlist",
             "--print", "after_move:filepath",
             "-o", root.musicDir + "/%(title)s.%(ext)s",
             next
