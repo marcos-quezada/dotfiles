@@ -87,17 +87,29 @@ Scope {
 
         // threat watch button - toggle button to show the threatwatch map
         Components.TaskbarButton {
-          id: threatWatchButton
-          glyph: "󱡣"
-          toggledGlyph: "\ue5c5"
-          isToggled: ThreatWatchModel.mapExpanded
-          anchors.left: parent.left
+          id:                     threatWatchButton
+          glyph:                  "\u{f1863}"
+          toggledGlyph:           "\ue5c5"
+          isToggled:              ThreatWatchModel.mapExpanded
+          anchors.left:           parent.left
           anchors.verticalCenter: parent.verticalCenter
-          anchors.leftMargin: workspacesPanel.width + 20
-          onClicked: ThreatWatchModel.mapExpanded = !ThreatWatchModel.mapExpanded
-          Component.onCompleted: ThreatWatchModel.mapTriggerX = x
-          onXChanged: ThreatWatchModel.mapTriggerX = x
+          anchors.leftMargin:     workspacesPanel.width + 20
+          onClicked:              ThreatWatchModel.mapExpanded = !ThreatWatchModel.mapExpanded
+          Component.onCompleted:  ThreatWatchModel.mapTriggerX = x
+          onXChanged:             ThreatWatchModel.mapTriggerX = x
+        }
 
+        Components.TaskbarButton {
+          id:                     playlistButton
+          glyph:                  "\ue405"
+          toggledGlyph:           "\ue5c5"
+          isToggled:              Playlist.expanded
+          anchors.left:           parent.left
+          anchors.verticalCenter: parent.verticalCenter
+          anchors.leftMargin:     workspacesPanel.width + 50
+          onClicked:              Playlist.expanded = !Playlist.expanded
+          Component.onCompleted:  Playlist.triggerX = x
+          onXChanged:             Playlist.triggerX = x
         }
 
         // system tray panel — same shadow treatment, anchored right for clock + widgets

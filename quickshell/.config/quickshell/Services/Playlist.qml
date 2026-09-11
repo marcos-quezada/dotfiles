@@ -14,11 +14,20 @@ Singleton {
     readonly property string dataDir:  Quickshell.env("HOME") + "/.local/share/quickshell"
     readonly property string musicDir: Quickshell.env("HOME") + "/Music"
 
-    component Track: JsonObject {
-        property string title: ""
-        property string path: ""
-        property string sourceUrl: ""   // empty for manually-added local files
+    property bool expanded: false
+    property real triggerX: 0
+    property bool _startupGraceOver: false
+
+    Timer {
+      id:          startupGrace
+      interval:    300
+      onTriggered: {
+          root._startupGraceOver = true
+          root._processInbox()
+      }
     }
+
+    Component.onCompleted: startupGrace.start()
 
     // ── persisted playlist ────────────────────────────────────────────────────
 
@@ -36,7 +45,7 @@ Singleton {
 
         JsonAdapter {
             id: playlistAdapter
-            property list<Track> tracks: []
+            property var tracks: []
         }
     }
 
@@ -49,7 +58,9 @@ Singleton {
         id: inboxWatcher
         path: root.dataDir + "/playlist-inbox.txt"
         watchChanges: true
-        onTextChanged: root._processInbox()
+        onTextChanged: {
+            if (root._startupGraceOver) root._processInbox()
+        }
         onLoadFailed: error => {} // no inbox yet — nothing queued, that's fine
     }
 

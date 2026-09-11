@@ -40,7 +40,7 @@ PanelWindow {
     Components.PopupFrame {
         id: chrome
         title: "THREATWATCH"
-        icon:  "󱡣"
+        icon:  "\u{f1863}"
 
         Image {
             id: mapImage
