@@ -115,7 +115,7 @@ Singleton {
   
   property alias settings: settingsJsonAdapter.settings
   FileView {
-    path: Qt.resolvedUrl("./settings.json")
+    path: Qt.resolvedUrl("../settings.json")
     // when changes are made on disk, reload the file's content
     watchChanges: true
     onFileChanged: reload()
