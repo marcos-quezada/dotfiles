@@ -1,0 +1,4 @@
+W: [] caps.c: Normally all extra capabilities would be dropped now, but that's impossible because PulseAudio was built without capabilities support.
+0	oss_output.dsp0	module-oss.c	s16le 2ch 44100Hz	IDLE
+1	oss_output.dsp1	module-oss.c	s16le 2ch 44100Hz	IDLE
+2	oss_output.dsp2	module-oss.c	s16le 2ch 44100Hz	IDLE

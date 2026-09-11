@@ -7,6 +7,8 @@ RowLayout {
     anchors.verticalCenter: parent.verticalCenter
     anchors.rightMargin: 12
 
+    NowPlaying {}
+
     ClockWidget {
       id: clockWidget
     }
