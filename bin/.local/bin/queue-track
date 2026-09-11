@@ -97,7 +97,7 @@ urldecode() {
         case "$_s" in
             %[0-9A-Fa-f][0-9A-Fa-f]*)
                 _hex=$(printf '%s' "$_s" | cut -c2-3)
-                _oct=$(printf '%03o' "$((16#$_hex))")
+                _oct=$(printf '%03o' "$((0x$_hex))")
                 _out="$_out$(printf "\\${_oct}")"
                 _s="${_s#???}"
                 ;;
