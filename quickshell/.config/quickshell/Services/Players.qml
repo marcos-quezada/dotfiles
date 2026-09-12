@@ -51,7 +51,7 @@ Singleton {
 
         if (active.loopState === MprisLoopState.None)
             active.loopState = MprisLoopState.Track
-        else if (active.loopState === MprisLoopstate.track)
+        else if (active.loopState === MprisLoopState.Track)
             active.loopState = MprisLoopState.Playlist
         else
             active.loopState = MprisLoopState.None
