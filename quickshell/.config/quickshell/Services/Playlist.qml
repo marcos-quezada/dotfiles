@@ -131,9 +131,19 @@ Singleton {
         root._addTrack("", path, "")
     }
 
-    function play(index) {
-        if (index < 0 || index >= root.tracks.length) return
-        Quickshell.execDetached(["mpv", root.tracks[index].path])
+    Process {
+        id: playerProc
+    }
+
+    function playAll(startIndex) {
+        if (root.tracks.length === 0) return
+        playerProc.running = false    // stop whatever's currently playing first
+
+        var paths = []
+        for (var i = 0; i < root.tracks.length; i++) paths.push(root.tracks[i].path)
+
+        playerProc.command = ["mpv"].concat(paths).concat(["--playlist-start=" + startIndex])
+        playerProc.running = true
     }
 
     function removeAt(index) {

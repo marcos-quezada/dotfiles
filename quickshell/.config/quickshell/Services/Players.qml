@@ -35,4 +35,31 @@ Singleton {
         if (active?.canGoPrevious)
             active.previous()
     }
+
+    readonly property bool shuffleSupported: active?.shuffleSupported ?? false
+    readonly property bool shuffle:          active?.shuffle          ?? false
+    readonly property bool loopSupported:    active?.loopSupported    ?? false
+    readonly property int  loopState:        active?.loopState        ?? MprisLoopState.None
+
+    function toggleShuffle(): void {
+        if (active?.shuffleSupported)
+            active.shuffle = !active.shuffle
+    }
+    
+    function cycleLoop(): void {
+        if (!active?.loopSupported) return
+
+        if (active.loopState === MprisLoopState.None)
+            active.loopState = MprisLoopState.Track
+        else if (active.loopState === MprisLoopstate.track)
+            active.loopState = MprisLoopState.Playlist
+        else
+            active.loopState = MprisLoopState.None
+    }
+
+    readonly property string loopLabel: {
+        if (loopState == MprisLoopState.Track)    return "repeat: track"
+        if (loopState == MprisLoopState.Playlist) return "repeat: all"
+        return "repeat: off"
+    }
 }
