@@ -2,7 +2,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-import qs.Playlist as Playlist
+import qs.Playlist
+import qs.Services
 import qs.Taskbar as Taskbar
 import qs.ThreatWatch as ThreatWatch
 
@@ -14,7 +15,7 @@ Scope {
     // must live at root scope — WlrLayershell surfaces cannot nest inside another PanelWindow
     ThreatWatch.ThreatWatchPopup {}
 
-    Playlist.PlaylistPopup {}
+    PlaylistPopup {}
 
     // IPC handler — allows manual reload from the terminal via:
     //   qs ipc call shell reload       (soft: reuses existing windows)
@@ -24,5 +25,10 @@ Scope {
         target: "shell"
         function reload(): void     { Quickshell.reload(false) }
         function hardReload(): void { Quickshell.reload(true)  }
+    }
+
+    IpcHandler {
+        target: "playlist"
+        function processInbox(): void { Playlist._processInbox() }
     }
 }

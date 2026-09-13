@@ -138,5 +138,6 @@ inbox_file="$data_dir/playlist-inbox.txt"
 
 mkdir -p "$data_dir" || error_exit "could not create $data_dir"
 printf '%s\n' "$url" >> "$inbox_file" || error_exit "could not write to $inbox_file"
+qs ipc call playlist processInbox 2>/dev/null || true
 
 graceful_exit
