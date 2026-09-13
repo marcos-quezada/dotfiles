@@ -823,6 +823,43 @@ automatic switching becomes a real, recurring annoyance rather than a nice-
 to-have. binding the manual `pactl` commands to sway keybindings is the
 more proportionate next step (not yet implemented).
 
+### `FileView.watchChanges` can't be trusted for externally-written files
+
+`Services/Playlist.qml` watches an inbox file (`playlist-inbox.txt`) that
+`bin/.local/bin/queue-track` appends a URL to on every bookmarklet click.
+This never triggered `onTextChanged` reliably — confirmed via three
+separate tests (waiting several minutes in case of a slow poll interval;
+rewriting the file via a temp-file-plus-`mv` atomic replace, the same
+pattern editors use on save) — all disproven by direct evidence, not just
+assumption.
+
+the root cause, per `FileView`'s actual C++ source
+(`quickshell-mirror/quickshell`, `src/io/fileview.cpp`): it uses Qt's
+`QFileSystemWatcher`, which only has native, event-driven backends on Linux
+(`inotify`) and macOS (`fsevents`) — FreeBSD falls back to Qt's generic
+polling watcher. quickshell's own config-file hot-reload
+(`src/core/generation.cpp`) uses the *identical* watcher class, which is
+why it reliably works on save in an editor while `FileView.watchChanges`
+didn't work here — the exact mechanism for that asymmetry was never fully
+pinned down (the atomic-replace test was meant to confirm it and didn't),
+and it wasn't worth chasing further once a fix that sidesteps the question
+entirely was available.
+
+**fix**: don't rely on file-watching for externally-written files at all —
+have the writer notify quickshell directly over IPC instead. `queue-track`
+calls `qs ipc call playlist processInbox` immediately after its append,
+hitting a `playlist`-targeted `IpcHandler` in `shell.qml` that calls
+`Playlist._processInbox()` directly. instant, and doesn't depend on
+whatever FreeBSD's Qt build does or doesn't support for file watching.
+
+**lesson for next time**: `FileView.watchChanges` is fine for files
+quickshell itself writes (`Config.qml`'s `settings.json`,
+`Playlist.qml`'s own `playlist.json` via `writeAdapter()` — both confirmed
+working throughout this project) since those changes happen from within
+the same process. for anything written by an external script or process,
+prefer an explicit `IpcHandler` notification over hoping the watcher
+notices.
+
 ---
 
 ## script placement
