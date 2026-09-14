@@ -59,15 +59,17 @@ PanelWindow {
                 Layout.fillWidth: true
                 spacing:          4
 
-                Button {
-                    text:           "\u23ee"
+                Components.IconTileButton {
+                    glyph:          "\u23ee"
+                    glyphFont:      Fonts.body
                     enabled:        Players.active !== null
                     implicitWidth:  22
                     implicitHeight: 22
                     onClicked:      Players.previous()
                 }
-                Button {
-                    text:           Players.isPlaying ? "\u23f8" : "\u25b6"
+                Components.IconTileButton {
+                    glyph:          Players.isPlaying ? "\u23f8" : "\u25b6"
+                    glyphFont:      Fonts.body
                     enabled:        Players.active !==null || popup.selectedIndex !== -1
                     implicitWidth:  22
                     implicitHeight: 22
@@ -76,13 +78,17 @@ PanelWindow {
                         else if (popup.selectedIndex !== -1) Playlist.playAll(popup.selectedIndex)
                     }
                 }
-                Button {
-                    text:           "\u23ed"
+                Components.IconTileButton {
+                    glyph:          "\u23ed"
+                    glyphFont:      Fonst.body
                     enabled:        Players.active !== null
                     implicitWidth:  22
                     implicitHeight: 22
                     onClicked:      Players.next()
                 }
+
+                // shuffle/repeat are text labels, not icon tiles - left as
+                // plain buttons for now, own styling pass later
                 Button {
                     text:           "shuffle"
                     checkable:      true
@@ -106,13 +112,14 @@ PanelWindow {
                 clip:              true
                 model:             Playlist.tracks
 
-                delegate: Rectangle {
-                    id:     row
+                delegate: Components.ListRow {
+                    id:        row
                     required property var modelData
                     required property int index
-                    width:  trackList.width
-                    height: 26
-                    color:  popup.selectedIndex === index ? Config.colors.highlight : "transparent"
+                    width:     trackList.width
+                    height:    26
+                    selected:  popup.selectedIndex === index
+                    onClicked: popup.selectedIndex = index
 
                     RowLayout {
                         anchors.fill: parent
@@ -127,18 +134,13 @@ PanelWindow {
                             elide:            Text.ElideRight
                         }
 
-                        Button {
-                            text:           "\u2715"    // remove glyph
+                        Components.IconTileButton {
+                            glyph:          "\u2715"
+                            glyphFont:      Fonts.body
                             implicitWidth:  22
                             implicitHeight: 22
                             onClicked:      Playlist.removeAt(row.index)
                         }
-                    }
-                    
-                    MouseArea {
-                        anchors.fill: parent
-                        z:            -1    // behind the remove button, so  it doesn't steal its clicks
-                        onClicked:     popup.selectedIndex = row.index
                     }
                 }
             }
@@ -154,11 +156,21 @@ PanelWindow {
                     placeholderText:  "/path/to/local/file.m4a"
                     font.family:      Fonts.body
                     font.pixelSize:   11
+                    color:            Config.colors.text
+
+                    background:        Rectangle {
+                        color:        Config.colors.highlight
+                        border.width: 1
+                        border.color: Config.colors.outline
+                    }
                 }
 
-                Button {
-                    text:      "add"
-                    onClicked: {
+                Components.IconTileButton {
+                    glyph:          "+"
+                    glyphFont:      Fonts.body
+                    implicitWidth:  22
+                    implicitHeight: 22
+                    onClicked:      {
                         if (pathInput.text !== "") {
                             Playlist.addLocalFile(pathInput.text)
                             pathInput.text = ""

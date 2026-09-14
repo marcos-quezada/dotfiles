@@ -5,10 +5,11 @@ import qs.Services
 Button {
     id: root
 
-    property string glyph:  ""
-    property int glyphSize: 14
+    property string glyph:     ""
+    property int glyphSize:    14
+    property string glyphFont: Fonts.icon
 
-    baclgroud: Rectangle {
+    background: Rectangle {
         anchors.fill: parent
         color:        Config.colors.outline
         opacity:      hover.hovered ? (0.2 + (root.presed ? 0.2 : 0.0)) : 0.1
@@ -35,7 +36,7 @@ Button {
 
     Text {
         anchors.centerIn: parent
-        font.family:      Fonts.icon
+        font.family:      root.glyphFont
         font.pixelSize:   root.glyphSize
         opacity:          0.4
         color:            Config.colors.text
