@@ -15,9 +15,9 @@ Singleton {
     // hardcoded because there are only ever these three physical sinks here,
     // on a different machine: run `pactl list sinks` and update this list to match.
     readonly property var outputs: [
-        { label: "Speakers",   sink: "oss_output.dsp00" },
-        { label: "Headphones", sink: "oss_output.dsp01" } ,
-        { label: "HDMI",       sink: "oss_output.dsp02" }
+        { label: "Speakers",   sink: "oss_output.dsp0" },
+        { label: "Headphones", sink: "oss_output.dsp1" } ,
+        { label: "HDMI",       sink: "oss_output.dsp2" }
     ]
     readonly property bool expanded: Popups.current === "sound"
     
@@ -30,7 +30,7 @@ Singleton {
 
     Process {
         id:       queryProc
-        command:  ["sh", "-c", "pactl info | grep 'Default Sink'; paclt get-sink-volume @DEFAULT_SINK@; pactl get-sink-mute @DEFAULT_SINK@"]
+        command:  ["sh", "-c", "pactl info | grep 'Default Sink'; pactl get-sink-volume @DEFAULT_SINK@; pactl get-sink-mute @DEFAULT_SINK@"]
         stdout:   SplitParser {
             onRead: data => { root._buffer += data + "\n" }
         }
