@@ -63,6 +63,7 @@ trap "signal_exit INT"  INT
 
 
 # parse command-line
+sink=""
 while [ -n "${1:-}" ]; do
     case "$1" in
         -h | --help) help_message; graceful_exit ;;
@@ -70,12 +71,20 @@ while [ -n "${1:-}" ]; do
             usage
             error_exit "unknown option $1" ;;
         *)
-            # positional argument: $1
+            sink="$1"
             ;;
     esac
     shift
 done
 
 # main logic
+
+[ -n "$sink" ] || { usage; error_exit "no sink name given"; }
+
+pactl set-default-sink "$sink" || error_exit "could not set default sink to $sink"
+
+pactl list sink-inputs | awk -F'#' '/^Sink Input #/ {print $2}' | while read -r id; do
+    pactl move-sink-input "$id" "$sink"
+done
 
 graceful_exit
