@@ -12,7 +12,7 @@ Button {
     background: Rectangle {
         anchors.fill: parent
         color:        Config.colors.outline
-        opacity:      hover.hovered ? (0.2 + (root.presed ? 0.2 : 0.0)) : 0.1
+        opacity:      hover.hovered ? (0.2 + (root.pressed ? 0.2 : 0.0)) : 0.1
         border.width: 1
         border.color: Config.colors.outline
     }
@@ -20,7 +20,7 @@ Button {
     NewBorder {
         commonBorderWidth: 2
         commonBorder:      false
-        lBorderwidth:      2; rBorderwidth: 0; tBorderwidth: 2; bBorderwidth: 0
+        lBorderwidth:      2; rBorderwidth: 2; tBorderwidth: 2; bBorderwidth: 2
         zValue:            -1
         borderColor:       Config.colors.shadow
     }
