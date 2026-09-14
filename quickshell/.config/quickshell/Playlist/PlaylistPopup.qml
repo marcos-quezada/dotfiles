@@ -80,7 +80,7 @@ PanelWindow {
                 }
                 Components.IconTileButton {
                     glyph:          "\u23ed"
-                    glyphFont:      Fonst.body
+                    glyphFont:      Fonts.body
                     enabled:        Players.active !== null
                     implicitWidth:  22
                     implicitHeight: 22

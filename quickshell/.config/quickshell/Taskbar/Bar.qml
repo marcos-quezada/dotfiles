@@ -112,6 +112,19 @@ Scope {
           onXChanged:             Playlist.triggerX = x
         }
 
+        Components.TaskbarButton {
+            id:                     soundButton
+            glyph:                  "\ue050"
+            toggledGlyph:           "\ue5c5"
+            isToggled:              Sound.expanded
+            anchors.left:           parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.leftMargin:     workspacesPanel.width + 80
+            onClicked:              Sound.expanded = !Sound.expanded
+            Component.onCompleted:  Sound.triggerX = x
+            onXChanged:             Sound.triggerX = x
+        }
+
         // system tray panel — same shadow treatment, anchored right for clock + widgets
         Item {
             id: trayPanel

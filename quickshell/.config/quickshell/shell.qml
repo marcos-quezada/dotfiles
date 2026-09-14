@@ -4,6 +4,7 @@ import Quickshell.Io
 
 import qs.Playlist
 import qs.Services
+import qs.Sound
 import qs.Taskbar as Taskbar
 import qs.ThreatWatch as ThreatWatch
 
@@ -16,6 +17,8 @@ Scope {
     ThreatWatch.ThreatWatchPopup {}
 
     PlaylistPopup {}
+
+    SoundPopup {}
 
     // IPC handler — allows manual reload from the terminal via:
     //   qs ipc call shell reload       (soft: reuses existing windows)
