@@ -304,6 +304,9 @@ DO_LY=0
 # PulseAudio enabled, see docs/architecture.md's "audio output" section
 DO_MPV=0
 [ "$PLATFORM" = "freebsd" ] && DO_MPV=1
+# pulseaudio daemon.conf (exit-idle-time = -1) — FreeBSD only
+DO_PULSEAUDIO=0
+[ "$PLATFORM" = "freebsd" ] && DO_PULSEAUDIO=1
 
 # core packages — available everywhere
 DO_GIT=1
@@ -363,6 +366,7 @@ if [ "$YES" = "0" ]; then
             DO_LY=0
         fi
         prompt_yn "stow mpv (.config/mpv/mpv.conf — ao=pulse)?" y && DO_MPV=1 || DO_MPV=0
+        prompt_yn "stow pulseaudio (.config/pulse/daemon.conf — exit-idle-time = -1)?" y && DO_PULSEAUDIO=1 || DO_PULSEAUDIO=0
     elif [ "$PLATFORM" = "linux" ]; then
         printf '\n  Linux packages:\n\n'
         prompt_yn "stow foot (Wayland terminal emulator)?" y && DO_FOOT=1 || DO_FOOT=0
@@ -430,6 +434,7 @@ stow_root() {
 [ "$DO_THREATWATCH" = "1" ] && stow_pkg threatwatch
 [ "$DO_QUICKSHELL"  = "1" ] && stow_pkg quickshell
 [ "$DO_MPV"         = "1" ] && stow_pkg mpv
+[ "$DO_PULSEAUDIO"  = "1" ] && stow_pkg pulseaudio
 [ "$DO_VT"          = "1" ] && stow_root vt
 [ "$DO_LY"          = "1" ] && stow_root ly
 

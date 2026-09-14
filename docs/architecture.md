@@ -516,16 +516,19 @@ dotfiles-quickshell-cleanup).
 ### Services/ — every singleton, one place
 
 `Services/` holds every process-wide singleton: `Config` (colours +
-settings), `Fonts` (font resources), `Time` (clock), and `ThreatWatchModel`
-(threat feed data layer). this replaced an earlier, inconsistent split —
+settings), `Fonts` (font resources), `Time` (clock), `ThreatWatchModel`
+(threat feed data layer), `Players` (MPRIS now-playing + transport control),
+`Playlist` (downloaded/local track library + download queue), `Sound`
+(volume/mute/output-switching state), and `Popups` (which popup, if any, is
+currently open — see below). this replaced an earlier, inconsistent split —
 `Config`/`Fonts`/`Time` used to sit at the project root ("global"), while
 `ThreatWatchModel.qml` sat *with* `ThreatWatchPopup.qml` in `ThreatWatch/`
 ("feature-grouped"). caelestia's actual convention (our architecture
 reference) splits by **layer** — `services/` for state/logic, `modules/`
 for the UI that consumes it — not by feature or by "how global is this,"
-so `Services/` now matches that: `ThreatWatch/` is view-only
-(`ThreatWatchPopup.qml` + `qmldir`), its data layer lives in `Services/`
-alongside everything else.
+so `Services/` now matches that: `ThreatWatch/`, `Playlist/`, and `Sound/`
+are all view-only (a popup + `qmldir` each), their data layers live in
+`Services/` alongside everything else.
 
 consumers import it the same way as any other `qs.<Path>` module:
 ```qml
@@ -537,6 +540,11 @@ text: Time.time
 no `as Namespace` — bare, matching how root-level singletons were always
 referenced before this move.
 
+note: `Sound` is named `Sound`, not `Audio` — `Audio` collides with a real
+built-in QML type from `QtMultimedia`; naming our own singleton `Audio`
+produces a confusing "not allowed" error rather than a clean redefinition
+error.
+
 **gotcha hit during the migration, worth remembering**: relative paths
 inside a moved singleton resolve from the *file's own location*, not the
 project root. `Fonts.qml`'s `FontLoader` sources (`"fonts/Monaco.ttf"`) and
@@ -545,12 +553,28 @@ moving one directory deeper — the `settings.json` case was the more
 dangerous one, since it didn't error, it silently wrote a fresh,
 defaults-only file in the wrong place instead of failing loudly.
 
+### popup exclusivity: `Services/Popups.qml`
+
+with three independent popups (`ThreatWatch`, `Playlist`, `Sound`), nothing
+stopped all three from being open and overlapping at once — each tracked its
+own `expanded`/`mapExpanded` boolean with no awareness of the others. both
+reference repos solve this the same way, just with different names:
+retroism's `Bar.qml` tracks a single `currentPopup` value + a
+`closeAllPopups()` call; caelestia's `PopoutState`/`popouts.hasCurrent` does
+the equivalent. `Popups.qml` matches that pattern here — one shared
+`current: string` (`""` | `"threatwatch"` | `"playlist"` | `"sound"`) and a
+`toggle(name)` function. each popup's own `expanded`-style property became a
+read-only computed value (`Popups.current === "sound"`) instead of a plain
+settable boolean; only the three `TaskbarButton.onClicked` handlers write to
+`Popups.current`, via `toggle()`, never the popups themselves.
+
 ### Components/ — shared, generic UI atoms
 
-`Components/` holds QML types with no feature-specific knowledge — currently
-`NewBorder`, `PopupFrame`, and `TaskbarButton`. it has its own `qmldir`
-(`module Components`), same convention as `Taskbar/` and `ThreatWatch/`, so
-consumers import it via Quickshell's own module scheme:
+`Components/` holds QML types with no feature-specific knowledge:
+`NewBorder`, `PopupFrame`, `TaskbarButton`, `IconTileButton`, and `ListRow`.
+it has its own `qmldir` (`module Components`), same convention as `Taskbar/`
+and `ThreatWatch/`, so consumers import it via Quickshell's own module
+scheme:
 
 ```qml
 import qs.Components
@@ -562,7 +586,30 @@ the bar you're reading about above the fold — `Bar.qml`, `Workspaces.qml`,
 `ThreatWatchPopup.qml` — all import `Components/` this way. `Config` and
 `Fonts` are not in `Components/`: they live in `Services/` (see above), a
 different category from stateless, reusable view chrome.
-state, a different category from stateless, reusable view chrome.
+
+`IconTileButton` and `ListRow` were added while porting retroism's actual
+popup-content style into `PlaylistPopup`/`SoundPopup` — the popups were
+using plain, unstyled `QtQuick.Controls.Basic` `Button`/`ListView` delegates,
+which looked flat next to `PopupFrame`'s beveled win95 chrome. `IconTileButton`
+replicates retroism's `StartMenu` tile style (double `NewBorder` bevel,
+translucent icon); `ListRow` replicates its `AppLauncher` flat-row style, but
+as a *selectable* container rather than an immediate-action button, since our
+rows need both "select" and a separate "remove" action. `IconTileButton`'s
+glyph font is a property (`glyphFont`, defaults to `Fonts.icon`), not
+hardcoded — several glyphs used with it (transport controls, remove) are
+plain Unicode symbols, not Material Symbols codepoints, and forcing the icon
+font on those would likely have broken them, same lesson as `NowPlayingWidget`'s
+music-note glyph.
+
+`TaskbarButton` separately got the same `NewBorder` bevel treatment, with the
+toggled state inverting which corner is raised (raised → sunken) — real
+win95 pressed-button behavior, and it removes any need for a glyph swap
+(a chevron, etc.) to signal a popup is open, though `toggledGlyph` still
+works if you want one anyway. note `TaskbarButton` and `IconTileButton` look
+deliberately different (no fill + full-opacity icon vs. translucent fill +
+dimmed icon) — retroism does the same thing, distinguishing "chrome-level"
+controls (the bar itself) from "content-level" controls (inside a popup),
+not an inconsistency we introduced by accident.
 
 **gotcha discovered moving `PopupFrame.qml` here:** a file can depend on a
 sibling in the same directory with zero import statement — QML resolves
@@ -883,7 +930,7 @@ manually.
 
 | package | stow target | platform | contents |
 |---|---|---|---|
-| `bin` | `$HOME` | all | `.local/bin/new_script` — general-purpose POSIX sh script template generator; the canonical home for standalone tools not tightly coupled to another package's own files |
+| `bin` | `$HOME` | all | `.local/bin/new_script`, `.local/bin/queue-track`, `.local/bin/switch-audio-output`, `.local/bin/sound-status`, `.local/share/applications/quickshell-add.desktop` — the canonical home for standalone tools not tightly coupled to another package's own files (`queue-track`/`switch-audio-output`/`sound-status` are used by `quickshell`'s `Playlist`/`Sound` services, but the scripts themselves have no quickshell-specific knowledge, so they stay here rather than moving to the `quickshell` package) |
 | `cheatsheets` | `$HOME` | all | `.config/cheatsheets/` |
 | `curl` | `$HOME` | all | `.curlrc` — silent, follow redirects, fail-on-error, 30s timeout |
 | `foot` | `$HOME` | FreeBSD + Linux | `.config/foot/` |
@@ -891,6 +938,7 @@ manually.
 | `inputrc` | `$HOME` | all | `.inputrc` |
 | `mpv` | `$HOME` | FreeBSD | `.config/mpv/mpv.conf` — `ao=pulse`; requires `mpv` rebuilt from ports with PulseAudio enabled, see `docs/architecture.md`'s "audio output" section |
 | `nvim` | `$HOME` | macOS | `.config/nvim/init.lua` — minimal single-file config, treesitter only |
+| `pulseaudio` | `$HOME` | FreeBSD | `.config/pulse/daemon.conf` — `exit-idle-time = -1`, keeps the daemon persistent instead of autospawning-and-exiting on idle (that cycle cost ~6s per cold start, confirmed via `time pactl`) |
 | `quickshell` | `$HOME` | FreeBSD | `.config/quickshell/` (bar + threatwatch QML, fonts) |
 | `sh` | `$HOME` | FreeBSD | `.profile`, `.shrc` |
 | `sketchybar` | `$HOME` | macOS | `.config/sketchybar/` |

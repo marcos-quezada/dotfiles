@@ -54,20 +54,33 @@ root structure).
 │   ├── Fonts.qml             # font resources singleton — semantic roles (body/icon/title)
 │   ├── Time.qml              # clock singleton
 │   ├── ThreatWatchModel.qml  # threat feed data layer (moved out of ThreatWatch/)
+│   ├── Players.qml           # MPRIS now-playing + transport control
+│   ├── Playlist.qml          # downloaded/local track library + yt-dlp download queue
+│   ├── Sound.qml             # volume/mute/output-switching state (on-demand refresh)
+│   ├── Popups.qml            # which popup, if any, is currently open — mutual exclusivity
 │   └── qmldir
 ├── Components/         # shared, generic UI atoms — no feature-specific knowledge
 │   ├── NewBorder.qml       # retro bevel border effect
 │   ├── PopupFrame.qml      # shared popup chrome (title bar, borders, fade)
-│   ├── TaskbarButton.qml   # icon-only toggle button (Button-based, native hit-testing)
+│   ├── TaskbarButton.qml   # icon-only toggle button — bevel inverts (raised → sunken) when toggled
+│   ├── IconTileButton.qml  # beveled content-area icon button (retroism's StartMenu tile style)
+│   ├── ListRow.qml         # selectable flat list row (retroism's AppLauncher row style)
 │   └── qmldir
 ├── Taskbar/            # workspace switcher, tray, clock
 │   ├── Bar.qml             # PanelWindow, one per screen
 │   ├── Workspaces.qml      # sway workspace switcher
-│   ├── SysTray.qml         # system tray row (clock only — ThreatWatch moved to a TaskbarButton)
+│   ├── SysTray.qml         # system tray row (clock + now-playing widget)
 │   ├── ClockWidget.qml
+│   ├── NowPlayingWidget.qml  # click toggles play/pause, scroll adjusts volume
 │   └── qmldir
 ├── ThreatWatch/         # view only — data layer lives in Services/ now
 │   ├── ThreatWatchPopup.qml   # map overlay + status summary
+│   └── qmldir
+├── Playlist/            # view only — data layer lives in Services/ now
+│   ├── PlaylistPopup.qml      # view/select/remove tracks, manual local-file add, transport row
+│   └── qmldir
+├── Sound/               # view only — data layer lives in Services/ now
+│   ├── SoundPopup.qml         # volume ±/mute, output switcher
 │   └── qmldir
 ├── ThreatWatchUtils/     # pure logic (no Quickshell imports; testable with qmltestrunner)
 │   ├── Utils.qml
