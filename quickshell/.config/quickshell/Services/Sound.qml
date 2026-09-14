@@ -45,6 +45,7 @@ Singleton {
     }
 
     function _parse (text) {
+        console.log("Sound._parse got :: ", JSON.stringify(text))
         var sinkMatch = text.match(/Default Sink:\s*(\S+)/)
         if (sinkMatch) root.currentSink = sinkMatch[1]
 

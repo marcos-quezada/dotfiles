@@ -37,8 +37,9 @@ PanelWindow {
         icon:  "\ue050"
 
         ColumnLayout {
-            anchors.fill: parent
-            spacing:      8
+            anchors.fill:    parent
+            anchors.margins: 4
+            spacing:         8
 
             // ── volume row ──────────────────────────────────────────────────
             RowLayout {

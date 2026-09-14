@@ -40,8 +40,9 @@ PanelWindow {
         icon:  "\ue405"
 
         ColumnLayout {
-            anchors.fill: parent
-            spacing:      6
+            anchors.fill:    parent
+            anchors.margins: 4
+            spacing:         6
 
             // ── status line ─ visible only while a download is in progress ──
             Text {
