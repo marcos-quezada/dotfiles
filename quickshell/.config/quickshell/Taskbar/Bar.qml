@@ -89,12 +89,11 @@ Scope {
         Components.TaskbarButton {
           id:                     threatWatchButton
           glyph:                  "\u{f1863}"
-          toggledGlyph:           "\ue5c5"
           isToggled:              ThreatWatchModel.mapExpanded
           anchors.left:           parent.left
           anchors.verticalCenter: parent.verticalCenter
           anchors.leftMargin:     workspacesPanel.width + 20
-          onClicked:              ThreatWatchModel.mapExpanded = !ThreatWatchModel.mapExpanded
+          onClicked:              Popups.toggle("threatwatch") 
           Component.onCompleted:  ThreatWatchModel.mapTriggerX = x
           onXChanged:             ThreatWatchModel.mapTriggerX = x
         }
@@ -102,12 +101,11 @@ Scope {
         Components.TaskbarButton {
           id:                     playlistButton
           glyph:                  "\ue405"
-          toggledGlyph:           "\ue5c5"
           isToggled:              Playlist.expanded
           anchors.left:           parent.left
           anchors.verticalCenter: parent.verticalCenter
           anchors.leftMargin:     workspacesPanel.width + 50
-          onClicked:              Playlist.expanded = !Playlist.expanded
+          onClicked:              Popups.toggle("playlist") 
           Component.onCompleted:  Playlist.triggerX = x
           onXChanged:             Playlist.triggerX = x
         }
@@ -115,12 +113,11 @@ Scope {
         Components.TaskbarButton {
             id:                     soundButton
             glyph:                  "\ue050"
-            toggledGlyph:           "\ue5c5"
             isToggled:              Sound.expanded
             anchors.left:           parent.left
             anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin:     workspacesPanel.width + 80
-            onClicked:              Sound.expanded = !Sound.expanded
+            onClicked:              Popups.toggle("sound") 
             Component.onCompleted:  Sound.triggerX = x
             onXChanged:             Sound.triggerX = x
         }

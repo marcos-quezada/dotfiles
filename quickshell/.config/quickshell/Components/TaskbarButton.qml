@@ -15,10 +15,29 @@ Button {
 
   background: Rectangle {
     anchors.fill: parent
-    border.width: 1
-    border.color: root.isToggled ? Config.colors.accent : Config.colors.outline
     color: "transparent"
     opacity: hover.hovered ? 0.6 : 1
+    
+    // full outline - shadow normally, swaps when toggled
+    NewBorder {
+        commonBorderWidth: 1
+        commonBorder:      false
+        lBorderwidth:      1; rBorderwidth: 1; tBorderwidth: 1; bBorderwidth: 1
+        zValue:            -1
+        borderColor:       root.isToggled ? Config.colors.highlight : Config.colors.shadow
+    }
+
+    NewBorder {
+        commonBorderWidth: 1
+        commonBorder:      false
+        lBorderwidth:      root.isToggled ? 0 : 1
+        rBorderwidth:      root.isToggled ? 1 : 0
+        tBorderwidth:      root.isToggled ? 0 : 1
+        bBorderwidth:      root.isToggled ? 1 : 0
+        zValue:            -1
+        opacity:           0.8
+        borderColor:       root.isToggled ? Config.colors.shadow : Config.colors.highlight
+    }
 
     Text {
       anchors.centerIn: parent

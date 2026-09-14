@@ -54,7 +54,7 @@ Singleton {
     property var pins: []
 
     // popup visibility — widget writes, popup reads
-    property bool mapExpanded: false
+    readonly property bool mapExpanded: Popups.current === "threatwatch"
 
     // horizontal position tracking `threatWatchButton` for popup display
     property real mapTriggerX: 0

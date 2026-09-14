@@ -13,8 +13,8 @@ Singleton {
 
     readonly property string dataDir:  Quickshell.env("HOME") + "/.local/share/quickshell"
     readonly property string musicDir: Quickshell.env("HOME") + "/Music"
-
-    property bool expanded: false
+    readonly property bool expanded: Popups.current === "playlist" 
+    
     property real triggerX: 0
     property bool _startupGraceOver: false
 

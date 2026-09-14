@@ -19,8 +19,8 @@ Singleton {
         { label: "Headphones", sink: "oss_output.dsp01" } ,
         { label: "HDMI",       sink: "oss_output.dsp02" }
     ]
-
-    property bool   expanded:    false
+    readonly property bool expanded: Popups.current === "sound"
+    
     property real   triggerX:    0
     property string currentSink: ""
     property int    volume:      0
