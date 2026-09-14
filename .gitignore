@@ -44,3 +44,4 @@ staging/*
 # openspec / pi agent scaffolding — local planning tooling, not part of the shipped dotfiles
 openspec/
 .pi/
+AGENTS.md
