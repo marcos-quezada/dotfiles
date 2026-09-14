@@ -77,5 +77,8 @@ while [ -n "${1:-}" ]; do
 done
 
 # main logic
+pactl info | grep 'Default Sink'
+pactl get-sink-volume @DEFAULT_SINK@
+pactl get-sink-mute @DEFAULT_SINK@
 
 graceful_exit

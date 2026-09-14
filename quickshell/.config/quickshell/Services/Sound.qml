@@ -30,7 +30,7 @@ Singleton {
 
     Process {
         id:       queryProc
-        command:  ["sh", "-c", "pactl info | grep 'Default Sink'; pactl get-sink-volume @DEFAULT_SINK@; pactl get-sink-mute @DEFAULT_SINK@"]
+        command:  ["sound-status"]
         stdout:   SplitParser {
             onRead: data => { root._buffer += data + "\n" }
         }
