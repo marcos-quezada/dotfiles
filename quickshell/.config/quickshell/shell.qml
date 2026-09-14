@@ -34,4 +34,12 @@ Scope {
         target: "playlist"
         function processInbox(): void { Playlist._processInbox() }
     }
+
+    IpcHandler {
+        target: "threatwatch"
+        function refresh(): void {
+            ThreatWatchModel._refreshFromSummary()
+            ThreatWatchModel._refreshPins()
+        }
+    }
 }

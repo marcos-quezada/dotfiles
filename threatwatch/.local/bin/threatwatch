@@ -1249,7 +1249,7 @@ build_pins_json() {
             type:  "gdacs",
             lon:   .lon,
             lat:   .lat,
-            title: (.level | ascii_upcase) + " GDACS — " + .title
+            title: (.level | ascii_upcase) + " GDACS — " + (.title[:60])
           }
         | @json
     ' "$SUMMARY_FILE" 2>/dev/null)
@@ -1302,6 +1302,7 @@ update() {
     build_summary      # writes summary.json with current run's data
     apply_map_overlay  # composites HUD onto raw PNG using the fresh summary.json
     build_pins_json
+    qs ipc call threatwatch refresh 2>/dev/null || true
     printf '=== Done ===\n'
 }
 

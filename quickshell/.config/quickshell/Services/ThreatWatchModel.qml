@@ -79,7 +79,9 @@ Singleton {
         command: [root.scriptPath, "update"]
 
         onExited: (code, signal) => {
-            tobarProc.running = true
+          tobarProc.running = true
+          root._refreshFromSummary
+          root._refreshPins
         }
     }
 
