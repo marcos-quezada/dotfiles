@@ -80,37 +80,24 @@ Singleton {
 
         onExited: (code, signal) => {
           tobarProc.running = true
-          root._refreshFromSummary
-          root._refreshPins
+          root._refreshFromSummary()
+          root._refreshPins()
         }
     }
 
     // ── file watchers ─────────────────────────────────────────────────────────
     // inotify/kqueue — no busy-polling. see docs/architecture.md for watcher rationale.
 
-    // .updated is touched by the script after every run — master trigger
-    FileView {
-        id: updatedWatcher
-        path: root.cacheDir + "/.updated"
-        onTextChanged: {
-            if (!tobarProc.running) tobarProc.running = true
-            root._refreshFromSummary()
-            root._refreshPins()
-        }
-    }
-
-    // summary.json — direct watcher so manual edits also refresh level/badge
+    // summary.json — written by build_summary after every update 
     FileView {
         id: summaryWatcher
         path: root.cacheDir + "/summary.json"
-        onTextChanged: root._refreshFromSummary()
     }
 
     // pins.json — written by build_pins_json() after every update
     FileView {
         id: pinsWatcher
         path: root.cacheDir + "/pins.json"
-        onTextChanged: root._refreshPins()
     }
 
     // ── auto-refresh timer ────────────────────────────────────────────────────
