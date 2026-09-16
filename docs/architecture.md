@@ -536,15 +536,37 @@ glyph between fonts means picking a genuinely free codepoint in the
 past this font's existing `0xd`–`0xf8ff` range) was free and is what's
 actually used here.
 
-the glyph was copied via a small `fontforge -lang=py` script: open both
-fonts, select the source codepoint, copy, select the destination codepoint
-in the target font, paste, match its advance width to an existing icon
-glyph's width (`power_settings_new`) so it sits consistently sized among
-the rest of `Fonts.icon`, then `generate()` a new `.ttf`. verified the
-result two ways before committing to it: confirmed the glyph count went
-from exactly 4092 to 4093 (one addition, nothing else disturbed), and
-rasterized codepoint `0xf900` to a PNG to visually confirm it actually
-renders as the FreeBSD logo, not a blank/broken glyph.
+the glyph was copied via a small, surgical `fontTools`-only script — no
+`FontForge`. **the first attempt used `fontforge -lang=py` to copy the
+glyph and call `generate()`, and it broke other, unrelated glyphs on the
+real machine** (reverted immediately). checking glyph count and rendering
+the one new codepoint wasn't enough verification to catch it. the actual
+cause: this font has a `GSUB` table (glyph substitution, referencing
+glyphs by internal ID, not name/codepoint), and FontForge's full
+open/edit/`generate()` cycle appears to rebuild/reorder more than just the
+targeted glyph, silently shifting IDs that `GSUB` rules pointed at — Qt's
+text shaping applies `GSUB` during rendering, so this broke glyphs at
+display time in a way a plain codepoint→glyph check never would have
+revealed.
+
+the working approach: edit only the tables that actually need to change
+(`glyf`, `hmtx`, `cmap`, glyph order) directly via `fontTools`, leaving
+everything else — especially `GSUB` — completely untouched. verified this
+time with checks that would have caught the FontForge issue: `GSUB` bytes
+identical before/after, every pre-existing glyph's outline *and* metrics
+unchanged (not just glyph count), original glyph order an exact prefix of
+the new order (append-only, nothing reordered), plus a rendered PNG of the
+new glyph and a few pre-existing ones to confirm visually.
+
+incidental discovery made while verifying: this font's `cmap` only has
+format-4 (BMP-only) subtables, no format-12 for the supplementary plane —
+meaning a codepoint like `\uf1863` (used elsewhere for the `ThreatWatch`
+radar icon, requiring a surrogate pair since it's above `0xffff`) could
+never actually resolve through this font's own `cmap` at all. it must be
+rendering via Qt's own font-fallback to some other system font, not
+`MaterialSymbolsSharp` itself — pre-existing behavior, not something this
+patch changed, but worth knowing before adding another glyph above `0xffff`
+to this specific font.
 
 use it via `font.family: Fonts.icon`, `text: "\uf900"`.
 
