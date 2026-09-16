@@ -50,13 +50,25 @@ Scope {
           }
         }
 
+        Components.TaskbarButton {
+            id:                     sessionButton
+            glyph:                  "\uf900"
+            isToggled:              Session.expanded
+            anchors.left:           parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.leftMargin:     11
+            onClicked:              Popups.toggle("session")
+            Component.onCompleted:  Session.triggerX = x
+            onXChanged:             Session.triggerX = x
+        }
+
         // workspaces panel — shadow-backed container for the workspace switcher
         Item {
             id: workspacesPanel
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
             height: parent.height - 8
-            anchors.leftMargin: 11
+            anchors.leftMargin: sessionButton.width + 20
             width: workspaces.width + 5
             Rectangle {
                 id: workspacesBg
@@ -92,7 +104,7 @@ Scope {
           isToggled:              ThreatWatchModel.mapExpanded
           anchors.left:           parent.left
           anchors.verticalCenter: parent.verticalCenter
-          anchors.leftMargin:     workspacesPanel.width + 20
+          anchors.leftMargin:     workspacesPanel.width + 50
           onClicked:              Popups.toggle("threatwatch") 
           Component.onCompleted:  ThreatWatchModel.mapTriggerX = x
           onXChanged:             ThreatWatchModel.mapTriggerX = x
@@ -104,7 +116,7 @@ Scope {
           isToggled:              Playlist.expanded
           anchors.left:           parent.left
           anchors.verticalCenter: parent.verticalCenter
-          anchors.leftMargin:     workspacesPanel.width + 50
+          anchors.leftMargin:     workspacesPanel.width + 80
           onClicked:              Popups.toggle("playlist") 
           Component.onCompleted:  Playlist.triggerX = x
           onXChanged:             Playlist.triggerX = x
@@ -116,22 +128,10 @@ Scope {
             isToggled:              Sound.expanded
             anchors.left:           parent.left
             anchors.verticalCenter: parent.verticalCenter
-            anchors.leftMargin:     workspacesPanel.width + 80
+            anchors.leftMargin:     workspacesPanel.width + 110
             onClicked:              Popups.toggle("sound") 
             Component.onCompleted:  Sound.triggerX = x
             onXChanged:             Sound.triggerX = x
-        }
-
-        Components.TaskbarButton {
-            id:                     sessionButton
-            glyph:                  "\ue8ac"
-            isToggled:              Session.expanded
-            anchors.right:          parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.rightMargin:    trayPanel.width + 20
-            onClicked:              Popups.toggle("session")
-            Component.onCompleted:  Session.triggerX = x
-            onXChanged:             Session.triggerX = x
         }
 
         // system tray panel — same shadow treatment, anchored right for clock + widgets

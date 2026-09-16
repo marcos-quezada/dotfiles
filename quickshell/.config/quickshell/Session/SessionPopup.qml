@@ -35,7 +35,7 @@ PanelWindow {
     Components.PopupFrame {
         id:    chrome
         title: "SESSION"
-        icon:  "\ue8ac"
+        icon:  "\uf900"
 
         ColumnLayout {
             anchors.fill:    parent
@@ -44,7 +44,7 @@ PanelWindow {
 
             RowLayout {
                 Layout.fillWidth:  true
-                Layout.fillHeight: true
+                Layout.alignment: Qt.AlignHCenter
                 spacing:           10
                 visible:          !Session.rebootPending && !Session.shutdownPending
 
@@ -57,7 +57,7 @@ PanelWindow {
                     onClicked:      Session.suspend()
                 }
                 Components.IconTileButton {
-                    glyph:          "\u21bb"    // clockwise open circle arrow
+                    glyph:          "\ue028"    // clockwise open circle arrow
                     glyphFont:      Fonts.body
                     glyphSize:      28
                     implicitWidth:  50
@@ -87,16 +87,14 @@ PanelWindow {
                     font.pixelSize:   12
                     wrapMode:         Text.WordWrap
                 }
-                Components.ListRow {
-                    Layout.fillWidth: true
-                    height:           26
+                Components.IconTileButton {
+                    Layout.alignment: Qt.AlignHCenter
+                    glyph:            "Cancel"
+                    glyphFont:        Fonts.body
+                    glyphSize:        12
+                    implicitWidth:    80
+                    implicitHeight:   26
                     onClicked:        Session.cancelReboot()
-                    Text {
-                        anchors.fill:      parent; anchors.margins: 4
-                        text:              "Cancel"; color: Config.colors.text
-                        font.family:       Fonts.body; font.pixelSize: 12
-                        verticalAlignment: Text.AlignVCenter
-                    }
                 }
             }
 
@@ -113,16 +111,14 @@ PanelWindow {
                     font.pixelSize:   12
                     wrapMode:         Text.WordWrap
                 }
-                Components.ListRow {
-                    Layout.fillWidth: true
-                    height:           26
+                Components.IconTileButton {
+                    Layout.alignment: Qt.AlignHCenter
+                    glyph:            "Cancel"
+                    glyphFont:        Fonts.body
+                    glyphSize:        12
+                    implicitWidth:    80
+                    implicitHeight:   26
                     onClicked:        Session.cancelShutdown()
-                    Text{
-                        anchors.fill:      parent; anchors.margins: 4
-                        text:              "Cancel"; color: Config.colors.text
-                        font.family:       Fonts.body; font.pixelSize: 12
-                        verticalAlignment: Text.AlignVCenter
-                    }
                 }
             }
         }

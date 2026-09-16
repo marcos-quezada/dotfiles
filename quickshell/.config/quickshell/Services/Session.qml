@@ -16,6 +16,7 @@ Singleton {
     Process { id: rebootProc }
     Process { id: shutdownProc }
     Process { id: suspendProc }
+    Process { id: cancelProc }
 
     function reboot(minutes) {
         rebootProc.command = ["shutdown", "-r", "+" + minutes, "reboot requested from quickshell"]
@@ -24,18 +25,20 @@ Singleton {
     }
 
     function cancelReboot() {
-        rebootProc.running = false    // SIGTERM, per shutdown(8)'s own cancellation mechanism
+        cancelProc.command = ["pkill", "shutdown"]
+        cancelProc.running = true 
         root.rebootPending = false
     }
 
     function shutdown(minutes) {
-        shutdownProc.command = ["shutdown", "-p", "+" + minutes, "shutdown requested from qucickshell"]
+        shutdownProc.command = ["shutdown", "-p", "+" + minutes, "shutdown requested from quickshell"]
         shutdownProc.running = true
         root.shutdownPending = true
     }
 
     function cancelShutdown() {
-        shutdownProc.running = false
+        cancelProc.command = ["pkill", "shutdown"]
+        cancelProc.running = true
         root.shutdownPending = false
     }
 
