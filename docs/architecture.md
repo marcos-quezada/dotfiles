@@ -581,6 +581,18 @@ raw numbers across. verified visually this time by rendering the new glyph
 alongside two existing ones at the same point size to directly compare
 scale and baseline, not just checking that *something* renders.
 
+**third correction**: even at the right scale, the glyph still sat visibly
+lower than the others. measured actual bounding boxes to confirm rather
+than re-guess: `freebsd_logo` spanned `yMin -154` to `yMax 701` (partly
+*below* baseline), while `power_settings_new`/`music_note` both spanned
+roughly `80`–`880`/`120`–`840`, centered at `y=480`. `font-logos` simply uses
+a different vertical placement convention than Material Symbols, which
+uniform scaling alone can't fix — it needed an additional vertical
+translation (added directly to the `TransformPen` matrix's `dy` term) to
+recentre it on the same `y=480` the other icons share. verified by
+checking the new glyph's bounding-box center numerically before shipping,
+not just re-rendering and eyeballing it again.
+
 use it via `font.family: Fonts.icon`, `text: "\uf900"`.
 
 ### Services/ — every singleton, one place
