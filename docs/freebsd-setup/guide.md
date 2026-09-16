@@ -278,12 +278,17 @@ only `fstab` entries are the EFI partition and swap:
 
 ```text
 vfs.zfs.vdev.min_auto_ashift=12   # align ZFS to 4K sectors (NVMe optimisation)
+hw.acpi.lid_switch_state=S3       # suspend to RAM on lid close (Handbook 14.6.7.1)
 ```
 
 Most of the values that are commonly put here (IPC shm, TCP algorithm, NIC
 queue) are instead set in `loader.conf` so they apply before any service
 starts. The H-TCP module is loaded via `cc_htcp_load="YES"` and activated
 automatically as the default congestion control algorithm.
+
+S4 (hibernate/suspend-to-disk) isn't supported by FreeBSD at all — S3 is the
+only sleep state worth configuring here. Confirm this hardware actually
+supports it first: `sysctl hw.acpi.supported_sleep_state`.
 
 ---
 
