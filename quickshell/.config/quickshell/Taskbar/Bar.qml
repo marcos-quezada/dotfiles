@@ -122,6 +122,18 @@ Scope {
             onXChanged:             Sound.triggerX = x
         }
 
+        Components.TaskbarButton {
+            id:                     sessionButton
+            glyph:                  "\ue8ac"
+            isToggled:              Session.expanded
+            anchors.right:          parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.rightMargin:    trayPanel.width + 20
+            onClicked:              Popups.toggle("session")
+            Component.onCompleted:  Session.triggerX = x
+            onXChanged:             Session.triggerX = x
+        }
+
         // system tray panel — same shadow treatment, anchored right for clock + widgets
         Item {
             id: trayPanel

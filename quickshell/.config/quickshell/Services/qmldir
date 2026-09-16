@@ -4,6 +4,7 @@ singleton Fonts            1.0 Fonts.qml
 singleton Players          1.0 Players.qml
 singleton Playlist         1.0 Playlist.qml
 singleton Popups           1.0 Popups.qml
+singleton Session          1.0 Session.qml
 singleton Sound            1.0 Sound.qml
 singleton Time             1.0 Time.qml
 singleton ThreatWatchModel 1.0 ThreatWatchModel.qml

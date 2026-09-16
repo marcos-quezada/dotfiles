@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 
 import qs.Playlist
+import qs.Session
 import qs.Services
 import qs.Sound
 import qs.Taskbar as Taskbar
@@ -17,6 +18,8 @@ Scope {
     ThreatWatch.ThreatWatchPopup {}
 
     PlaylistPopup {}
+
+    SessionPopup {}
 
     SoundPopup {}
 
