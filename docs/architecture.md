@@ -513,6 +513,41 @@ the same icon codepoint against different fonts and silently diverge (see
 the `ThreatWatchWidget` vs `PopupFrame` icon-font mismatch, fixed in
 dotfiles-quickshell-cleanup).
 
+### patching a glyph into the bundled icon font
+
+no FreeBSD logo exists anywhere in the bundled
+`fonts/MaterialSymbolsSharp_Filled_36pt-Regular.ttf` — confirmed by scanning
+its full glyph-name table *and* checking known nerd-font FreeBSD codepoint
+candidates directly, not just a name search (patched nerd-font glyphs are
+sometimes named generically, e.g. `uniF30C`, so a name-only search alone
+can miss a glyph that's actually present).
+
+[font-logos](https://github.com/Lukas-W/font-logos) has a proper FreeBSD
+"Beastie" glyph, built at the right stroke weight for icon-font use. the
+official [Nerd Fonts patcher](https://github.com/ryanoasis/nerd-fonts) ships
+a self-contained `FontPatcher.zip` release bundling `font-logos.ttf` as one
+of its glyph sources — didn't need the full nerd-fonts repo, just that one
+release asset.
+
+**important**: `font-logos` maps FreeBSD to its own `0xf30c` — that
+codepoint is already used in *this* font (`battery_android_1`). copying a
+glyph between fonts means picking a genuinely free codepoint in the
+*destination* font, not reusing the source's own numbering. `0xf900` (just
+past this font's existing `0xd`–`0xf8ff` range) was free and is what's
+actually used here.
+
+the glyph was copied via a small `fontforge -lang=py` script: open both
+fonts, select the source codepoint, copy, select the destination codepoint
+in the target font, paste, match its advance width to an existing icon
+glyph's width (`power_settings_new`) so it sits consistently sized among
+the rest of `Fonts.icon`, then `generate()` a new `.ttf`. verified the
+result two ways before committing to it: confirmed the glyph count went
+from exactly 4092 to 4093 (one addition, nothing else disturbed), and
+rasterized codepoint `0xf900` to a PNG to visually confirm it actually
+renders as the FreeBSD logo, not a blank/broken glyph.
+
+use it via `font.family: Fonts.icon`, `text: "\uf900"`.
+
 ### Services/ — every singleton, one place
 
 `Services/` holds every process-wide singleton: `Config` (colours +
