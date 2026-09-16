@@ -568,6 +568,19 @@ rendering via Qt's own font-fallback to some other system font, not
 patch changed, but worth knowing before adding another glyph above `0xffff`
 to this specific font.
 
+**second correction, found after the first fontTools patch actually
+shipped**: the new glyph rendered noticeably smaller and misaligned versus
+every other icon. cause: `font-logos.ttf` and this font use different
+`unitsPerEm` (512 vs 960) — the first pass copied the source glyph's raw
+outline coordinates directly, silently assuming both fonts shared the same
+coordinate scale. fix: draw the source glyph through a
+`fontTools.pens.transformPen.TransformPen` scaling by the `unitsPerEm`
+ratio (`dst_upm / src_upm`) into a fresh `TTGlyphPen`, and scale the
+advance width/left-side-bearing by the same factor, rather than copying
+raw numbers across. verified visually this time by rendering the new glyph
+alongside two existing ones at the same point size to directly compare
+scale and baseline, not just checking that *something* renders.
+
 use it via `font.family: Fonts.icon`, `text: "\uf900"`.
 
 ### Services/ — every singleton, one place
