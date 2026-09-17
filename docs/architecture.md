@@ -12,15 +12,56 @@ twice during an explore session, for two different concerns:
 
 - **media playback**: `Quickshell.Services.Mpris` instead of parsing
   `playerctl` output (see "music playback" below)
-- **audio output**: `Quickshell.Services.Pipewire` instead of `pactl`/`jq`
-  (noted while evaluating `BreadOnPenguins/scripts`' `audioswitch`; not yet
-  implemented, but the same principle applies if/when it is)
+- **audio output**: considered `Quickshell.Services.Pipewire` instead of
+  `pactl`/`jq` while evaluating `BreadOnPenguins/scripts`' `audioswitch`.
+  in practice this system runs PulseAudio over FreeBSD's OSS bridge, not
+  PipeWire — there's no native Quickshell service for that stack, so
+  `Services/Sound.qml` shells out to `pactl`/a small `bin/` script
+  deliberately, the same kind of accepted exception as `yt-dlp` staying
+  outside `pkg`. the *principle* still generalizes; it just doesn't apply
+  to this specific machine's audio stack.
 
 the reasoning generalizes: a native service is reactive by construction (no
 polling, no subprocess spawned per update), and Quickshell's own type system
 can describe it (unlike a `Process` wrapping a CLI tool's text output, which
 is opaque to `qmllint`/`qmlls`). before reaching for a shell-out when adding
 a new bar feature, check whether `Quickshell.Services.*` already covers it.
+
+---
+
+## standing convention: the bar-residency filter
+
+when a new bar feature comes up, decide *where* it belongs before writing
+any QML — not everything that could go in the bar should. three buckets,
+in order of how much bar space they cost:
+
+- **popup** (a `Components.TaskbarButton` + a popup): the feature needs
+  user input, or has more than one possible action. `Playlist`, `Sound`,
+  `Session`, `ThreatWatch` all fit here — each needs clicking, selecting,
+  or choosing between several actions.
+- **always-visible, no popup**: the feature is glanceable status someone
+  wants to see continuously, and interacting with it (if at all) is a
+  single, obvious action. `NowPlayingWidget` fits here — click toggles
+  play/pause, scroll adjusts volume, no popup needed for either.
+- **shortcut-only, not bar-resident at all**: the feature is used
+  rarely enough, or is simple enough, that a keybinding covers it without
+  spending any bar space. brightness/volume media keys fit here even
+  though `Sound` also exists as a popup — the common case (nudge volume
+  up or down) doesn't need to open anything.
+
+this is also why some things were deliberately *not* added: an app
+launcher and a timer widget were both considered and dropped — shortcuts
+already cover launching, and a timer has no real use case here. the
+"disks"/USB indicator sat unimplemented for a long time specifically
+because a single indicator didn't justify a shared status strip on its
+own — it only became worth doing once a second concrete need (embedded-dev
+USB mass-storage devices) showed up.
+
+when scoping a new addition, ask: does this need input or a choice between
+actions (popup), does it need to always be visible (informative, no
+popup), or does neither apply (shortcut, not bar-resident at all)? if none
+of the three fit comfortably, that's a sign the feature needs more thought
+before it becomes a bar widget at all.
 
 ---
 
