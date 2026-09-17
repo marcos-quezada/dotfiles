@@ -56,42 +56,33 @@ Singleton {
     }
 
     Process {
-        id: switchProc
+        id:       switchProc
+        onExited: (code, signal) => root.refresh()
     }
 
     function switchOutput(sink) {
         switchProc.command = ["switch-audio-output", sink]
         switchProc.running = true
-        // give it a moment to actually move streams before refreshing
-        refreshDelay.start()
-    }
-
-    Timer {
-        id:          refreshDelay
-        interval:    300
-        onTriggered: root.refresh()
     }
 
     Process {
-        id: actionProc
+        id:       actionProc
+        onExited: (code, signal) => root.refresh()
     }
 
     function volumeUp() {
         actionProc.command = ["pactl", "set-sink-volume", "@DEFAULT_SINK@", "+5%"]
         actionProc.running = true
-        refreshDelay.start()
     }
 
     function volumeDown() {
         actionProc.command = ["pactl", "set-sink-volume", "@DEFAULT_SINK@", "-5%"]
         actionProc.running = true
-        refreshDelay.start()
     }
 
     function toggleMute() {
         actionProc.command = ["pactl", "set-sink-mute", "@DEFAULT_SINK@", "toggle"]
         actionProc.running = true
-        refreshDelay.start()
     }
 
     Component.onCompleted: refresh()
