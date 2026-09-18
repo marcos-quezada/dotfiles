@@ -8,7 +8,7 @@ Singleton {
     id: root
 
     readonly property bool expanded: Popups.current === "session"
-    property real trgiggerX:         0
+    property real triggerX:         0
 
     property bool rebootPending:   false
     property bool shutdownPending: false

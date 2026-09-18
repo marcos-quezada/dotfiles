@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
+import QtQuick.Layouts
 
 import qs.Components as Components
 import qs.Services
@@ -50,88 +51,106 @@ Scope {
           }
         }
 
-        Components.TaskbarButton {
-            id:                     sessionButton
-            glyph:                  "\uf900"
-            isToggled:              Session.expanded
+        RowLayout {
+            id:                     leftCluster
             anchors.left:           parent.left
             anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin:     11
-            onClicked:              Popups.toggle("session")
-            Component.onCompleted:  Session.triggerX = x
-            onXChanged:             Session.triggerX = x
-        }
+            spacing:                11 
 
-        // workspaces panel — shadow-backed container for the workspace switcher
-        Item {
-            id: workspacesPanel
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.left: parent.left
-            height: parent.height - 8
-            anchors.leftMargin: sessionButton.width + 20
-            width: workspaces.width + 5
-            Rectangle {
-                id: workspacesBg
-                anchors.fill: workspacesPanel
-
-                anchors.bottomMargin: -2
-                color: "transparent"
-                Rectangle {
-                    anchors.fill: workspacesBg
-                    border.width: 0
-                    color: Config.colors.shadow
+            Components.TaskbarButton {
+                id:                     sessionButton
+                glyph:                  "\uf900"
+                isToggled:              Session.expanded
+                onClicked:              Popups.toggle("session")
+                Binding {
+                    target:   Session
+                    property: "triggerX"
+                    value:    {
+                        sessionButton.x
+                        sessionButton.mapToItem(taskbar.contentItem, 0, 0).x
+                    }
                 }
+            }
+
+            // workspaces panel — shadow-backed container for the workspace switcher
+            Item {
+                id:                     workspacesPanel
+                Layout.preferredHeight: taskbar.height - 8
+                Layout.preferredWidth:  workspaces.width + 5
+
                 Rectangle {
-                    anchors.fill: workspacesBg
+                    id: workspacesBg
+                    anchors.fill: workspacesPanel
+
+                    anchors.bottomMargin: -2
                     color: "transparent"
-                    border.width: 1
-                    z: -5
-                    anchors.margins: -1
-                    anchors.bottomMargin: 1
+                    Rectangle {
+                        anchors.fill: workspacesBg
+                        border.width: 0
+                        color: Config.colors.shadow
+                    }
+                    Rectangle {
+                        anchors.fill: workspacesBg
+                        color: "transparent"
+                        border.width: 1
+                        z: -5
+                        anchors.margins: -1
+                        anchors.bottomMargin: 1
+                    }
+                }
+                Workspaces {
+                    id: workspaces
+                    anchors.leftMargin: 2
+                    anchors.rightMargin: 0
+                }
+              }
+
+            // threat watch button - toggle button to show the threatwatch map
+            Components.TaskbarButton {
+                id:                     threatWatchButton
+                glyph:                  "\u{f1863}"
+                isToggled:              ThreatWatchModel.mapExpanded
+                onClicked:              Popups.toggle("threatwatch")
+                Binding {
+                    target:   ThreatWatchModel
+                    property: "mapTriggerX"
+                    value:    {
+                      threatWatchButton.x
+                      threatWatchButton.mapToItem(taskbar.contentItem, 0, 0).x
+                    }
                 }
             }
-            Workspaces {
-                id: workspaces
-                anchors.leftMargin: 2
-                anchors.rightMargin: 0
+
+            Components.TaskbarButton {
+                id:                     playlistButton
+                glyph:                  "\ue405"
+                isToggled:              Playlist.expanded
+                onClicked:              Popups.toggle("playlist") 
+                Binding {
+                    target:   Playlist
+                    property: "triggerX"
+                    value:    {
+                        playlistButton.x
+                        playlistButton.mapToItem(taskbar.contentItem, 0, 0).x
+                    }
+                }
             }
-          }
 
-        // threat watch button - toggle button to show the threatwatch map
-        Components.TaskbarButton {
-          id:                     threatWatchButton
-          glyph:                  "\u{f1863}"
-          isToggled:              ThreatWatchModel.mapExpanded
-          anchors.left:           parent.left
-          anchors.verticalCenter: parent.verticalCenter
-          anchors.leftMargin:     workspacesPanel.width + 50
-          onClicked:              Popups.toggle("threatwatch") 
-          Component.onCompleted:  ThreatWatchModel.mapTriggerX = x
-          onXChanged:             ThreatWatchModel.mapTriggerX = x
-        }
-
-        Components.TaskbarButton {
-          id:                     playlistButton
-          glyph:                  "\ue405"
-          isToggled:              Playlist.expanded
-          anchors.left:           parent.left
-          anchors.verticalCenter: parent.verticalCenter
-          anchors.leftMargin:     workspacesPanel.width + 80
-          onClicked:              Popups.toggle("playlist") 
-          Component.onCompleted:  Playlist.triggerX = x
-          onXChanged:             Playlist.triggerX = x
-        }
-
-        Components.TaskbarButton {
-            id:                     soundButton
-            glyph:                  "\ue050"
-            isToggled:              Sound.expanded
-            anchors.left:           parent.left
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.leftMargin:     workspacesPanel.width + 110
-            onClicked:              Popups.toggle("sound") 
-            Component.onCompleted:  Sound.triggerX = x
-            onXChanged:             Sound.triggerX = x
+            Components.TaskbarButton {
+                id:                     soundButton
+                glyph:                  "\ue050"
+                isToggled:              Sound.expanded
+                onClicked:              Popups.toggle("sound")
+                Binding {
+                    target:   Sound
+                    property: "triggerX"
+                    value:    {
+                        soundButton.x
+                        soundButton.mapToItem(taskbar.contentItem, 0, 0).x
+                   }
+                }
+            }
         }
 
         // system tray panel — same shadow treatment, anchored right for clock + widgets
