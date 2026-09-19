@@ -51,7 +51,7 @@ Rectangle {
     // title bar height — also used as the top offset in all NewBorder inset layers
     readonly property int titleBarHeight: 20
 
-    readonly property int effectiveTitleBarHeight: root.showTitleBar ? root.titleBarHight : 0
+    readonly property int effectiveTitleBarHeight: root.showTitleBar ? root.titleBarHeight : 0
 
     // ── fade animation ────────────────────────────────────────────────────────
 

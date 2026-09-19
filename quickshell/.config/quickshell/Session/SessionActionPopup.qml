@@ -17,7 +17,7 @@ PanelWindow {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
     implicitWidth:  280
-    implicitHeight: 140
+    implicitHeight: content.implicitHeight + 16 + 12
     anchors { top: true; left: true }
     margins.top:    50 
     margins.left:   25
@@ -28,6 +28,7 @@ PanelWindow {
         showTitleBar: false
 
         ColumnLayout {
+            id:              content
             anchors.fill:    parent
             anchors.margins: 8
             spacing:         10
@@ -53,11 +54,9 @@ PanelWindow {
                 }
             }
 
-            Item { Layout.fillHeight: true }    // pushes the button to the bottom
-
             RowLayout {
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignRight
+                Layout.fillWidth:    true
+                Layout.alignment:    Qt.AlignRight
 
                 Components.IconTileButton {
                     id:               cancelButton
