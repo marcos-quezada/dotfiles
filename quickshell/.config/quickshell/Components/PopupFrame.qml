@@ -51,6 +51,8 @@ Rectangle {
     // title bar height — also used as the top offset in all NewBorder inset layers
     readonly property int titleBarHeight: 20
 
+    readonly property int effectiveTitleBarHeight: root.showTitleBar ? root.titleBarHight : 0
+
     // ── fade animation ────────────────────────────────────────────────────────
 
     OpacityAnimator on opacity {
@@ -99,7 +101,7 @@ Rectangle {
         anchors.left:   parent.left
         anchors.right:  parent.right
         anchors.top:    parent.top
-        implicitHeight: root.titleBarHeight ? root.titleBarHeight : 0
+        implicitHeight: root.effectiveTitleBarHeight
         visible:        root.showTitleBar
 
         RowLayout {
@@ -170,7 +172,7 @@ Rectangle {
     NewBorder {
         commonBorder: false
         lBorderwidth: -7; rBorderwidth: -7
-        tBorderwidth: -7 - root.titleBarHeight; bBorderwidth: -7
+        tBorderwidth: -7 - root.effectiveTitleBarHeight; bBorderwidth: -7
         zValue: 10
         opacity: 0.5
         borderColor: Config.colors.outline
@@ -180,7 +182,7 @@ Rectangle {
     NewBorder {
         commonBorder: false
         lBorderwidth: -8; rBorderwidth: -8
-        tBorderwidth: -8 - root.titleBarHeight; bBorderwidth: -8
+        tBorderwidth: -8 - root.effectiveTitleBarHeight; bBorderwidth: -8
         zValue: 10
         opacity: 0.2
         borderColor: Config.colors.outline
@@ -192,7 +194,7 @@ Rectangle {
         anchors {
             fill:        parent
             margins:     6
-            topMargin:   6 + root.titleBarHeight
+            topMargin:   6 + root.effectiveTitleBarHeight
         }
         color:        "transparent"
         border.width: 1
