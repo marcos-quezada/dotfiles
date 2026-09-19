@@ -22,6 +22,7 @@ Singleton {
         rebootProc.command = ["shutdown", "-r", "+" + minutes, "reboot requested from quickshell"]
         rebootProc.running = true
         root.rebootPending = true
+        Popups.current     = ""
     }
 
     function cancelReboot() {
@@ -34,6 +35,7 @@ Singleton {
         shutdownProc.command = ["shutdown", "-p", "+" + minutes, "shutdown requested from quickshell"]
         shutdownProc.running = true
         root.shutdownPending = true
+        Popups.current       = ""
     }
 
     function cancelShutdown() {
@@ -45,5 +47,6 @@ Singleton {
     function suspend() {
         suspendProc.command = ["acpiconf", "-s", "3"]
         suspendProc.running = true
+        Popups.current      = ""
     }
 }

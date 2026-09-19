@@ -20,6 +20,7 @@ Scope {
     PlaylistPopup {}
 
     SessionPopup {}
+    SessionActionPopup {}
 
     SoundPopup {}
 

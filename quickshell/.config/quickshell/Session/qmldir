@@ -1,2 +1,3 @@
 module Session
-SessionPopup 1.0 SessionPopup.qml 
+SessionActionPopup 1.0 SessionActionPopup.qml
+SessionPopup       1.0 SessionPopup.qml 

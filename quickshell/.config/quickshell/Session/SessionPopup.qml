@@ -46,7 +46,6 @@ PanelWindow {
                 Layout.fillWidth:  true
                 Layout.alignment: Qt.AlignHCenter
                 spacing:           10
-                visible:          !Session.rebootPending && !Session.shutdownPending
 
                 Components.IconTileButton {
                     glyph:          "\u23fe"    // power sleep symbol
@@ -73,55 +72,7 @@ PanelWindow {
                     onClicked:      Session.shutdown(1)
                 }
             }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                visible:          Session.rebootPending
-                spacing:          6
-
-                Text {
-                    Layout.fillWidth: true
-                    text:             "Rebooting in ~1 minute\u2026"
-                    color:            Config.colors.text
-                    font.family:      Fonts.body
-                    font.pixelSize:   12
-                    wrapMode:         Text.WordWrap
-                }
-                Components.IconTileButton {
-                    Layout.alignment: Qt.AlignHCenter
-                    glyph:            "Cancel"
-                    glyphFont:        Fonts.body
-                    glyphSize:        12
-                    implicitWidth:    80
-                    implicitHeight:   26
-                    onClicked:        Session.cancelReboot()
-                }
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                visible:          Session.shutdownPending
-                spacing:          6
-
-                Text {
-                    Layout.fillWidth: true
-                    text:             "Shutting down in ~1 minute\u2026"
-                    color:            Config.colors.text
-                    font.family:      Fonts.body
-                    font.pixelSize:   12
-                    wrapMode:         Text.WordWrap
-                }
-                Components.IconTileButton {
-                    Layout.alignment: Qt.AlignHCenter
-                    glyph:            "Cancel"
-                    glyphFont:        Fonts.body
-                    glyphSize:        12
-                    implicitWidth:    80
-                    implicitHeight:   26
-                    onClicked:        Session.cancelShutdown()
-                }
-            }
-        }
+       }
 
         MouseArea {
             anchors.fill: parent

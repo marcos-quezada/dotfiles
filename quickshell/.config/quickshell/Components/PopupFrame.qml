@@ -31,8 +31,9 @@ Rectangle {
     opacity: 0
 
     // public api
-    property string title: "Window"
-    property string icon:  ""
+    property string title:      "Window"
+    property string icon:       ""
+    property bool showTitleBar: true
 
     // open/close called by the host PanelWindow's Connections block
     function open() {
@@ -95,10 +96,11 @@ Rectangle {
 
     Item {
         id: titleBar
-        anchors.left:  parent.left
-        anchors.right: parent.right
-        anchors.top:   parent.top
-        implicitHeight: root.titleBarHeight
+        anchors.left:   parent.left
+        anchors.right:  parent.right
+        anchors.top:    parent.top
+        implicitHeight: root.titleBarHeight ? root.titleBarHeight : 0
+        visible:        root.showTitleBar
 
         RowLayout {
             anchors.fill: parent
