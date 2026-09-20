@@ -428,7 +428,7 @@ fetch_map() {
             | map(select( (.[14] // "") | test($sq) ))
             | map(select( .[5] != null and .[6] != null ))
             | .[:2][]
-            | "pin-s-airfield+\($col)(\(.[5] | tostring),\(.[6] | tostring))"
+            | "pin-l-airfield+\($col)(\(.[5] | tostring),\(.[6] | tostring))"
         ' "$FLIGHTS_FILE" 2>/dev/null | tr '\n' ',')
     fi
 
@@ -441,7 +441,7 @@ fetch_map() {
             | map(select( (.[1] // "" | ltrimstr(" ") | rtrimstr(" ") | ascii_upcase) | test($pats) ))
             | map(select( .[5] != null and .[6] != null ))
             | .[:3][]
-            | "pin-s-airfield+\($col)(\(.[5] | tostring),\(.[6] | tostring))"
+            | "pin-l-airfield+\($col)(\(.[5] | tostring),\(.[6] | tostring))"
         ' "$FLIGHTS_FILE" 2>/dev/null | tr '\n' ',')
     fi
 
