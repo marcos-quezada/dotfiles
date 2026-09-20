@@ -5,3 +5,4 @@ ListRow        1.0 ListRow.qml
 NewBorder      1.0 NewBorder.qml
 PopupFrame     1.0 PopupFrame.qml
 TaskbarButton  1.0 TaskbarButton.qml
+TriggeredPopup 1.0 TriggeredPopup.qml
