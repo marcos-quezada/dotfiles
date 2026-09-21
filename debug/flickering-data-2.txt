@@ -1,0 +1,9 @@
+  INFO: Configuration Loaded
+ DEBUG qml: PopupFrame.open() called for THREATWATCH at 1790003788571
+ DEBUG qml: PopupFrame.open() called for PLAYLIST at 1790003790066
+ DEBUG qml: PopupFrame.close() called for THREATWATCH at 1790003790068
+ DEBUG qml: PopupFrame.close() called for PLAYLIST at 1790003792248
+ DEBUG qml: PopupFrame.open() called for THREATWATCH at 1790003792250
+ DEBUG qml: PopupFrame.close() called for THREATWATCH at 1790003793333
+ DEBUG qml: PopupFrame.open() called for PLAYLIST at 1790003795046
+ DEBUG qml: PopupFrame.close() called for PLAYLIST at 1790003795793

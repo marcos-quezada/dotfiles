@@ -37,10 +37,12 @@ Rectangle {
 
     // open/close called by the host PanelWindow's Connections block
     function open() {
+        console.log("PopupFrame.open() called for", root.title, "at", Date.now())
         fadeOut.running = false
         fadeIn.running  = true
     }
     function close() {
+        console.log("PopupFrame.close() called for", root.title, "at", Date.now())
         fadeIn.running  = false
         fadeOut.running = true
     }
