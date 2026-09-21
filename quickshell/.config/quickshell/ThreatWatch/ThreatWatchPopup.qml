@@ -111,10 +111,7 @@ Components.TriggeredPopup {
             if (ThreatWatchModel.mapExpanded) {
                 mapImage.source = ""
                 mapImage.source = ThreatWatchModel.cacheDir + "/germany.png"
-                chrome.open()
-            } else {
-                chrome.close()
-            }
+            } 
         }
 
         // reload map if a fresh update lands while the popup is already open
@@ -123,6 +120,13 @@ Components.TriggeredPopup {
                 mapImage.source = ""
                 mapImage.source = ThreatWatchModel.cacheDir + "/germany.png"
             }
+        }
+    }
+    
+    function onExpandedChanged() {
+        if (ThreatWatchModel.mapExpanded) {
+            mapImage.source = ""
+            mapImage.source = ThreatWatchModel.cacheDir + "/germany.png"
         }
     }
 }
