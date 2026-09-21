@@ -1,0 +1,8 @@
+ DEBUG qml: TriggeredPopup expanded changed to: true for THREATWATCH at 1790003046425
+  WARN scene: @ThreatWatch/ThreatWatchPopup.qml[128:-1]: ReferenceError: chrome is not defined
+ DEBUG qml: TriggeredPopup expanded changed to: false for THREATWATCH at 1790003048658
+  WARN scene: @ThreatWatch/ThreatWatchPopup.qml[129:-1]: ReferenceError: chrome is not defined
+ DEBUG qml: TriggeredPopup expanded changed to: true for THREATWATCH at 1790003050854
+  WARN scene: @ThreatWatch/ThreatWatchPopup.qml[128:-1]: ReferenceError: chrome is not defined
+ DEBUG qml: TriggeredPopup expanded changed to: false for THREATWATCH at 1790003052290
+  WARN scene: @ThreatWatch/ThreatWatchPopup.qml[129:-1]: ReferenceError: chrome is not defined

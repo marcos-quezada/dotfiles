@@ -123,10 +123,9 @@ Components.TriggeredPopup {
         }
     }
     
-    function onExpandedChanged() {
-        if (ThreatWatchModel.mapExpanded) {
-            mapImage.source = ""
-            mapImage.source = ThreatWatchModel.cacheDir + "/germany.png"
-        }
+    onExpandedChanged: {
+        console.log("TriggeredPopup expanded changed to:", expanded, "for", title, "at", Date.now())
+        if (expanded) chrome.open()
+        else chrome.close()
     }
 }
