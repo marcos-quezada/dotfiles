@@ -37,12 +37,10 @@ Rectangle {
 
     // open/close called by the host PanelWindow's Connections block
     function open() {
-        console.log("PopupFrame.open() called for", root.title, "at", Date.now())
         fadeOut.running = false
         fadeIn.running  = true
     }
     function close() {
-        console.log("PopupFrame.close() called for", root.title, "at", Date.now())
         fadeIn.running  = false
         fadeOut.running = true
     }
@@ -57,7 +55,7 @@ Rectangle {
 
     // ── fade animation ────────────────────────────────────────────────────────
 
-    OpacityAnimator on opacity {
+    NumberAnimation on opacity {
         id: fadeIn
         running: false
         from:     0;  to: 1
@@ -65,7 +63,7 @@ Rectangle {
         easing.type: Easing.OutCubic
     }
 
-    OpacityAnimator on opacity {
+    NumberAnimation on opacity {
         id: fadeOut
         running: false
         from:     1;  to: 0
