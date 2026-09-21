@@ -122,10 +122,4 @@ Components.TriggeredPopup {
             }
         }
     }
-    
-    onExpandedChanged: {
-        console.log("TriggeredPopup expanded changed to:", expanded, "for", title, "at", Date.now())
-        if (expanded) chrome.open()
-        else chrome.close()
-    }
 }
