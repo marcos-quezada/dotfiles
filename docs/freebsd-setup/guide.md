@@ -775,6 +775,79 @@ automount
 
 ---
 
+## 16. Safe Upgrade Workflow — ZFS Boot Environments
+
+Root is ZFS (`zroot/ROOT/default`), so every package/OS upgrade has a real,
+cheap safety net via `bectl(8)` — confirmed available on this machine
+(`bectl list` returns a real table). This isn't optional insurance to skip
+when in a hurry: on package-based FreeBSD 15.x, `pkg upgrade` does **not**
+create a boot environment automatically the way 14's `freebsd-update` used
+to — it has to be a deliberate, remembered step every time.
+
+### Before any `pkg upgrade` (patch-level or point-release)
+
+```sh
+doas bectl create <name>
+doas pkg upgrade
+```
+
+no `-r` (recursive) flag is needed here — this machine uses the "shallow"
+boot environment layout (`bectl(8)`'s own term): `/home` lives on its own
+sibling dataset (`zroot/home/mquezada`), not nested under
+`zroot/ROOT/default`, so a plain `bectl create` already captures the full
+root boot environment correctly. `-r` is specifically for "deep" layouts
+with subordinate datasets nested under the boot environment itself — not
+this machine's layout, confirmed via `bectl(8)`'s own documented examples.
+
+### Naming convention
+
+two shapes, matching what's already naturally present on this machine
+(auto-generated boot environments from past upgrades already look like
+`15.1-RELEASE-p3_2026-08-26_124152`) and `bectl(8)`'s own manual page
+example (`bectl create -r \`date +%Y%m%d\``):
+
+- **routine, no specific concern** — before a regular `pkg upgrade`: plain
+  date, e.g. `20260922`
+- **deliberate, tied to a specific risky change** — descriptive name, e.g.
+  `pre-nvidia-fix` (as already used today). these are worth keeping longer
+  than routine dated ones, as an explicit safety net for that specific change
+
+### Rollback
+
+two ways, depending on whether the system is still bootable normally:
+
+- **from the boot loader menu**: select the prior boot environment directly
+  at boot — works even if the current one is broken enough that you can't
+  get a shell
+- **from a working shell**: `doas bectl activate <name>` then reboot
+
+### Retention — manual review, not automated pruning
+
+boot environments consume real disk space (`bectl list` showed one old
+auto-generated environment at 437 MB) and `bectl` has no automatic
+expiry — checked the man page, nothing built-in prunes old environments on
+a schedule. the practical approach here: review `bectl list` periodically
+(a natural time is right before creating a new one for the next upgrade),
+and `bectl destroy <name>` anything no longer needed. **no automated
+pruning script** — deliberately not built, for the same reason no wrapper
+script exists for the create/upgrade step itself (see below): a script
+destroying boot environments unattended needs real scrutiny before being
+added just for convenience, and the actual frequency of this task (around
+upgrades, not continuously) doesn't justify the risk.
+
+### Why no wrapper script
+
+a script automating `bectl create` + `pkg upgrade` + reboot was considered
+and deliberately not built. two commands run manually, in order, with a
+chance to actually look at the output between them, is safer than a script
+that has to correctly handle every partial-failure case (what if `bectl
+create` succeeds but `pkg upgrade` fails partway through? what if the
+reboot should NOT happen automatically because something looked wrong?) —
+same reasoning as this project's other boot-critical-file decisions:
+convenience isn't worth the risk here.
+
+---
+
 ## References
 
 - [FreeBSD Handbook — Graphics (DRM/KMS)](https://docs.freebsd.org/en/books/handbook/x11/)
