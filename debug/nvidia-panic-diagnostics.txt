@@ -1,0 +1,154 @@
+=== kldstat -nvidia ===
+23    1 0xffffffff83f6e000    14a88 nvidia-drm.ko
+24    2 0xffffffff84400000  6075420 nvidia.ko
+28    1 0xffffffff84211000   1662f8 nvidia-modeset.ko
+
+=== pciconf vgapci1 ===
+vgapci1@pci0:3:0:0:	class=0x030200 rev=0xa1 hdr=0x00 vendor=0x10de device=0x1d10 subvendor=0x1462 subdevice=0x1230
+    vendor     = 'NVIDIA Corporation'
+    device     = 'GP108M [GeForce MX150]'
+    class      = display
+
+=== sysctl hw.dri ===
+hw.dri.1.modesetting: 1
+hw.dri.1.busid: pci:0000:03:00.0
+hw.dri.1.vblank: 
+crtc ref count    last     enabled inmodeset
+hw.dri.1.clients: 
+a dev            pid   uid      magic     ioctls
+
+hw.dri.1.name: nvidia-drm 0x73
+hw.dri.timestamp_precision: 20
+hw.dri.vblank_offdelay: 5000
+hw.dri.0.modesetting: 1
+hw.dri.0.busid: pci:0000:00:02.0
+hw.dri.0.vblank: 
+crtc ref count    last     enabled inmodeset
+  00  00 00001098 00001911 00      00
+  01  01 00000000 00000000 00      01
+  02  01 00000000 00000000 00      01
+hw.dri.0.clients: 
+a dev            pid   uid      magic     ioctls
+
+hw.dri.0.name: i915 0x72
+hw.dri.dp_aux_i2c_transfer_size: 16
+hw.dri.dp_aux_i2c_speed_khz: 10
+hw.dri.sched_policy: 1
+hw.dri.drm_fbdev_overalloc: 100
+hw.dri.fbdev_emulation: 1
+hw.dri.timestamp_precision_usec: 20
+hw.dri.vblankoffdelay: 5000
+hw.dri.poll: 1
+hw.dri.debug: 0
+hw.dri.drm_debug_persist: 0
+hw.dri.skip_ddb: 0
+hw.dri.__drm_debug: 0
+hw.dri.edid_fixup: 6
+
+=== dmesg tail ===
+psm0: model Synaptics Touchpad, device ID 0
+acpi_acad0: <AC Adapter> on acpi0
+battery0: <ACPI Control Method Battery> on acpi0
+acpi_lid0: <Control Method Lid Switch> on acpi0
+acpi_wmi2: <ACPI-WMI mapping> on acpi0
+coretemp0: <CPU On-Die Thermal Sensors> on cpu0
+hwpstate_intel0: <Intel Speed Shift> on cpu0
+cpufreq0: <CPU frequency control> on cpu0
+hwpstate_intel1: <Intel Speed Shift> on cpu1
+cpufreq1: <CPU frequency control> on cpu1
+hwpstate_intel2: <Intel Speed Shift> on cpu2
+cpufreq2: <CPU frequency control> on cpu2
+hwpstate_intel3: <Intel Speed Shift> on cpu3
+cpufreq3: <CPU frequency control> on cpu3
+hwpstate_intel4: <Intel Speed Shift> on cpu4
+cpufreq4: <CPU frequency control> on cpu4
+hwpstate_intel5: <Intel Speed Shift> on cpu5
+cpufreq5: <CPU frequency control> on cpu5
+hwpstate_intel6: <Intel Speed Shift> on cpu6
+cpufreq6: <CPU frequency control> on cpu6
+hwpstate_intel7: <Intel Speed Shift> on cpu7
+cpufreq7: <CPU frequency control> on cpu7
+module_register_init: MOD_LOAD (tmpfs, 0xffffffff80c65cc0, 0xffffffff82bc0cf0) error 17
+Timecounter "TSC" frequency 1991995833 Hz quality 1000
+Timecounters tick every 1.000 msec
+ZFS filesystem version: 5
+ZFS storage pool version: features support (5000)
+ugen0.1: <Intel XHCI root HUB> at usbus0
+uhub0 on usbus0
+uhub0: <Intel XHCI root HUB, class 9/0, rev 3.00/1.00, addr 1> on usbus0
+hdacc0: <Realtek ALC298 HDA CODEC> at cad 0 on hdac0
+hdaa0: <Realtek ALC298 Audio Function Group> at nid 1 on hdacc0
+pcm0: <Realtek ALC298 (Internal Analog)> at nid 20 and 18 on hdaa0
+pcm1: <Realtek ALC298 (Right Analog)> at nid 33 and 24 on hdaa0
+hdacc1: <Intel Kaby Lake HDA CODEC> at cad 2 on hdac0
+hdaa1: <Intel Kaby Lake Audio Function Group> at nid 1 on hdacc1
+pcm2: <Intel Kaby Lake (HDMI/DP 8ch)> at nid 3 on hdaa1
+nda0 at nvme0 bus 0 scbus0 target 0 lun 1
+nda0: <KINGSTON RBUSNS8154P3256GJ E8FK11.C 50026B768234633F>
+nda0: Serial Number 50026B768234633F
+nda0: nvme version 1.2
+nda0: 244198MB (500118192 512 byte sectors)
+sysctl_unregister_oid: failed(22) to unregister sysctl(tmpfs)
+Trying to mount root from zfs:zroot/ROOT/default []...
+uhub0: 18 ports with 18 removable, self powered
+Root mount waiting for: usbus0
+ugen0.2: <vendor 0x8087 product 0x0aa7> at usbus0
+ugen0.3: <vendor 0x06cb product 0x009b> at usbus0
+Root mount waiting for: usbus0
+ugen0.4: <Generic USB2.0-CRW> at usbus0
+iwlwifi0: <iwlwifi> mem 0xdf200000-0xdf201fff at device 0.0 on pci2
+iwlwifi0: Detected crf-id 0x0, cnv-id 0x0 wfpm id 0x0
+iwlwifi0: PCI dev 24fb/2110, rev=0x220, rfid=0xd55555d5
+iwlwifi0: Detected Intel(R) Dual Band Wireless-AC 3168
+iwlwifi0: successfully loaded firmware image 'iwlwifi-3168-29.ucode'
+iwlwifi0: loaded firmware version 29.0bd893f3.0 3168-29.ucode op_mode iwlmvm
+iwlwifi0: base HW address: 48:a4:72:f7:0e:04, OTP minor version: 0x0
+[drm] Got Intel graphics stolen memory base 0x7c000000, size 0x4000000
+drmn0: <drmn> on vgapci0
+vgapci0: child drmn0 requested pci_enable_io
+vgapci0: child drmn0 requested pci_enable_io
+drmn0: successfully loaded firmware image 'i915/kbl_dmc_ver1_04.bin'
+drmn0: [drm] Finished loading DMC firmware i915/kbl_dmc_ver1_04.bin (v1.4)
+lkpi_iic0: <LinuxKPI I2C> on drmn0
+iicbus0: <Philips I2C bus> on lkpi_iic0
+iic0: <I2C generic I/O> on iicbus0
+lkpi_iic1: <LinuxKPI I2C> on drmn0
+iicbus1: <Philips I2C bus> on lkpi_iic1
+iic1: <I2C generic I/O> on iicbus1
+lkpi_iic2: <LinuxKPI I2C> on drmn0
+iicbus2: <Philips I2C bus> on lkpi_iic2
+iic2: <I2C generic I/O> on iicbus2
+sysctl_add_oid: can't re-use a leaf (hw.dri.debug)!
+lkpi_iic3: <LinuxKPI I2C> on drm1
+iicbus3: <Philips I2C bus> on lkpi_iic3
+iic3: <I2C generic I/O> on iicbus3
+[drm] Initialized i915 1.6.0 20201103 for drmn0 on minor 0
+VT: Replacing driver "efifb" with new "drmfb".
+start FB_INFO:
+height=1080 width=1920 depth=32
+pbase=0xb0000000 vbase=0xfffff800b0000000
+name=drmn0 id=i915drmfb flags=0x0 stride=7680
+end FB_INFO
+nvidia1: <NVIDIA GeForce MX150> on vgapci1
+vgapci1: child nvidia1 requested pci_enable_io
+vgapci1: child nvidia1 requested pci_enable_io
+nvidia-modeset: Loading NVIDIA Kernel Mode Setting Driver for UNIX platforms  580.173.02  Tue Jun 23 07:55:43 UTC 2026
+[drm] [nvidia-drm] [GPU ID 0x00000300] Loading driver
+sysctl_add_oid: can't re-use a leaf (hw.dri.debug)!
+sysctl_add_oid: can't re-use a leaf (hw.dri.vblank_offdelay)!
+sysctl_add_oid: can't re-use a leaf (hw.dri.timestamp_precision)!
+[drm] Initialized nvidia-drm 0.0.0 20160202 for nvidia1 on minor 1
+pchtherm0: <Skylake PCH Thermal Subsystem> mem 0xdf32a000-0xdf32afff at device 20.2 on pci0
+ichsmb0: <Intel Sunrise Point-LP SMBus controller> port 0xf040-0xf05f mem 0xdf328000-0xdf3280ff at device 31.4 on pci0
+smbus0: <System Management Bus> on ichsmb0
+hdac0: Command 0x2033b000 timeout on address 2
+wlan0: Ethernet address: 48:a4:72:f7:0e:04
+lo0: link state changed to UP
+wlan0: link state changed to UP
+Security policy loaded: MAC/ntpd (mac_ntpd)
+
+=== /var/crash ===
+total 10
+drwxr-x---   2 root wheel  3 Jan  1  2018 .
+drwxr-xr-x  25 root wheel 25 Sep 22 13:34 ..
+-rw-r--r--   1 root wheel  5 Nov 28  2025 minfree
