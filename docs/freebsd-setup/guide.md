@@ -764,7 +764,7 @@ automount
 
 | Issue | Status |
 |-------|--------|
-| ACPI EC errors at boot (`No handler for Region [EC__]`) | Cosmetic — suppressed by `acpi_wmi_load="YES"` and `acpi_video_load="YES"`; EC is functional |
+| ACPI EC errors at boot (`No handler for Region [EC__]`) | Cosmetic, confirmed — `apm -l`, `acpiconf -i0`, and `sysctl hw.acpi.battery.life` all report consistent, correct battery data (capacity, voltage, remaining time, percentage) despite these boot-time errors; EC is fully functional at runtime |
 | `hdac0: Command timeout` in dmesg | Intermittent; audio works correctly |
 | Synaptics fingerprint reader (`06cb:009b`) | No FreeBSD driver; unsupported |
 | `tmpfs` double-register warning at boot | **Fixed** — removed redundant `tmpfs_load="YES"` from `loader.conf`; `GENERIC` already compiles `tmpfs` in, the explicit module load was racing against that and failing every boot |
