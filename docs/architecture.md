@@ -1225,6 +1225,60 @@ manually.
 `stow --target=/ vt` under `doas`/`sudo` — console font files must land in
 `/boot/fonts/` for the FreeBSD loader to find them.
 
+### why early-boot system config files aren't stowed
+
+`/boot/loader.conf`, `/etc/rc.conf`, `/etc/sysctl.conf`, `/etc/fstab`, and
+`/usr/local/etc/devd/automount_devd.conf` are all tracked as plain reference
+copies under `docs/freebsd-setup/` — not stow-managed symlinks. this wasn't
+the original plan; it's a correction made after a real, disruptive failure.
+
+the first attempt symlinked `/etc/rc.conf` via `stow --adopt`, reasoning
+(wrongly) that it was "read well after full multi-dataset mount, unlike
+`loader.conf`." on the next reboot, `ly` failed with "failed to get active
+tty"/"failed to crawl session directories" — `seatd`/`dbus` hadn't started at
+all. root cause, confirmed by reading FreeBSD's actual `/etc/rc` source
+(`libexec/rc/rc`, `cgit.freebsd.org`): `load_rc_config` (which sources
+`/etc/rc.conf`) runs essentially as the *first* thing `/etc/rc` does, before
+any mount-related `rc.d` script has run at all. this machine's home
+directory lives on its own ZFS dataset (`zroot/home/mquezada`, separate from
+`zroot/ROOT/default`, FreeBSD's own installer default — specifically so a
+`bectl` rollback doesn't touch home directories). a symlink from
+`/etc/rc.conf` into `~/git/dotfiles/...` pointed across that exact boundary,
+and failed silently at the one moment it's read.
+
+after that failure, every other early-boot candidate was checked against
+FreeBSD's real `rc.d` `REQUIRE`/`BEFORE` chains before assuming anything —
+not re-guessed the same way twice:
+
+| file | reader | ordering vs. `/home`'s mount (`zfs`/`zfsbe`) |
+|---|---|---|
+| `/etc/rc.conf` | `/etc/rc` directly | confirmed before — the failure above |
+| `/etc/sysctl.conf` | `rc.d/sysctl` | no `REQUIRE` line at all — unordered |
+| `/etc/fstab` | `rc.d/mountcritlocal` | `mountcritlocal` REQUIREs only `root hostid_save mdconfig`; `zfsbe`/`zfs` REQUIRE `mountcritlocal` — fstab is read *before* `/home` mounts |
+| `/usr/local/etc/devd/automount_devd.conf` | `rc.d/devd` | `REQUIRE: netif ldconfig`, `BEFORE: NETWORKING mountcritremote` — no ordering relative to `zfs`/`zfsbe` either |
+
+every one of these is either confirmed-early or unordered/unproven — none
+are things this project calls safe to symlink across a separate-home-dataset
+boundary. the general rule that came out of this: **don't assume a
+boot-time config file is safe to symlink just because it "feels" late in
+boot — check the actual `rc.d` dependency chain, or default to a plain
+tracked copy.**
+
+each reference copy is synced by hand after editing:
+
+```sh
+doas cp ~/git/dotfiles/docs/freebsd-setup/loader.conf   /boot/loader.conf
+doas cp ~/git/dotfiles/docs/freebsd-setup/rc.conf        /etc/rc.conf
+doas cp ~/git/dotfiles/docs/freebsd-setup/sysctl.conf    /etc/sysctl.conf
+doas cp ~/git/dotfiles/docs/freebsd-setup/fstab          /etc/fstab
+doas cp ~/git/dotfiles/docs/freebsd-setup/automount_devd.conf /usr/local/etc/devd/automount_devd.conf
+```
+
+this is genuinely less convenient than a live symlink, but a stale userspace
+dotfile is a minor annoyance; a boot-time config file that silently fails to
+read is a machine that won't come up correctly — not a trade worth making
+for convenience alone.
+
 ### manual stow
 
 `install.sh` is the normal entry point, but individual packages can be stowed or
