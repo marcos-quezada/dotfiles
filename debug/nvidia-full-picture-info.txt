@@ -1,0 +1,9 @@
+ℵ₀:auryn:~ ♥ › $ pkg info | grep -i nvidia
+ffnvcodec-headers-13.0.19.0    FFmpeg version of Nvidia Codec SDK headers
+nvidia-drm-66-kmod-595.84.1500068_1 NVIDIA DRM Kernel Module
+nvidia-kmod-595.58.03.1501000  NVIDIA graphics driver kernel module
+
+ℵ₀:auryn:~ ♥ › $ pkg info -d nvidia-drm-66-kmod
+nvidia-drm-66-kmod-595.84.1500068_1:
+	nvidia-kmod-595.58.03.1501000
+	drm-66-kmod-6.6.25.1501000_8
