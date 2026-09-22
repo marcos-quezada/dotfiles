@@ -1,0 +1,220 @@
+ℵ₀:auryn:~/git/dotfiles ♥ › $ doas bectl create pre-nvidia-fix
+Password:
+ℵ₀:auryn:~/git/dotfiles ♥ › $ bectl list
+BE                                 Active Mountpoint Space Created
+15.0-RELEASE-p13_2026-08-26_114803 -      -          2M    2026-08-26 11:48
+15.0-RELEASE_2026-08-26_112923     -      -          437M  2026-08-26 11:29
+15.1-RELEASE-p3_2026-08-26_123445  -      -          1.20M 2026-08-26 12:34
+15.1-RELEASE-p3_2026-08-26_124152  -      -          3.66M 2026-08-26 12:41
+default                            NR     /          23.1G 2018-01-01 08:10
+pre-nvidia-fix                     -      -          8K    2026-09-22 13:11
+ℵ₀:auryn:~/git/dotfiles ♥ › $ pkg delete nvidia-drm-66-kmod nvidia-kmod
+pkg: Insufficient privileges to delete packages
+ℵ₀:auryn:~/git/dotfiles ♥ › $ doas pkg delete nvidia-drm-66-kmod nvidia-kmod
+Password:
+Checking integrity... done (0 conflicting)
+Deinstallation has been requested for the following 2 packages (of 0 packages in the universe):
+
+Installed packages to be REMOVED:
+	nvidia-drm-66-kmod: 595.84.1500068_1
+	nvidia-kmod: 595.58.03.1501000
+
+Number of packages to be removed: 2
+
+The operation will free 201 MiB.
+
+Proceed with deinstalling packages? [y/N]: y
+[1/2] Deinstalling nvidia-drm-66-kmod-595.84.1500068_1...
+[1/2] Deleting files for nvidia-drm-66-kmod-595.84.1500068_1: 100%
+[2/2] Deinstalling nvidia-kmod-595.58.03.1501000...
+[2/2] Deleting files for nvidia-kmod-595.58.03.1501000: 100%
+ℵ₀:auryn:~/git/dotfiles ♥ › $ doas pkg install nvidia-driver-580 nvidia-kmod-580 nvidia-drm-66-kmod-580
+Password:
+Updating FreeBSD-ports repository catalogue...
+Fetching data:   8%   976 KiB  16.4 kB/s    07:51 ETA^C
+ℵ₀:auryn:~/git/dotfiles ♥ › $ doas pkg install nvidia-driver-580 nvidia-kmod-580 nvidia-drm-66-kmod-580
+Password:
+Updating FreeBSD-ports repository catalogue...
+Fetching data:  14%  1536 KiB  16.0 kB/s    08:41 ETA
+pkg: An error occurred while fetching package
+pkg: https://pkgmir.geo.freebsd.org/FreeBSD:15:amd64/quarterly/data.tzst: Not Found
+Fetching packagesite: 100%    11 MiB   1.9 MB/s    00:06    
+Processing entries: 100%
+FreeBSD-ports repository update completed. 37838 packages processed.
+Updating FreeBSD-ports-kmods repository catalogue...
+FreeBSD-ports-kmods repository is up to date.
+All repositories are up to date.
+The following 7 package(s) will be affected (of 0 checked):
+
+New packages to be INSTALLED:
+	egl-wayland: 1.1.21 [FreeBSD-ports]
+	egl-wayland2: 1.0.1 [FreeBSD-ports]
+	egl-x11: 1.0.5 [FreeBSD-ports]
+	nvidia-driver-580: 580.173.02 [FreeBSD-ports]
+	nvidia-drm-66-kmod-580: 580.173.02.1500068_1 [FreeBSD-ports]
+	nvidia-kmod-580: 580.173.02.1500068 [FreeBSD-ports]
+	xorg-server: 21.1.24,1 [FreeBSD-ports]
+
+Number of packages to be installed: 7
+
+The process will require 504 MiB more space.
+232 MiB to be downloaded.
+
+Proceed with this action? [y/N]: y
+[1/7] Fetching egl-wayland2-1.0.1: 100%    36 KiB  37.3 kB/s    00:01    
+[2/7] Fetching egl-wayland-1.1.21: 100%    35 KiB  35.5 kB/s    00:01    
+[3/7] Fetching nvidia-kmod-580-580.173.02.1500068: 100%   151 MiB   2.4 MB/s    01:06    
+[4/7] Fetching egl-x11-1.0.5: 100%    41 KiB  41.9 kB/s    00:01    
+[5/7] Fetching xorg-server-21.1.24,1: 100%  1582 KiB   1.6 MB/s    00:01    
+[6/7] Fetching nvidia-drm-66-kmod-580-580.173.02.1500068_1: 100%    54 KiB  55.7 kB/s    00:01    
+[7/7] Fetching nvidia-driver-580-580.173.02: 100%    79 MiB   2.4 MB/s    00:34    
+Checking integrity... done (0 conflicting)
+[1/7] Installing egl-wayland-1.1.21...
+[1/7] Extracting egl-wayland-1.1.21: 100%
+[2/7] Installing egl-wayland2-1.0.1...
+[2/7] Extracting egl-wayland2-1.0.1: 100%
+[3/7] Installing egl-x11-1.0.5...
+[3/7] Extracting egl-x11-1.0.5: 100%
+[4/7] Installing nvidia-kmod-580-580.173.02.1500068...
+[4/7] Extracting nvidia-kmod-580-580.173.02.1500068: 100%
+[5/7] Installing nvidia-drm-66-kmod-580-580.173.02.1500068_1...
+[5/7] Extracting nvidia-drm-66-kmod-580-580.173.02.1500068_1: 100%
+[6/7] Installing xorg-server-21.1.24,1...
+[6/7] Extracting xorg-server-21.1.24,1: 100%
+[7/7] Installing nvidia-driver-580-580.173.02...
+[7/7] Extracting nvidia-driver-580-580.173.02: 100%
+=====
+Message from nvidia-kmod-580-580.173.02.1500068:
+
+--
+To use these drivers, make sure that you have loaded the NVidia kernel
+module, by running
+
+	# kldload nvidia-modeset
+
+on the command line, or by putting ``nvidia-modeset'' on the ``kld_list''
+variable in /etc/rc.conf, either manually or by running
+
+	# sysrc kld_list+=nvidia-modeset
+
+If you build this port with FreeBSD AGP GART driver, make sure you have
+agp.ko kernel module installed and loaded, since nvidia.ko will depend
+on it, or have your kernel compiled with "device agp".  Otherwise, the
+NVidia kernel module will not load.  Also, please set correct value for
+``Option "NvAGP"'' in ``Device'' section of your X11 configuration file.
+
+When building with Linux compatibility support, make sure that linux.ko
+module is available as well (or have it compiled in kernel).  It can be
+loaded via /boot/loader.conf, or later in the boot process if you add
+
+	linux_enable="YES"
+
+to your /etc/rc.conf.
+
+If X.org cannot start and reports
+
+	(EE) NVIDIA(0): Failed to obtain a shared memory identifier.
+
+in /var/log/Xorg.0.log while actually you have ``options SYSVSHM''
+enabled in kernel, the sysctl ``kern.ipc.shmall'' should be increased.
+
+Because in certain 570 versions GSP firmware is known to cause issues
+with suspend/resume, thus, disabled by default for now.
+On the other hand, some GPUs are known NOT to work without GSP
+firmware support.
+To enable GSP firmware add hw.nvidia.registry.EnableGpuFirmware=1
+to your loader.conf.
+
+https://download.nvidia.com/XFree86/FreeBSD-x86_64/560.31.02/README/gsp.html
+
+See /usr/local/share/doc/nvidia-kmod/README for more information.
+=====
+Message from nvidia-drm-66-kmod-580-580.173.02.1500068_1:
+
+--
+Modesetting must be enabled to use nvidia-drm.ko for graphics. This can be done
+by setting the modeset sysctl, the equivalent of the modeset kernel parameter
+on Linux.
+
+hw.nvidiadrm.modeset=1
+
+This must be set before loading nvidia-drm.ko, most easily done by placing the
+above in /boot/loader.conf.
+=====
+Message from xorg-server-21.1.24,1:
+
+--
+Xorg-server has been installed.
+
+If your kernel is compiled with the EVDEV_SUPPORT option enabled
+(default starting from FreeBSD 12.1) it is recommended to enable evdev mode in
+pointer device drivers like ums(4) and psm(4). This will give improvements like
+better tilt wheel support for mice and centralized gesture support via
+xf86-input-synaptics or libinput drivers for touchpads.
+
+This is also needed for PS/2 devices to be properly detected by Xorg when
+moused service is disabled in /etc/rc.conf and kernel is compiled with
+EVDEV_SUPPORT.
+
+To enable evdev in such a device, run the following:
+
+# sysctl kern.evdev.rcpt_mask=6
+
+To make it persistent across reboots, add the following to /etc/sysctl.conf:
+
+kern.evdev.rcpt_mask=6
+
+In case you're using a serial mouse or any other mouse that *only* works over
+sysmouse(4) and moused(8) on an evdev enabled kernel, please run this:
+
+# sysctl kern.evdev.rcpt_mask=3
+
+To make it persistent across reboots, add to this /etc/sysctl.conf:
+
+kern.evdev.rcpt_mask=3
+=====
+Message from nvidia-driver-580-580.173.02:
+
+--
+To use these drivers, make sure that you have loaded the NVidia kernel
+module, by running
+
+	# kldload %%KLDNAME%%
+
+on the command line, or by putting ``%%KLDNAME%%'' on the ``kld_list''
+variable in /etc/rc.conf, either manually or by running
+
+	# sysrc kld_list+=%%KLDNAME%%
+
+If you build this port with FreeBSD AGP GART driver, make sure you have
+agp.ko kernel module installed and loaded, since nvidia.ko will depend
+on it, or have your kernel compiled with "device agp".  Otherwise, the
+NVidia kernel module will not load.  Also, please set correct value for
+``Option "NvAGP"'' in ``Device'' section of your X11 configuration file.
+
+When building with Linux compatibility support, make sure that linux.ko
+module is available as well (or have it compiled in kernel).  It can be
+loaded via /boot/loader.conf, or later in the boot process if you add
+
+	linux_enable="YES"
+
+to your /etc/rc.conf.
+
+If X.org cannot start and reports
+
+	(EE) NVIDIA(0): Failed to obtain a shared memory identifier.
+
+in /var/log/Xorg.0.log while actually you have ``options SYSVSHM''
+enabled in kernel, the sysctl ``kern.ipc.shmall'' should be increased.
+
+Because in certain 570 versions GSP firmware is known to cause issues
+with suspend/resume, thus, disabled by default for now.
+On the other hand, some GPUs are known NOT to work without GSP
+firmware support.
+To enable GSP firmware add hw.nvidia.registry.EnableGpuFirmware=1
+to your loader.conf.
+
+https://download.nvidia.com/XFree86/FreeBSD-x86_64/560.31.02/README/gsp.html
+
+See /usr/local/share/doc/NVIDIA_GLX-1.0/README for more information.
+ℵ₀:auryn:~/git/dotfiles ♥ › $ 
