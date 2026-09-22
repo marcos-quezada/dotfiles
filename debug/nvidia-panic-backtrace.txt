@@ -1,0 +1,307 @@
+kgdb: invalid option -- e
+usage: kgdb [-afqvw] [-b rate] [-d crashdir] [-c core | -n dumpnr | -r device]
+	[kernel [core]]
+Script started on Tue Sep 22 14:14:46 2026
+ℵ₀:auryn:~/git/dotfiles ♥ › $ [30C{}[30Ccd git/dotfiles/[30Ckldstat | grep -i nvidia[30Cvin debug/fix-attempt-output.txt[30Cdoas pkg install nvidia-driver-580 nvidia-kmod-580 nvidia-drm-66-kmod-580[30Cvin debug/fix-attempt-output.txt[K[30Ckldstat | grep -i nvidia[K[30Ccd git/dotfiles/[K[30C{}[K[30C[Kdoas kgdb /boot[45C/kerne[51Cl/kern[57C
+/boot/kernel/kern_testfrwk.ko  /boot/kernel/kernel           
+[Kℵ₀:auryn:~/git/dotfiles ♥ › $ doas kgdb /boot/kernel/kernel[60C/var[64C/crash[70C/vmco[75Cre.0
+Password:
+[35;1mGNU gdb (GDB) 15.1 [GDB v15.1 for FreeBSD][m
+Copyright (C) 2024 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <[32mhttp://gnu.org/licenses/gpl.html[m>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-portbld-freebsd15.0".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+[32m<https://www.gnu.org/software/gdb/bugs/>[m.
+Find the GDB manual and other documentation resources online at:
+    <[32mhttp://www.gnu.org/software/gdb/documentation/[m>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from [32m/boot/kernel/kernel[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/kernel.debug[m...
+
+Unread portion of the kernel message buffer:
+
+
+Fatal trap 12: page fault while in kernel mode
+cpuid = 3; apic id = 03
+fault virtual address   = 0x68
+fault code              = supervisor read data, page not present
+instruction pointer     = 0x20:0xffffffff83eeb806
+stack pointer           = 0x28:0xfffffe00c665f940
+frame pointer           = 0x28:0xfffffe00c665f970
+code segment            = base 0x0, limit 0xfffff, type 0x1b
+                        = DPL 0, pres 1, long 1, def32 0, gran 1
+processor eflags        = interrupt enabled, resume, IOPL = 0
+current process         = 2314 (seatd)
+rdi: fffff801772ff000 rsi: fffff8014cbb0000 rdx: 0000000000000000
+rcx: fffffe000f7fa5c0  r8: 0000000000000001  r9: 0000000000020000
+rax: 0000000000000000 rbx: fffff8014cbb0000 rbp: fffffe00c665f970
+r10: 0000000000000000 r11: 00000000ffef7ef8 r12: fffff80002644000
+r13: fffff8014cbb00a8 r14: fffff801772ff000 r15: fffff8014cbb0000
+trap number             = 12
+panic: page fault
+cpuid = 3
+time = 1790077775
+KDB: stack backtrace:
+#0 0xffffffff80bd698d at kdb_backtrace+0x5d
+#1 0xffffffff80b874e6 at vpanic+0x136
+#2 0xffffffff80b873a3 at panic+0x43
+#3 0xffffffff81099fcd at trap_pfault+0x37d
+#4 0xffffffff8106f7d8 at calltrap+0x8
+#5 0xffffffff83ee03b4 at drm_stub_open+0x74
+#6 0xffffffff80e0c501 at linux_dev_fdopen+0x141
+#7 0xffffffff80a06c36 at devfs_open+0x116
+#8 0xffffffff81167449 at VOP_OPEN_APV+0x19
+#9 0xffffffff80c90850 at vn_open_vnode+0x1e0
+#10 0xffffffff80c901e1 at vn_open_cred+0x661
+#11 0xffffffff80c860a7 at openatfp+0x2a7
+#12 0xffffffff80c85ddd at sys_openat+0x3d
+#13 0xffffffff8109a606 at amd64_syscall+0x126
+#14 0xffffffff810700cb at fast_syscall_common+0xf8
+Uptime: 15m29s
+Dumping 654 out of 8018 MB:..3%..13%..22%..32%..42%..52%..62%..71%..81%..91%
+
+Reading symbols from [32m/boot/kernel/cpuctl.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/cpuctl.ko.debug[m...
+Reading symbols from [32m/boot/kernel/acpi_video.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/acpi_video.ko.debug[m...
+Reading symbols from [32m/boot/kernel/cuse.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/cuse.ko.debug[m...
+Reading symbols from [32m/boot/kernel/libiconv.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/libiconv.ko.debug[m...
+Reading symbols from [32m/boot/kernel/zfs.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/zfs.ko.debug[m...
+Reading symbols from [32m/boot/kernel/mac_do.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/mac_do.ko.debug[m...
+Reading symbols from [32m/boot/kernel/acpi_wmi.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/acpi_wmi.ko.debug[m...
+Reading symbols from [32m/boot/kernel/coretemp.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/coretemp.ko.debug[m...
+Reading symbols from [32m/boot/kernel/msdosfs_iconv.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/msdosfs_iconv.ko.debug[m...
+Reading symbols from [32m/boot/kernel/cd9660_iconv.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/cd9660_iconv.ko.debug[m...
+Reading symbols from [32m/boot/kernel/cc_htcp.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/cc_htcp.ko.debug[m...
+Reading symbols from [32m/boot/kernel/if_iwlwifi.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/if_iwlwifi.ko.debug[m...
+Reading symbols from [32m/boot/modules/i915_kbl_dmc_ver1_04_bin.ko[m...
+(No debugging symbols found in [32m/boot/modules/i915_kbl_dmc_ver1_04_bin.ko[m)
+Reading symbols from [32m/boot/modules/i915kms.ko[m...
+(No debugging symbols found in [32m/boot/modules/i915kms.ko[m)
+Reading symbols from [32m/boot/modules/drm.ko[m...
+(No debugging symbols found in [32m/boot/modules/drm.ko[m)
+Reading symbols from [32m/boot/kernel/iic.ko[m...
+[?2004h--Type <RET> for more, q to quit, c to continue without paging--c
+[?2004lReading symbols from [32m/usr/lib/debug//boot/kernel/iic.ko.debug[m...
+Reading symbols from [32m/boot/kernel/linuxkpi_video.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/linuxkpi_video.ko.debug[m...
+Reading symbols from [32m/boot/modules/dmabuf.ko[m...
+(No debugging symbols found in [32m/boot/modules/dmabuf.ko[m)
+Reading symbols from [32m/boot/kernel/lindebugfs.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/lindebugfs.ko.debug[m...
+Reading symbols from [32m/boot/modules/ttm.ko[m...
+(No debugging symbols found in [32m/boot/modules/ttm.ko[m)
+Reading symbols from [32m/boot/modules/nvidia-drm.ko[m...
+(No debugging symbols found in [32m/boot/modules/nvidia-drm.ko[m)
+Reading symbols from [32m/boot/modules/nvidia.ko[m...
+(No debugging symbols found in [32m/boot/modules/nvidia.ko[m)
+Reading symbols from [32m/boot/kernel/linux.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/linux.ko.debug[m...
+Reading symbols from [32m/boot/kernel/mqueuefs.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/mqueuefs.ko.debug[m...
+Reading symbols from [32m/boot/kernel/linux_common.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/linux_common.ko.debug[m...
+Reading symbols from [32m/boot/modules/nvidia-modeset.ko[m...
+(No debugging symbols found in [32m/boot/modules/nvidia-modeset.ko[m)
+Reading symbols from [32m/boot/kernel/fusefs.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/fusefs.ko.debug[m...
+Reading symbols from [32m/boot/kernel/ichsmb.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/ichsmb.ko.debug[m...
+Reading symbols from [32m/boot/kernel/smbus.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/smbus.ko.debug[m...
+Reading symbols from [32m/boot/kernel/pchtherm.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/pchtherm.ko.debug[m...
+Reading symbols from [32m/boot/kernel/geom_uzip.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/geom_uzip.ko.debug[m...
+Reading symbols from [32m/boot/kernel/ng_ubt.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/ng_ubt.ko.debug[m...
+Reading symbols from [32m/boot/kernel/netgraph.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/netgraph.ko.debug[m...
+Reading symbols from [32m/boot/kernel/ng_hci.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/ng_hci.ko.debug[m...
+Reading symbols from [32m/boot/kernel/ng_bluetooth.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/ng_bluetooth.ko.debug[m...
+Reading symbols from [32m/boot/kernel/autofs.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/autofs.ko.debug[m...
+Reading symbols from [32m/boot/kernel/mac_ntpd.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/mac_ntpd.ko.debug[m...
+Reading symbols from [32m/boot/kernel/ng_btsocket.ko[m...
+Reading symbols from [32m/usr/lib/debug//boot/kernel/ng_btsocket.ko.debug[m...
+[33m__curthread[m () at [32m/usr/src/sys/amd64/include/pcpu_aux.h[m:57
+warning: 57     [32m/usr/src/sys/amd64/include/pcpu_aux.h[m: No such file or directory
+[?2004h(kgdb) bt
+[?2004l#0  [33m__curthread[m () at [32m/usr/src/sys/amd64/include/pcpu_aux.h[m:57
+#1  [33mdoadump[m ([36mtextdump[m=<optimized out>) at [32m/usr/src/sys/kern/kern_shutdown.c[m:399
+#2  [34m0xffffffff80b87069[m in [33mkern_reboot[m ([36mhowto[m=260) at [32m/usr/src/sys/kern/kern_shutdown.c[m:519
+#3  [34m0xffffffff80b87577[m in [33mvpanic[m ([36mfmt[m=0xffffffff811faa2f "%s", [36map=ap@entry[m=0xfffffe00c665f800) at [32m/usr/src/sys/kern/kern_shutdown.c[m:974
+#4  [34m0xffffffff80b873a3[m in [33mpanic[m ([36mfmt[m=<unavailable>) at [32m/usr/src/sys/kern/kern_shutdown.c[m:887
+#5  [34m0xffffffff81099fcd[m in [33mtrap_fatal[m ([36mframe[m=<optimized out>, [36meva[m=<optimized out>) at [32m/usr/src/sys/amd64/amd64/trap.c[m:1028
+#6  [34m0xffffffff81099fcd[m in [33mtrap_pfault[m ([36mframe[m=0xfffffe00c665f880, [36musermode[m=false, [36msigno[m=<optimized out>, [36mucode[m=<optimized out>)
+#7  [2m<signal handler called>[m
+#8  [34m0xffffffff83eeb806[m in [33mdrm_release[m () from [32m/boot/modules/drm.ko[m
+#9  [34m0xffffffff83ee03b4[m in [33mdrm_stub_open[m () from [32m/boot/modules/drm.ko[m
+#10 [34m0xffffffff80e0c501[m in [33mlinux_dev_fdopen[m ([36mdev[m=<optimized out>, [36mfflags[m=<optimized out>, [36mtd[m=0xfffff80002644000, [36mfile[m=0xfffff8014cbb0000)
+    at [32m/usr/src/sys/compat/linuxkpi/common/src/linux_compat.c[m:773
+#11 [34m0xffffffff80a06c36[m in [33mdevfs_open[m ([36map[m=0xfffffe00c665fa98) at [32m/usr/src/sys/fs/devfs/devfs_vnops.c[m:1322
+#12 [34m0xffffffff81167449[m in [33mVOP_OPEN_APV[m ([36mvop[m=0xffffffff818a8530 <devfs_specops>, [36ma=a@entry[m=0xfffffe00c665fa98) at [32mvnode_if.c[m:411
+#13 [34m0xffffffff80c90850[m in [33mVOP_OPEN[m ([36mvp[m=0xfffff801772ff000, [36mmode[m=1081607, [36mcred[m=0xfffff800067dc480, [36mtd[m=<optimized out>, [36mfp[m=<optimized out>) at [32m./vnode_if.h[m:218
+#14 [33mvn_open_vnode[m ([36mvp[m=0xfffff801772ff000, [36mfmode=fmode@entry[m=1081607, [36mcred=cred@entry[m=0xfffff800067dc480, [36mtd=td@entry[m=0xfffff80002644000, [36mfp[m=<optimized out>)
+    at [32m/usr/src/sys/kern/vfs_vnops.c[m:495
+#15 [34m0xffffffff80c901e1[m in [33mvn_open_cred[m ([36mndp=ndp@entry[m=0xfffffe00c665fc80, [36mflagp=flagp@entry[m=0xfffffe00c665fda4, [36mcmode=cmode@entry[m=0, [36mvn_open_flags=vn_open_flags@entry[m=16, 
+    [36mcred[m=0xfffff800067dc480, [36mfp[m=0xfffff8000fb20140) at [32m/usr/src/sys/kern/vfs_vnops.c[m:378
+#16 [34m0xffffffff80c860a7[m in [33mopenatfp[m ([36mtd[m=0xfffff80002644000, [36mdirfd[m=<optimized out>, [36mpath[m=<optimized out>, [36mpathseg=pathseg@entry[m=UIO_USERSPACE, [36mflags[m=1081607, 
+    [36mmode[m=<optimized out>, [36mfpp[m=0x0) at [32m/usr/src/sys/kern/vfs_syscalls.c[m:1266
+#17 [34m0xffffffff80c85ddd[m in [33mkern_openat[m ([36mdirfd[m=0, [36mpath[m=0x0, [36mpathseg[m=UIO_USERSPACE, [36mflags[m=1, [36mmode[m=131072, [36mtd[m=<optimized out>) at [32m/usr/src/sys/kern/vfs_syscalls.c[m:1354
+#18 [33msys_openat[m ([36mtd[m=<optimized out>, [36muap[m=<optimized out>) at [32m/usr/src/sys/kern/vfs_syscalls.c[m:1158
+#19 [34m0xffffffff8109a606[m in [33msyscallenter[m ([36mtd[m=0xfffff80002644000) at [32m/usr/src/sys/amd64/amd64/../../kern/subr_syscall.c[m:193
+#20 [33mamd64_syscall[m ([36mtd[m=0xfffff80002644000, [36mtraced[m=0) at [32m/usr/src/sys/amd64/amd64/trap.c[m:1267
+#21 [2m<signal handler called>[m
+#22 [34m0x0000000821b141aa[m in [33m??[m ()
+Backtrace stopped: Cannot access memory at address 0x82050e358
+[?2004h(kgdb) bt full
+[?2004l#0  [33m__curthread[m () at [32m/usr/src/sys/amd64/include/pcpu_aux.h[m:57
+        [36mtd[m = [2m<optimized out>[m
+#1  [33mdoadump[m ([36mtextdump[m=<optimized out>) at [32m/usr/src/sys/kern/kern_shutdown.c[m:399
+        [36merror[m = 0
+        [36mcoredump[m = [2m<optimized out>[m
+#2  [34m0xffffffff80b87069[m in [33mkern_reboot[m ([36mhowto[m=260) at [32m/usr/src/sys/kern/kern_shutdown.c[m:519
+        [36monce[m = 0
+#3  [34m0xffffffff80b87577[m in [33mvpanic[m ([36mfmt[m=0xffffffff811faa2f "%s", [36map=ap@entry[m=0xfffffe00c665f800) at [32m/usr/src/sys/kern/kern_shutdown.c[m:974
+        [36mbuf[m = "page fault", '\000' <repeats 245 times>
+        [36m__pc[m = [34m0x0[m
+        [36m__pc[m = [34m0x0[m
+        [36m__pc[m = [34m0x0[m
+        [36mother_cpus[m = {[36m__bits[m = {247, 0 [2m<repeats [m[2m15[m[2m times>[m}}
+        [36mtd[m = [34m0xfffff80002644000[m
+        [36mbootopt[m = [2m<unavailable>[m
+        [36mnewpanic[m = [2m<optimized out>[m
+#4  [34m0xffffffff80b873a3[m in [33mpanic[m ([36mfmt[m=<unavailable>) at [32m/usr/src/sys/kern/kern_shutdown.c[m:887
+        [36map[m = {{[36mgp_offset[m = 16, [36mfp_offset[m = 48, [36moverflow_arg_area[m = [34m0xfffffe00c665f830[m, [36mreg_save_area[m = [34m0xfffffe00c665f7d0[m}}
+#5  [34m0xffffffff81099fcd[m in [33mtrap_fatal[m ([36mframe[m=<optimized out>, [36meva[m=<optimized out>) at [32m/usr/src/sys/amd64/amd64/trap.c[m:1028
+        [36mtype[m = [2m<optimized out>[m
+        [36mhandled[m = [2m<optimized out>[m
+#6  [34m0xffffffff81099fcd[m in [33mtrap_pfault[m ([36mframe[m=0xfffffe00c665f880, [36musermode[m=false, [36msigno[m=<optimized out>, [36mucode[m=<optimized out>)
+        [36m__pc[m = [34m0x0[m
+        [36m__pc[m = [34m0x0[m
+        [36m__pc[m = [34m0x0[m
+        [36mtd[m = [2m<optimized out>[m
+        [36mp[m = [2m<optimized out>[m
+        [36meva[m = [2m<optimized out>[m
+        [36mmap[m = [2m<optimized out>[m
+        [36mftype[m = [2m<optimized out>[m
+        [36mrv[m = [2m<optimized out>[m
+#7  [2m<signal handler called>[m
+No locals.
+#8  [34m0xffffffff83eeb806[m in [33mdrm_release[m () from [32m/boot/modules/drm.ko[m
+No symbol table info available.
+#9  [34m0xffffffff83ee03b4[m in [33mdrm_stub_open[m () from [32m/boot/modules/drm.ko[m
+No symbol table info available.
+#10 [34m0xffffffff80e0c501[m in [33mlinux_dev_fdopen[m ([36mdev[m=<optimized out>, [36mfflags[m=<optimized out>, [36mtd[m=0xfffff80002644000, [36mfile[m=0xfffff8014cbb0000)
+    at [32m/usr/src/sys/compat/linuxkpi/common/src/linux_compat.c[m:773
+        [36mldev[m = [34m0xfffff801772ff000[m
+        [36mfilp[m = [34m0xfffff8014cbb0000[m
+        [36mfop[m = [34m0xfffffe000f7fa5c0[m
+        [36merror[m = [2m<optimized out>[m
+#11 [34m0xffffffff80a06c36[m in [33mdevfs_open[m ([36map[m=0xfffffe00c665fa98) at [32m/usr/src/sys/fs/devfs/devfs_vnops.c[m:1322
+        [36mref[m = 1
+        [36mvp[m = [34m0xfffff801772ff000[m
+        [36mtd[m = [34m0xfffff80002644000[m
+        [36mdev[m = [34m0xfffff800019c0c00[m
+[?2004h--Type <RET> for more, q to quit, c to continue without paging--c
+[?2004l        [36mfp[m = [34m0xfffff8000fb20140[m
+        [36mdsw[m = [34m0xffffffff8190ff08[m <[33mlinuxcdevsw[m>
+        [36mvlocked[m = 524288
+        [36mfpop[m = [34m0x0[m
+        [36merror[m = [2m<optimized out>[m
+#12 [34m0xffffffff81167449[m in [33mVOP_OPEN_APV[m ([36mvop[m=0xffffffff818a8530 <devfs_specops>, [36ma=a@entry[m=0xfffffe00c665fa98) at [32mvnode_if.c[m:411
+        [36mrc[m = [2m<optimized out>[m
+#13 [34m0xffffffff80c90850[m in [33mVOP_OPEN[m ([36mvp[m=0xfffff801772ff000, [36mmode[m=1081607, [36mcred[m=0xfffff800067dc480, [36mtd[m=<optimized out>, [36mfp[m=<optimized out>) at [32m./vnode_if.h[m:218
+        [36ma[m = {[36ma_gen[m = {[36ma_desc[m = [34m0xffffffff8195aa98[m <[33mvop_open_desc[m>}, [36ma_vp[m = [34m0xfffff801772ff000[m, [36ma_mode[m = 1081607, [36ma_cred[m = [34m0xfffff800067dc480[m, [36ma_td[m = [34m0xfffff80002644000[m, 
+          [36ma_fp[m = [34m0xfffff8000fb20140[m}
+#14 [33mvn_open_vnode[m ([36mvp[m=0xfffff801772ff000, [36mfmode=fmode@entry[m=1081607, [36mcred=cred@entry[m=0xfffff800067dc480, [36mtd=td@entry[m=0xfffff80002644000, [36mfp[m=<optimized out>)
+    at [32m/usr/src/sys/kern/vfs_vnops.c[m:495
+        [36maccmode[m = [2m<optimized out>[m
+        [36merror[m = [2m<optimized out>[m
+#15 [34m0xffffffff80c901e1[m in [33mvn_open_cred[m ([36mndp=ndp@entry[m=0xfffffe00c665fc80, [36mflagp=flagp@entry[m=0xfffffe00c665fda4, [36mcmode=cmode@entry[m=0, [36mvn_open_flags=vn_open_flags@entry[m=16, 
+    [36mcred[m=0xfffff800067dc480, [36mfp[m=0xfffff8000fb20140) at [32m/usr/src/sys/kern/vfs_vnops.c[m:378
+        [36mvp[m = [34m0xfffff801772ff000[m
+        [36mmp[m = [34m0xfffffe00c665fc50[m
+        [36mvat[m = {[36mva_type[m = 58, [36mva_mode[m = 0, [36mva_bsdflags[m = 0, [36mva_uid[m = 111335576, [36mva_gid[m = 4294965248, [36mva_nlink[m = 0, [36mva_fsid[m = 18446741878014868352, 
+          [36mva_fileid[m = 18446744071575243575, [36mva_size[m = 18446741878014868352, [36mva_blocksize[m = -2136971549, [36mva_atime[m = {[36mtv_sec[m = -8795991017320, [36mtv_nsec[m = -2135593629}, 
+          [36mva_mtime[m = {[36mtv_sec[m = -8789798422376, [36mtv_nsec[m = -2195694683048}, [36mva_ctime[m = {[36mtv_sec[m = -2195694683264, [36mtv_nsec[m = -2134408066}, [36mva_birthtime[m = {[36mtv_sec[m = 2, 
+            [36mtv_nsec[m = -2195694683048}, [36mva_gen[m = 18446741878014868416, [36mva_flags[m = 18446744071572579719, [36mva_rdev[m = 18446735277641702272, [36mva_bytes[m = 18446741878014868560, 
+          [36mva_filerev[m = 18446741878014868416, [36mva_vaflags[m = 2160559230, [36mva_spare[m = -8794448591882}
+        [36mfirst_open[m = [2m<optimized out>[m
+        [36merror[m = [2m<optimized out>[m
+        [36mfmode[m = 1081607
+        [36mvap[m = [2m<optimized out>[m
+#16 [34m0xffffffff80c860a7[m in [33mopenatfp[m ([36mtd[m=0xfffff80002644000, [36mdirfd[m=<optimized out>, [36mpath[m=<optimized out>, [36mpathseg=pathseg@entry[m=UIO_USERSPACE, [36mflags[m=1081607, 
+    [36mmode[m=<optimized out>, [36mfpp[m=0x0) at [32m/usr/src/sys/kern/vfs_syscalls.c[m:1266
+        [36mfp[m = [34m0xfffff8000fb20140[m
+        [36mnd[m = {[36mni_dirp[m = [34m0x82050e470[m <error: [2mCannot access memory at address 0x82050e470[m>, [36mni_segflg[m = [36mUIO_USERSPACE[m, [36mni_rightsneeded[m = [34m0xfffffe00c665fd70[m, 
+          [36mni_startdir[m = [34m0x0[m, [36mni_rootdir[m = [34m0xfffff80006a2ddc0[m, [36mni_topdir[m = [34m0x0[m, [36mni_dirfd[m = -100, [36mni_lcf[m = 0, [36mni_filecaps[m = {[36mfc_rights[m = {[36mcr_rights[m = {0, 0}}, 
+            [36mfc_ioctls[m = [34m0x0[m, [36mfc_nioctls[m = -1, [36mfc_fcntls[m = 0}, [36mni_vp[m = [34m0xfffff801772ff000[m, [36mni_dvp[m = [34m0xfffff801772ffa50[m, [36mni_resflags[m = 1, [36mni_debugflags[m = 65535, 
+          [36mni_loopcnt[m = 0, [36mni_pathlen[m = 1, [36mni_next[m = [34m0xfffff80006aac80a[m "", [36mni_cnd[m = {[36mcn_flags[m = 8940453892, [36mcn_cred[m = [34m0xfffff800067dc480[m, [36mcn_nameiop[m = [36mLOOKUP[m, 
+            [36mcn_lkflags[m = 524288, [36mcn_pnbuf[m = [34m0xfffff80006aac800[m "/dev/drm/1", [36mcn_nameptr[m = [34m0xfffff80006aac809[m "1", [36mcn_namelen[m = 1}, [36mni_cap_tracker[m = {[36mtqh_first[m = [34m0x0[m, 
+            [36mtqh_last[m = [34m0xfffffe00c665fd30[m}, [36mni_rbeneath_dpp[m = [34m0x0[m, [36mni_nctrack_mnt[m = [34m0x0[m, [36mni_dvp_seqc[m = 1999630336, [36mni_vp_seqc[m = 4294965249}
+        [36mindx[m = -1
+        [36mrights[m = [2m<optimized out>[m
+        [36mp[m = [2m<optimized out>[m
+        [36mfdp[m = [34m0xfffffe008290d860[m
+        [36mpdp[m = [2m<optimized out>[m
+        [36merror[m = [2m<optimized out>[m
+        [36mcmode[m = 0
+        [36mvp[m = [2m<optimized out>[m
+        [36mfcaps[m = [2m<optimized out>[m
+#17 [34m0xffffffff80c85ddd[m in [33mkern_openat[m ([36mdirfd[m=0, [36mpath[m=0x0, [36mpathseg[m=UIO_USERSPACE, [36mflags[m=1, [36mmode[m=131072, [36mtd[m=<optimized out>) at [32m/usr/src/sys/kern/vfs_syscalls.c[m:1354
+No locals.
+#18 [33msys_openat[m ([36mtd[m=<optimized out>, [36muap[m=<optimized out>) at [32m/usr/src/sys/kern/vfs_syscalls.c[m:1158
+No locals.
+#19 [34m0xffffffff8109a606[m in [33msyscallenter[m ([36mtd[m=0xfffff80002644000) at [32m/usr/src/sys/amd64/amd64/../../kern/subr_syscall.c[m:193
+        [36mse[m = [34m0xffffffff818bf800[m <[33msysent[m+15968>
+        [36mp[m = [34m0xfffffe00cca0cac0[m
+        [36msa[m = [2m<optimized out>[m
+        [36merror[m = [2m<optimized out>[m
+        [36msy_thr_static[m = true
+        [36mtraced[m = [2m<optimized out>[m
+        [36m_tid[m = [2m<optimized out>[m
+        [36m_v[m = [2m<optimized out>[m
+        [36m_v[m = [2m<optimized out>[m
+        [36m_audit_entered[m = [2m<optimized out>[m
+        [36m_tid[m = [2m<optimized out>[m
+        [36m_v[m = [2m<optimized out>[m
+        [36m_v[m = [2m<optimized out>[m
+        [36m_tid[m = [2m<optimized out>[m
+        [36m_v[m = [2m<optimized out>[m
+        [36m_v[m = [2m<optimized out>[m
+#20 [33mamd64_syscall[m ([36mtd[m=0xfffff80002644000, [36mtraced[m=0) at [32m/usr/src/sys/amd64/amd64/trap.c[m:1267
+        [36mksi[m = {[36mksi_link[m = {[36mtqe_next[m = [34m0xfffffe00c665fe80[m, [36mtqe_prev[m = [34m0x20c820[m}, [36mksi_info[m = {[36msi_signo[m = 2100247, [36msi_errno[m = 0, [36msi_code[m = 40124416, [36msi_pid[m = -2048, 
+            [36msi_uid[m = 0, [36msi_status[m = 0, [36msi_addr[m = [34m0xfffffe00c665fe70[m, [36msi_value[m = {[36msival_int[m = -2129249036, [36msival_ptr[m = [34m0xffffffff81163cf4[m <[33mlapic_handle_timer[m+164>, 
+              [36msigval_int[m = -2129249036, [36msigval_ptr[m = [34m0xffffffff81163cf4[m <[33mlapic_handle_timer[m+164>}, [36m_reason[m = {[36m_fault[m = {[36m_trapno[m = 1184336265}, [36m_timer[m = {
+                [36m_timerid[m = 1184336265, [36m_overrun[m = 1}, [36m_mesgq[m = {[36m_mqd[m = 1184336265}, [36m_poll[m = {[36m_band[m = 5479303561}, [36m_capsicum[m = {[36m_syscall[m = 1184336265}, [36m__spare__[m = {
+                [36m__spare1__[m = 5479303561, [36m__spare2__[m = {48248840, 10952, 2100736, 0, 542171344, 8, 542171328}}}}, [36mksi_flags[m = -2130242367, [36mksi_sigq[m = [34m0x822d953e0[m}
+#21 [2m<signal handler called>[m
+No locals.
+#22 [34m0x0000000821b141aa[m in [33m??[m ()
+No symbol table info available.
+Backtrace stopped: Cannot access memory at address 0x82050e358
+[?2004h(kgdb) quit
+[?2004lℵ₀:auryn:~/git/dotfiles ♥ › $ exit
+
+Script done on Tue Sep 22 14:16:07 2026
