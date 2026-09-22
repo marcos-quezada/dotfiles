@@ -1,0 +1,9 @@
+  INFO: Reloading configuration...
+ DEBUG qml: triggerX binding:  root.x= 0 mapTarget= ProxyWindowContentItem(0x224f70a7c840) computed= 0
+ DEBUG qml: triggerX binding:  root.x= 0 mapTarget= ProxyWindowContentItem(0x224f70a7c840) computed= 0
+ DEBUG qml: triggerX binding: 󱡣 root.x= 0 mapTarget= ProxyWindowContentItem(0x224f70a7c840) computed= 0
+ DEBUG qml: triggerX binding: 豈 root.x= 0 mapTarget= ProxyWindowContentItem(0x224f70a7c840) computed= 0
+ DEBUG qml: triggerX binding:  root.x= 139 mapTarget= ProxyWindowContentItem(0x224f70a7c840) computed= 150
+ DEBUG qml: triggerX binding:  root.x= 106 mapTarget= ProxyWindowContentItem(0x224f70a7c840) computed= 117
+ DEBUG qml: triggerX binding: 󱡣 root.x= 73 mapTarget= ProxyWindowContentItem(0x224f70a7c840) computed= 84
+  INFO: Configuration Loaded
