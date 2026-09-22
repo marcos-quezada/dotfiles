@@ -10,8 +10,24 @@ Button {
   property string glyph: ""
   property string toggledGlyph: glyph
 
+  // when set, this button reports its own screen space x (mapped into
+  // mapTarget) onto triggerTarget.triggerX - the position popups read to
+  // anchor themselves under whichever button opened them.
+  property var triggerTarget: null
+  property var mapTarget:     null
+
   implicitWidth: 22
   implicitHeight: 22
+
+  Binding {
+        target:   root.triggerTarget
+        property: "triggerX"
+        when:     root.triggerTarget !== null && root.mapTarget !== null
+        value:    {
+            root.x
+            root.mapTarget ? root.mapItem(root.mapTarget, 0, 0).x : 0
+        }
+  }
 
   background: Rectangle {
     anchors.fill: parent

@@ -12,7 +12,7 @@ import qs.Services
 Components.TriggeredPopup {
     id: popup
     expanded:       ThreatWatchModel.mapExpanded
-    triggerX:       ThreatWatchModel.mapTriggerX
+    triggerX:       ThreatWatchModel.triggerX
     title:          "THREATWATCH"
     icon:           "\u{f1863}"
     implicitWidth:  800

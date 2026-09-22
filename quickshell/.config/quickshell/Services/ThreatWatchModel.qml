@@ -57,7 +57,7 @@ Singleton {
     readonly property bool mapExpanded: Popups.current === "threatwatch"
 
     // horizontal position tracking `threatWatchButton` for popup display
-    property real mapTriggerX: 0
+    property real triggerX: 0
 
     // ── processes ─────────────────────────────────────────────────────────────
 

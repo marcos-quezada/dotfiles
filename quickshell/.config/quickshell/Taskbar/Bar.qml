@@ -59,18 +59,12 @@ Scope {
             spacing:                11 
 
             Components.TaskbarButton {
-                id:                     sessionButton
-                glyph:                  "\uf900"
-                isToggled:              Session.expanded
-                onClicked:              Popups.toggle("session")
-                Binding {
-                    target:   Session
-                    property: "triggerX"
-                    value:    {
-                        sessionButton.x
-                        sessionButton.mapToItem(taskbar.contentItem, 0, 0).x
-                    }
-                }
+                id:            sessionButton
+                glyph:         "\uf900"
+                isToggled:     Session.expanded
+                triggerTarget: Session
+                mapTarget:     taskbar.contentItem
+                onClicked:     Popups.toggle("session")
             }
 
             // workspaces panel — shadow-backed container for the workspace switcher
@@ -108,48 +102,30 @@ Scope {
 
             // threat watch button - toggle button to show the threatwatch map
             Components.TaskbarButton {
-                id:                     threatWatchButton
-                glyph:                  "\u{f1863}"
-                isToggled:              ThreatWatchModel.mapExpanded
-                onClicked:              Popups.toggle("threatwatch")
-                Binding {
-                    target:   ThreatWatchModel
-                    property: "mapTriggerX"
-                    value:    {
-                      threatWatchButton.x
-                      threatWatchButton.mapToItem(taskbar.contentItem, 0, 0).x
-                    }
-                }
+                id:            threatWatchButton
+                glyph:         "\u{f1863}"
+                isToggled:     ThreatWatchModel.mapExpanded
+                triggerTarget: ThreatWatchModel
+                mapTarget:     taskbar.contentItem
+                onClicked:     Popups.toggle("threatwatch")
             }
 
             Components.TaskbarButton {
-                id:                     playlistButton
-                glyph:                  "\ue405"
-                isToggled:              Playlist.expanded
-                onClicked:              Popups.toggle("playlist") 
-                Binding {
-                    target:   Playlist
-                    property: "triggerX"
-                    value:    {
-                        playlistButton.x
-                        playlistButton.mapToItem(taskbar.contentItem, 0, 0).x
-                    }
-                }
+                id:            playlistButton
+                glyph:         "\ue405"
+                isToggled:     Playlist.expanded
+                triggerTarget: Playlist
+                mapTarget:     taskbar.contentItem
+                onClicked:     Popups.toggle("playlist") 
             }
 
             Components.TaskbarButton {
-                id:                     soundButton
-                glyph:                  "\ue050"
-                isToggled:              Sound.expanded
-                onClicked:              Popups.toggle("sound")
-                Binding {
-                    target:   Sound
-                    property: "triggerX"
-                    value:    {
-                        soundButton.x
-                        soundButton.mapToItem(taskbar.contentItem, 0, 0).x
-                   }
-                }
+                id:            soundButton
+                glyph:         "\ue050"
+                isToggled:     Sound.expanded
+                triggerTarget: Sound
+                mapTarget:     taskbar.contentItem
+                onClicked:     Popups.toggle("sound")
             }
         }
 
