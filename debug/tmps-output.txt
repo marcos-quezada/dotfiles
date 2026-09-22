@@ -1,0 +1,13 @@
+ℵ₀:auryn:~ ♥ › $ dmesg | grep -i tmpfs
+module_register: cannot register tmpfs from kernel; already loaded from tmpfs.ko
+Module tmpfs failed to register: 17
+module_register_init: MOD_LOAD (tmpfs, 0xffffffff80c65cc0, 0xffffffff82568cf0) error 17
+sysctl_unregister_oid: failed(22) to unregister sysctl(tmpfs)
+module_register: cannot register tmpfs from kernel; already loaded from tmpfs.ko
+Module tmpfs failed to register: 17
+module_register_init: MOD_LOAD (tmpfs, 0xffffffff80c65cc0, 0xffffffff8255ccf0) error 17
+sysctl_unregister_oid: failed(22) to unregister sysctl(tmpfs)
+module_register: cannot register tmpfs from kernel; already loaded from tmpfs.ko
+Module tmpfs failed to register: 17
+module_register_init: MOD_LOAD (tmpfs, 0xffffffff80c65cc0, 0xffffffff82baccf0) error 17
+sysctl_unregister_oid: failed(22) to unregister sysctl(tmpfs)
