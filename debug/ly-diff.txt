@@ -1,0 +1,50 @@
+ℵ₀:auryn:~/ly ♥ › $ git diff
+diff --git i/src/main.zig w/src/main.zig
+index c55f1d9..94170f2 100644
+--- i/src/main.zig
++++ w/src/main.zig
+@@ -1316,7 +1316,42 @@ fn adjustBrightness(allocator: std.mem.Allocator, cmd: []const u8) !void {
+     }
+ }
+ 
+-fn getBatteryPercentage(battery_id: []const u8) !u8 {
++fn getBatteryPercentage(battery_id: []const u8) !u8{
++    return switch (builtin.os.tag) {
++        .freebsd => getBatteryPercentageFreeBSD(),
++        else => getBatteryPercentageLinux(battery_id),
++    };
++}
++
++fn getBatteryPercentageFreeBSD() !u8 {
++    const c = @cImport({
++        @cInclude("sys/types.h");
++        @cInclude("sys/sysctl.h");
++    });
++
++    var battery_life: c_int = undefined;
++    var len: usize = @sizeOf(c_int);
++
++    const result = c.sysctlbyname(
++        "hw.acpi.battery.life",
++        @ptrCast(&battery_life),
++        &len,
++        null,
++        0,
++    );
++
++    if (result != 0) {
++        return error.SysctlFailed;
++    }
++
++    if (battery_life < 0 or battery_life > 100) {
++        return error.InvalidBatteryValue;
++    }
++
++    return @intCast(battery_life);
++}
++
++fn getBatteryPercentageLinux(battery_id: []const u8) !u8 {
+     const path = try std.fmt.allocPrint(temporary_allocator, "/sys/class/power_supply/{s}/capacity", .{battery_id});
+     defer temporary_allocator.free(path);
+ 
+ℵ₀:auryn:~/ly ♥ › $ 
