@@ -1,0 +1,14 @@
+ℵ₀:auryn:~/git/dotfiles ♥ › $ pgrep -l sway
+2558 swaybg
+ℵ₀:auryn:~/git/dotfiles ♥ › $ fstat $(pgrep sway | head -1)
+fstat: 2558: No such file or directory
+ℵ₀:auryn:~/git/dotfiles ♥ › $ fstat -p $(pgrep sway | head -1)
+USER     CMD          PID   FD MOUNT      INUM MODE         SZ|DV R/W
+mquezada swaybg      2558 text /        528250 -rwxr-xr-x   29424  r
+mquezada swaybg      2558 ctty /dev         90 crw-------   ttyv1 rw
+mquezada swaybg      2558   wd /home/mquezada     34 drwxr-xr-x      45  r
+mquezada swaybg      2558 root /            34 drwxr-xr-x      23  r
+mquezada swaybg      2558    0 /dev         90 crw-------   ttyv1 rw
+mquezada swaybg      2558    1 /home/mquezada  65536 -rw-r--r--     787  w
+mquezada swaybg      2558    2 /dev         90 crw-------   ttyv1 rw
+mquezada swaybg      2558   38* local stream fffff8003e9f93c0 <-> fffff8003e9f9500
