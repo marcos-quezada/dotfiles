@@ -25,7 +25,7 @@ Button {
         when:     root.triggerTarget !== null && root.mapTarget !== null
         value:    {
             root.x
-            root.mapTarget ? root.mapItem(root.mapTarget, 0, 0).x : 0
+            root.mapTarget ? root.mapToItem(root.mapTarget, 0, 0).x : 0
         }
   }
 
