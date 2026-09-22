@@ -22,7 +22,7 @@ Text {
 
         onWheel:      wheel => {
             if (wheel.angleDelta.y > 0) Sound.volumeUp()
-            else Sound.VolumeDown()
+            else Sound.volumeDown()
         }
     }
 }
