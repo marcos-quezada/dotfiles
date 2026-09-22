@@ -92,14 +92,14 @@ drm.i915.semaphores="1"     # inter-ring synchronisation
 drm.i915.intel_iommu_enabled="0"  # avoid hangs with IOMMU on this board
 ```
 
-### NVIDIA KMS
+### NVIDIA — kept compute-only, not KMS/DRM (see Section 4)
 
-```text
-hw.nvidiadrm.modeset=1
-```
-
-Must be set in `loader.conf` (not `rc.conf`) so it is visible before the
-kernel module is loaded.
+no `hw.nvidiadrm.modeset` tunable is set. this used to be documented here as
+required (`hw.nvidiadrm.modeset=1`), but PRIME graphics offload doesn't
+actually work on this machine — confirmed via a real kernel panic, see
+Section 4 for the full investigation. only the base `nvidia` module loads
+(via `kld_list` in Section 2), providing device nodes for future
+CUDA/compute use without the DRM/KMS integration layer that's broken.
 
 ### Wi-Fi — blocklist legacy driver
 
@@ -175,12 +175,15 @@ hw.snd.latency="5"
 
 ### Driver load order
 
-The order in `kld_list` matters. GPU firmware must precede the GPU driver,
-and NVIDIA modeset must load before the desktop starts:
+The order in `kld_list` matters. GPU firmware must precede the GPU driver:
 
 ```text
-kld_list="if_iwlwifi i915_kbl_dmc_ver1_04_bin i915kms nvidia-drm fusefs nvidia-modeset"
+kld_list="if_iwlwifi i915_kbl_dmc_ver1_04_bin i915kms fusefs nvidia"
 ```
+
+only the base `nvidia` module loads — `nvidia-drm`/`nvidia-modeset` are
+deliberately excluded. see Section 4 for why (a confirmed, reproducible
+kernel panic when Sway/`seatd` opens the NVIDIA DRM device).
 
 ### Wayland prerequisites
 
@@ -258,6 +261,13 @@ sendmail_enable="NONE"
 dumpdev="NO"
 ```
 
+`dumpdev` was temporarily set to a real device (`AUTO`, or an explicit
+swap partition) once, to capture a kernel crash dump during the NVIDIA DRM
+panic investigation (Section 4) — reverted back to `NO` afterward. worth
+noting here so a future sighting of `dumpdev` set to something other than
+`NO` in this file's history is understood as a deliberate, one-off
+debugging step, not an accidental leftover.
+
 ### ZFS
 
 ```text
@@ -292,35 +302,67 @@ supports it first: `sysctl hw.acpi.supported_sleep_state`.
 
 ---
 
-## 4. Graphics — Intel + NVIDIA Optimus (Headless Hybrid)
+## 4. Graphics — Intel + NVIDIA (compute-available, PRIME offload not supported)
 
 The desktop runs entirely on the Intel GPU (card0). The NVIDIA MX150 (card1)
-is available for offloading specific applications via PRIME.
+is kept driver-available for future GPU-compute work (CUDA-style workloads),
+but **PRIME render offload for graphics apps does not work** on this
+machine/driver combination — confirmed via a real kernel panic, not assumed.
+This section used to document PRIME offload as a working feature; it wasn't
+actually verified end to end at the time, and it doesn't hold up.
+
+### What was tried, and what was found
+
+Switching to the correct driver branch for this GPU generation
+(`nvidia-driver-580`/`nvidia-kmod-580`/`nvidia-drm-66-kmod-580` — the MX150
+is Pascal-generation, dropped by the 595.x "production" branch this system
+had installed) fixed the version-mismatch/unsupported-GPU errors, but
+Sway/`seatd` opening the NVIDIA DRM device (`/dev/drm/1`) reliably triggers a
+kernel page fault: `drm_stub_open` → `drm_release`, confirmed via a full
+`kgdb` backtrace against a captured `vmcore` (not just the partial on-screen
+scroll). Checked FreeBSD's bug tracker and forums for this exact
+combination — nothing found; this looks like a genuinely under-tested
+configuration (NVIDIA as a PRIME-offload *secondary* GPU under Sway),
+unlike the more common NVIDIA-as-*primary*-GPU setups that do have real
+working precedent on FreeBSD.
+
+### The actual, current, verified state
+
+`nvidia.ko` alone is loaded at boot (`nvidia-drm`/`nvidia-modeset` removed
+from `kld_list`, `hw.nvidiadrm.modeset` removed from `loader.conf`) —
+providing `/dev/nvidiactl`/`/dev/nvidia0` for future CUDA-toolkit use,
+without needing the DRM/KMS integration layer that's actually broken.
+
+confirmed directly, not assumed: even with `nvidia.ko` loaded, the DRM
+device node (`/dev/drm/1`) still exists (this driver version registers it
+as part of the same module, not a separately-loadable file the way the
+package names suggest) — but Sway never opens it. verified via
+`fstat -p <sway pid>`: Sway holds `/dev/drm/0` and `/dev/drm/128` open
+(Intel's primary + render nodes), nothing NVIDIA-related. wlroots picked
+Intel as its sole GPU and leaves the NVIDIA device alone entirely, which is
+why normal daily use has never triggered the crash.
+
+**what this means in practice:**
+
+| use case | status |
+|---|---|
+| normal desktop use, Sway, all apps | safe — confirmed, Sway never touches the NVIDIA device |
+| CUDA/GPU-compute workloads | should work — only needs `/dev/nvidiactl`/`/dev/nvidia0`, never touches DRM |
+| `__NV_PRIME_RENDER_OFFLOAD=1` on a graphics app | **do not use** — opens `/dev/drm/1` directly, will very likely reproduce the same kernel panic |
 
 ### Verify both cards are visible
 
 ```sh
 pciconf -lv | grep -A3 vgapci
 # vgapci0 → Intel UHD 620 (8086:5917)  — primary, runs Wayland
-# vgapci1 → NVIDIA MX150 (10de:1d10)   — offload only
+# vgapci1 → NVIDIA MX150 (10de:1d10)   — compute-only, not used for display/offload
 ```
 
 ```sh
 sysctl dev.drm
 # dev.drm.0.PCI_ID: 8086:5917  (Intel, minor 0)
-# dev.drm.1.PCI_ID: 10de:1d10  (NVIDIA, minor 1)
+# dev.drm.1.PCI_ID: 10de:1d10  (NVIDIA, minor 1 — exists, but never opened by Sway)
 ```
-
-### PRIME render offload
-
-To launch a specific application on the MX150:
-
-```sh
-__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia <program>
-```
-
-This is intentionally not set globally — it would force everything onto the
-discrete GPU, drain battery, and prevent idle power-gating.
 
 ---
 
@@ -502,13 +544,17 @@ kern.ipc.shmseg="1024"
 kern.ipc.shmmni="1024"
 ```
 
-### PRIME offload from Sway
-
-To launch an app on the NVIDIA GPU from within a Sway session:
+### PRIME offload from Sway — not supported, do not use
 
 ```sh
 __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia foot
 ```
+
+this was previously documented here as a working feature. it isn't —
+confirmed via a real kernel panic (`drm_stub_open` → `drm_release` page
+fault) when something opens the NVIDIA DRM device. see Section 4 for the
+full investigation and the actual, verified current state (NVIDIA kept
+available for compute workloads only, not graphics offload).
 
 ---
 
@@ -683,6 +729,13 @@ no FreeBSD driver support at this time.
 ## 14. Package List
 
 Full list of explicitly installed packages (`pkg prime-list`):
+
+> note: this snapshot predates the NVIDIA driver-branch switch in Section 4
+> (`nvidia-drm-66-kmod`/`nvidia-kmod` at 595.x → `nvidia-driver-580`/
+> `nvidia-kmod-580`/`nvidia-drm-66-kmod-580`, plus `egl-wayland`/
+> `egl-wayland2`/`egl-x11`/`xorg-server` pulled in as real dependencies of
+> `nvidia-driver-580`). worth a fresh `pkg prime-list` next time this section
+> is touched, rather than hand-patching individual known-stale entries.
 
 ```
 ImageMagick7        bat                 ca_root_nss
