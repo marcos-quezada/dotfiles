@@ -1,0 +1,66 @@
+=== sysctl.conf ===
+#
+#  This file is read when going to multi-user and its contents piped thru
+#  ``sysctl'' to adjust kernel values.  ``man 5 sysctl.conf'' for details.
+#
+
+# Uncomment this to prevent users from seeing information about processes that
+# are being run under another UID.
+#security.bsd.see_other_uids=0
+vfs.zfs.vdev.min_auto_ashift=12
+
+security.mac.do.rules=uid=1001>uid=0,gid=*,+gid=*
+
+hw.acpi.lid_switch_state=S3
+
+=== fstab ===
+# Device		Mountpoint	FStype	Options		Dump	Pass#
+/dev/gpt/efiboot0		/boot/efi	msdosfs	rw		2	2
+/dev/nda0p3		none	swap	sw		0	0
+
+=== automount_devd.conf ===
+
+# PENDRIVE/PHONE/SDCARD insert
+notify 100 {
+	match "system" "DEVFS";
+	match "type" "CREATE";
+	match "cdev" "(da|mmcsd|ugen)[0-9]+.*";
+	action "/usr/local/sbin/automount $cdev attach &";
+};
+
+# PENDRIVE/PHONE/SDCARD remove
+notify 100 {
+	match "system" "DEVFS";
+	match "type" "DESTROY";
+	match "cdev" "(da|mmcsd|ugen)[0-9]+.*";
+	action "/usr/local/sbin/automount $cdev detach &";
+};
+
+# CD-ROM media inject
+notify 100 {
+	match "system" "DEVFS";
+	match "type" "CREATE|MEDIACHANGE";
+	match "cdev" "(cd)[0-9]+.*";
+	action "/usr/local/sbin/automount $cdev attach &";
+};
+
+# CD-ROM media eject
+notify 100 {
+	match "system" "DEVFS";
+	match "type" "DESTROY";
+	match "cdev" "(cd)[0-9]+.*";
+	action "/usr/local/sbin/automount $cdev detach &";
+};
+
+# CD-ROM no media
+notify 100 {
+	match "system" "CAM";
+	match "subsystem" "periph";
+	match "type" "error";
+	match "cam_status" "0xcc";
+	match "scsi_status" "2";
+	match "scsi_sense" "70 02 3a 02";
+	match "device" "(cd)[0-9]+.*";
+	action "/usr/local/sbin/automount $device detach &";
+};
+
