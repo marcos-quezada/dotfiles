@@ -1,0 +1,106 @@
+ℵ₀:auryn:~/ly ♥ › $ git status
+interactive rebase in progress; onto 60be7ad
+Last command done (1 command done):
+   pick 0d887ef # feat(freebsd): implement getBatteryPercentageFreeBSD via sysctlbyname
+No commands remaining.
+You are currently rebasing branch 'master' on '60be7ad'.
+  (fix conflicts and then run "git rebase --continue")
+  (use "git rebase --skip" to skip this patch)
+  (use "git rebase --abort" to check out the original branch)
+
+Unmerged paths:
+  (use "git restore --staged <file>..." to unstage)
+  (use "git add <file>..." to mark resolution)
+	both modified:   src/main.zig
+
+no changes added to commit (use "git add" and/or "git commit -a")
+ℵ₀:auryn:~/ly ♥ › $ git diff
+diff --cc src/main.zig
+index 4d6bb65,94170f2..0000000
+--- i/src/main.zig
++++ w/src/main.zig
+@@@ -2585,35 -1316,55 +2585,76 @@@ fn adjustBrightness(io: std.Io, cmd: []
+      }
+  }
+  
+++<<<<<<< HEAD
+ +fn getBatteryPercentage(io: std.Io, battery_id: []const u8) !u8 {
+ +    if (builtin.os.tag == .freebsd) {
+ +        // battery_id is unused on FreeBSD; sysctl exposes a single aggregate value.
+ +        // For multi-battery systems the MIB would be hw.acpi.battery.N.life,
+ +        // but hw.acpi.battery.life is the standard single-battery interface.
+ +        var capacity: c_int = -1;
+ +        var size: usize = @sizeOf(c_int);
+++=======
++ fn getBatteryPercentage(battery_id: []const u8) !u8{
++     return switch (builtin.os.tag) {
++         .freebsd => getBatteryPercentageFreeBSD(),
++         else => getBatteryPercentageLinux(battery_id),
++     };
++ }
++ 
++ fn getBatteryPercentageFreeBSD() !u8 {
++     const c = @cImport({
++         @cInclude("sys/types.h");
++         @cInclude("sys/sysctl.h");
++     });
++ 
++     var battery_life: c_int = undefined;
++     var len: usize = @sizeOf(c_int);
++ 
++     const result = c.sysctlbyname(
++         "hw.acpi.battery.life",
++         @ptrCast(&battery_life),
++         &len,
++         null,
++         0,
++     );
++ 
++     if (result != 0) {
++         return error.SysctlFailed;
++     }
++ 
++     if (battery_life < 0 or battery_life > 100) {
++         return error.InvalidBatteryValue;
++     }
++ 
++     return @intCast(battery_life);
++ }
++ 
++ fn getBatteryPercentageLinux(battery_id: []const u8) !u8 {
++     const path = try std.fmt.allocPrint(temporary_allocator, "/sys/class/power_supply/{s}/capacity", .{battery_id});
++     defer temporary_allocator.free(path);
+++>>>>>>> 0d887ef (feat(freebsd): implement getBatteryPercentageFreeBSD via sysctlbyname)
+  
+ -    const battery_file = try std.fs.cwd().openFile(path, .{});
+ -    defer battery_file.close();
+ +        const ret = interop.sysctl.sysctlbyname("hw.acpi.battery.life", &capacity, &size, null, 0);
+  
+ -    var buffer: [8]u8 = undefined;
+ -    const bytes_read = try battery_file.read(&buffer);
+ -    const capacity_str = buffer[0..bytes_read];
+ +        if (ret != 0) return error.SysctlFailed;
+ +        if (capacity < 0 or capacity > 100) return error.InvalidBatteryCapacity;
+  
+ -    const trimmed = std.mem.trimRight(u8, capacity_str, "\n\r");
+ +        return @intCast(capacity);
+ +    } else {
+ +        const path = try std.fmt.allocPrint(temporary_allocator, "/sys/class/power_supply/{s}/capacity", .{battery_id});
+ +        defer temporary_allocator.free(path);
+  
+ -    return try std.fmt.parseInt(u8, trimmed, 10);
+ +        const battery_file = try std.Io.Dir.cwd().openFile(io, path, .{});
+ +        defer battery_file.close(io);
+ +
+ +        var buffer: [8]u8 = undefined;
+ +        const bytes_read = try battery_file.readStreaming(io, &.{&buffer});
+ +        const capacity_str = buffer[0..bytes_read];
+ +
+ +        const trimmed = std.mem.trimEnd(u8, capacity_str, "\n\r");
+ +
+ +        return try std.fmt.parseInt(u8, trimmed, 10);
+ +    }
+  }
+  
+  fn getAuthErrorMsg(err: anyerror, lang: Lang) []const u8 {
+ℵ₀:auryn:~/ly ♥ › $ 
