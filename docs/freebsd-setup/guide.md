@@ -144,7 +144,6 @@ fuse_load="YES"
 libiconv_load="YES"
 cd9660_iconv_load="YES"
 msdosfs_iconv_load="YES"
-tmpfs_load="YES"
 ```
 
 ### Networking performance
@@ -768,7 +767,7 @@ automount
 | ACPI EC errors at boot (`No handler for Region [EC__]`) | Cosmetic — suppressed by `acpi_wmi_load="YES"` and `acpi_video_load="YES"`; EC is functional |
 | `hdac0: Command timeout` in dmesg | Intermittent; audio works correctly |
 | Synaptics fingerprint reader (`06cb:009b`) | No FreeBSD driver; unsupported |
-| `tmpfs` double-register warning at boot | Harmless; `tmpfs_load="YES"` in loader.conf races with built-in |
+| `tmpfs` double-register warning at boot | **Fixed** — removed redundant `tmpfs_load="YES"` from `loader.conf`; `GENERIC` already compiles `tmpfs` in, the explicit module load was racing against that and failing every boot |
 | `pci0: <simple comms>` (Intel ME, device 22.0) | No driver attached; expected and harmless |
 
 ---
