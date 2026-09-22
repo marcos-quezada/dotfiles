@@ -1,0 +1,9 @@
+ℵ₀:auryn:~/git/dotfiles ♥ › $ mkdir -p freebsd-boot/etc
+ℵ₀:auryn:~/git/dotfiles ♥ › $ touch freebsd-boot/etc/rc.conf
+ℵ₀:auryn:~/git/dotfiles ♥ › $ doas cp /etc/rc.conf /etc/rc.conf.bak-pre-stow
+Password:
+ℵ₀:auryn:~/git/dotfiles ♥ › $ doas stow --adopt --dir=/home/mquezada/git/dotfiles --target=/ freebsd-boot
+Password:
+ℵ₀:auryn:~/git/dotfiles ♥ › $ diff /etc/rc.conf.bak-pre-stow freebsd-boot/etc/rc.conf
+ℵ₀:auryn:~/git/dotfiles ♥ › $ ls -la /etc/rc.conf
+lrwxr-xr-x  1 root wheel 54 Sep 22 16:08 /etc/rc.conf -> ../home/mquezada/git/dotfiles/freebsd-boot/etc/rc.conf
