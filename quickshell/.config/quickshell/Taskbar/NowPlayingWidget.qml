@@ -21,8 +21,8 @@ Text {
         onClicked:    Players.togglePlaying()
 
         onWheel:      wheel => {
-            var delta = wheel.angleDelta.y > 0 ? "+5%" : "-5%"
-            Quickshell.execDetached(["pactl", "set-sink-volume", "@DEFAULT_SINK@", delta])
+            if (wheel.angleDelta.y > 0) Sound.volumeUp()
+            else Sound.VolumeDown()
         }
     }
 }
