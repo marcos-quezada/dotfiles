@@ -1,0 +1,11 @@
+ℵ₀:auryn:/tmp/ly-test-0d887ef ♥ › $ zig build -Dprefix_directory=/usr/local -Dconfig_directory=/usr/local/etc -Dinit_system=freebsd
+build.zig:405:18: error: union 'process.SpawnOptions.StdIo' has no member named 'Ignore'
+    }, &status, .Ignore) catch {
+                ~^~~~~~
+/usr/local/lib/zig/std/process.zig:408:23: note: union declared here
+    pub const StdIo = union(enum) {
+                      ^~~~~
+referenced by:
+    build: build.zig:43:42
+    runBuild__anon_32044: /usr/local/lib/zig/std/Build.zig:2265:44
+    5 reference(s) hidden; use '-freference-trace=7' to see all references
