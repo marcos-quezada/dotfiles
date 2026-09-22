@@ -769,6 +769,7 @@ automount
 | Synaptics fingerprint reader (`06cb:009b`) | No FreeBSD driver; unsupported |
 | `tmpfs` double-register warning at boot | **Fixed** — removed redundant `tmpfs_load="YES"` from `loader.conf`; `GENERIC` already compiles `tmpfs` in, the explicit module load was racing against that and failing every boot |
 | `pci0: <simple comms>` (Intel ME, device 22.0) | No driver attached; expected and harmless |
+| Sway startup flashes a red `eglQueryDeviceStringEXT`/`EGL_BAD_PARAMETER` message | Cosmetic — confirmed via wlroots' own source (`render/egl.c`): this is part of the normal device-matching loop that queries *every* EGL device to find the one matching wlroots' already-selected (Intel-only) DRM device; on failure the code does `continue` and moves on, exactly as designed — wlroots just logs it at `ERROR` level even though it's an expected, handled outcome. `WLR_DRM_DEVICES` was tried as a possible fix and reverted — it restricts the DRM *backend*'s device selection, but this query happens in a separate EGL device-matching path that isn't affected by it. no wlroots env var controls this (checked the full list). not fixable without patching wlroots' log level or hiding the NVIDIA EGL device from the system entirely (higher-risk, not pursued) |
 
 ---
 
