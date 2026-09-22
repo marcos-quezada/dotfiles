@@ -1,0 +1,22 @@
+ℵ₀:auryn:~/git/dotfiles ♥ › $ apm -l
+23
+ℵ₀:auryn:~/git/dotfiles ♥ › $ acpiconf -i0
+Design capacity:	3290 mAh
+Last full capacity:	2116 mAh
+Technology:		secondary (rechargeable)
+Design voltage:		15200 mV
+Capacity (warn):	0 mAh
+Capacity (low):		0 mAh
+Low/warn granularity:	1 mAh
+Warn/full granularity:	1 mAh
+Model number:		BIF0_9
+Serial number:		
+Type:			LION
+OEM info:		 
+State:			discharging
+Remaining capacity:	23%
+Remaining time:		0:56
+Present rate:		523 mA (7636 mW)
+Present voltage:	14602 mV
+ℵ₀:auryn:~/git/dotfiles ♥ › $ sysctl hw.acpi.battery.life
+hw.acpi.battery.life: 23
