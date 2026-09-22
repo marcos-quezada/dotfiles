@@ -1,0 +1,24 @@
+ℵ₀:auryn:~/ly ♥ › $ pkg info ly
+pkg: No package(s) matching ly
+ℵ₀:auryn:~/ly ♥ › $ git remote -v
+origin	https://codeberg.org/fairyglade/ly.git (fetch)
+origin	https://codeberg.org/fairyglade/ly.git (push)
+ℵ₀:auryn:~/ly ♥ › $ git log --oneline -5
+b032c9b (HEAD -> master, origin/master, origin/HEAD) Update Turkish translations (#917)
+7744745 Don't try to switch TTY with KMSCON It can do it automatically (see the corresponding service file).
+1173529 Fix active TTY detection for KMSCON
+21fca05 Don't install startup.sh with installnoconf
+2b46a81 Add basic KMSCON support (closes #886) It's not perfect yet, but at least it works!
+ℵ₀:auryn:~/ly ♥ › $ git status
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   src/main.zig
+
+no changes added to commit (use "git add" and/or "git commit -a")
+ℵ₀:auryn:~/ly ♥ › $ git diff --stat
+ src/main.zig | 37 ++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 36 insertions(+), 1 deletion(-)
