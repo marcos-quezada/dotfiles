@@ -1,0 +1,16 @@
+ℵ₀:auryn:~/git/dotfiles ♥ › $ kldstat | grep -i nvidia
+24    1 0xffffffff84400000  5b78790 nvidia.ko
+ℵ₀:auryn:~/git/dotfiles ♥ › $ ls -la /dev/nvidia*
+ls: /dev/nvidia*: No such file or directory
+ℵ₀:auryn:~/git/dotfiles ♥ › $ ls -la /dev/
+Display all 114 possibilities? (y or n) 
+ℵ₀:auryn:~/git/dotfiles ♥ › $ ls -la /dev/n
+/dev/nda0      /dev/nda0p2    /dev/nda0p4    /dev/netmap    /dev/nvd0      /dev/nvd0p2    /dev/nvd0p4    /dev/nvme0n1  
+/dev/nda0p1    /dev/nda0p3    /dev/netdump   /dev/null      /dev/nvd0p1    /dev/nvd0p3    /dev/nvme0     /dev/nvme0ns1 
+ℵ₀:auryn:~/git/dotfiles ♥ › $ dmesg | grep -i "sysctl_add_oid\|nvidia"
+Trying to mount root from zfs:zroot/ROOT/pre-nvidia-fix []...
+sysctl_add_oid: can't re-use a leaf (hw.dri.debug)!
+NVRM: The NVIDIA NVIDIA GeForce MX150 GPU installed in this system is
+NVRM:  supported through the NVIDIA 580.xx Legacy drivers. Please
+NVRM:  visit http://www.nvidia.com/object/unix.html for more
+NVRM:  information.  The 595.58.03 NVIDIA driver will ignore
