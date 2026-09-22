@@ -19,7 +19,12 @@ twice during an explore session, for two different concerns:
   `Services/Sound.qml` shells out to `pactl`/a small `bin/` script
   deliberately, the same kind of accepted exception as `yt-dlp` staying
   outside `pkg`. the *principle* still generalizes; it just doesn't apply
-  to this specific machine's audio stack.
+  to this specific machine's audio stack. (`Taskbar/NowPlayingWidget.qml`'s
+  scroll-to-adjust-volume handler briefly violated this convention by
+  itself — a leftover `Quickshell.execDetached(["pactl", ...])` call from
+  before `Sound.qml` existed, duplicating the command *and* never calling
+  `Sound.refresh()` afterward. fixed to call `Sound.volumeUp()`/
+  `Sound.volumeDown()` directly.)
 
 the reasoning generalizes: a native service is reactive by construction (no
 polling, no subprocess spawned per update), and Quickshell's own type system
@@ -78,30 +83,35 @@ Quickshell.screens }` so one `Bar` instance is spawned per monitor.
 ```
 shell.qml
 ├── Bar                             — PanelWindow, WlrLayer.Bottom
-│   │                                (Bar.qml wraps this in Scope > Variants { model: Quickshell.screens }
-│   │                                 so one instance spawns per monitor)
-│   ├── workspacesPanel            — left side: sway workspace switcher (Workspaces.qml)
-│   │   └── Components.TaskbarButton — ThreatWatch trigger, sits next to Workspaces (see below)
-│   └── trayPanel                  — right side: system tray row
-│       └── SysTray                — SysTray.qml (contains ClockWidget only — ThreatWatch moved out, see below)
-└── ThreatWatchPopup                — PanelWindow, WlrLayer.Overlay (see below)
+│   │                                (Bar.qml wraps this in Scope > Variants { model:
+│   │                                 Quickshell.screens } so one instance spawns per monitor)
+│   ├── leftCluster                — RowLayout: Session, Workspaces, ThreatWatch,
+│   │                                Playlist, Sound TaskbarButtons, left-anchored
+│   └── trayPanel                  — right side: system tray row (SysTray.qml, tray icons + ClockWidget)
+├── ThreatWatchPopup                — PanelWindow, WlrLayer.Overlay
+├── PlaylistPopup                   — PanelWindow, WlrLayer.Overlay
+├── SoundPopup                      — PanelWindow, WlrLayer.Overlay
+├── SessionPopup                    — PanelWindow, WlrLayer.Overlay
+└── SessionActionPopup              — PanelWindow, WlrLayer.Overlay (pending reboot/
+                                       shutdown notice — not gated by Popups.current)
 ```
+
+all four toggleable popups (`ThreatWatch`/`Playlist`/`Sound`/`Session`) share
+`Components/TriggeredPopup.qml` for their window/chrome boilerplate — see
+"Components/TriggeredPopup" below.
 
 ### widget interactions
 
-`ThreatWatch` is triggered from a `Components.TaskbarButton` next to the
-workspace switcher — not from the tray. this replaced an earlier design where
-the trigger (icon + threat-count label + mapbox warn badge) lived inline in
-`SysTray`; that inline label was crowded and its click handling was a bespoke
-`Item + MouseArea` wrapper prone to the geometry bugs described in the QML
-gotchas section below. `TaskbarButton` uses `Button`'s native hit-testing
-instead, and the detail that used to live in the crowded label has moved into
-`ThreatWatchPopup` (see “threatwatch script” section for the current field
-mapping).
+`ThreatWatch`, `Playlist`, `Sound`, and `Session` are each triggered from their
+own `Components.TaskbarButton` in `leftCluster`, in that visual order (Session
+leftmost, before the workspace switcher — a deliberate placement choice, not
+following any one reference repo's convention, since precedent varies:
+caelestia/retroism/BreadOnPenguins each do something different here, and
+BreadOnPenguins doesn't even put it in the bar).
 
 | action | result |
 |---|---|
-| left click | toggle `ThreatWatchPopup` (map overlay with HUD); button glyph switches to a chevron while open |
+| left click any of the four buttons | `Popups.toggle(name)` — opens that popup, closing whichever else was open (mutual exclusivity, see `Services/Popups.qml` below); button bevel inverts (raised → sunken) while its popup is open |
 
 ### why ThreatWatchPopup lives in shell.qml, not Bar.qml
 
@@ -119,20 +129,26 @@ so the widget in the bar can toggle it with a single property write.
 
 ### popup position: tracks the trigger button, just below the bar
 
-the popup no longer anchors to a fixed screen corner. it tracks the
+none of the four popups anchor to a fixed screen corner. each tracks the
 horizontal position of the `TaskbarButton` that triggers it:
 
 ```qml
 anchors { top: true; left: true }
 margins.top:  35
-margins.left: ThreatWatchModel.mapTriggerX
+margins.left: triggerX   // passed through to Components.TriggeredPopup
 ```
 
-`mapTriggerX` is a plain property on the `ThreatWatchModel` singleton, written
-by `Bar.qml` whenever the button's `x` changes (`onXChanged`). the popup and
-the taskbar are separate top-level `PanelWindow`s — they can't share layout
-directly — so the singleton is the coordination point, same role `Config`
-plays for colours and `Fonts` plays for typefaces.
+`triggerX` is a plain property on each popup's own singleton (`Session`,
+`ThreatWatchModel`, `Playlist`, `Sound` — all named `triggerX` consistently;
+this used to be `mapTriggerX` on `ThreatWatchModel` specifically, renamed for
+consistency when this mechanism was generalized). the popup and the taskbar
+are separate top-level `PanelWindow`s — they can't share layout directly — so
+the singleton is the coordination point, same role `Config` plays for colours
+and `Fonts` plays for typefaces.
+
+the write side lives in `Components/TaskbarButton.qml` itself, not per-button
+in `Bar.qml` (see "Components/TaskbarButton" below for how that binding is
+structured and the bug it took to get right).
 
 `margins` is a grouped property on `PanelWindow` (sub-properties `left`, `top`,
 `right`, `bottom`). per the Quickshell docs, **margins only apply to anchored
@@ -642,7 +658,8 @@ use it via `font.family: Fonts.icon`, `text: "\uf900"`.
 settings), `Fonts` (font resources), `Time` (clock), `ThreatWatchModel`
 (threat feed data layer), `Players` (MPRIS now-playing + transport control),
 `Playlist` (downloaded/local track library + download queue), `Sound`
-(volume/mute/output-switching state), and `Popups` (which popup, if any, is
+(volume/mute/output-switching state), `Session` (suspend/reboot/shutdown,
+with cancelable delayed actions), and `Popups` (which popup, if any, is
 currently open — see below). this replaced an earlier, inconsistent split —
 `Config`/`Fonts`/`Time` used to sit at the project root ("global"), while
 `ThreatWatchModel.qml` sat *with* `ThreatWatchPopup.qml` in `ThreatWatch/`
@@ -678,18 +695,110 @@ defaults-only file in the wrong place instead of failing loudly.
 
 ### popup exclusivity: `Services/Popups.qml`
 
-with three independent popups (`ThreatWatch`, `Playlist`, `Sound`), nothing
-stopped all three from being open and overlapping at once — each tracked its
-own `expanded`/`mapExpanded` boolean with no awareness of the others. both
-reference repos solve this the same way, just with different names:
-retroism's `Bar.qml` tracks a single `currentPopup` value + a
+with four independent popups (`ThreatWatch`, `Playlist`, `Sound`, `Session`),
+nothing stopped more than one from being open and overlapping at once — each
+tracked its own `expanded`/`mapExpanded` boolean with no awareness of the
+others. both reference repos solve this the same way, just with different
+names: retroism's `Bar.qml` tracks a single `currentPopup` value + a
 `closeAllPopups()` call; caelestia's `PopoutState`/`popouts.hasCurrent` does
 the equivalent. `Popups.qml` matches that pattern here — one shared
-`current: string` (`""` | `"threatwatch"` | `"playlist"` | `"sound"`) and a
-`toggle(name)` function. each popup's own `expanded`-style property became a
-read-only computed value (`Popups.current === "sound"`) instead of a plain
-settable boolean; only the three `TaskbarButton.onClicked` handlers write to
-`Popups.current`, via `toggle()`, never the popups themselves.
+`current: string` (`""` | `"threatwatch"` | `"playlist"` | `"sound"` |
+`"session"`) and a `toggle(name)` function. each popup's own `expanded`-style
+property became a read-only computed value (`Popups.current === "sound"`)
+instead of a plain settable boolean; only each `TaskbarButton.onClicked`
+handler writes to `Popups.current`, via `toggle()`, never the popups
+themselves.
+
+`Session/SessionActionPopup.qml` (the persistent "reboot/shutdown pending,
+cancel?" notice) deliberately does **not** go through `Popups.current` — it's
+not mutually exclusive with anything; it can and should stay visible
+regardless of whatever other popup is open, since dismissing a pending
+shutdown is a real decision, not routine bar navigation.
+
+### Components/TriggeredPopup.qml — shared popup chrome + open/close wiring
+
+all four `Popups.current`-gated popups (`ThreatWatchPopup`, `PlaylistPopup`,
+`SoundPopup`, `SessionPopup`) were each independently hand-rolling the same
+boilerplate: a `PanelWindow` + `WlrLayershell` setup, a `Components.PopupFrame`
+for the win95 chrome, a background `MouseArea` to dismiss on outside-click, and
+a `Connections`/`onExpandedChanged` block calling `chrome.open()`/`chrome.close()`.
+`TriggeredPopup.qml` extracts all of that into one reusable base:
+
+```qml
+Components.TriggeredPopup {
+    expanded:       Sound.expanded
+    triggerX:       Sound.triggerX
+    title:          "AUDIO"
+    icon:           "\ue050"
+    implicitWidth:  260
+    implicitHeight: 180
+
+    // popup-specific content goes here, as default children
+}
+```
+
+each popup file now only needs its own content and an `expanded`/`triggerX`
+binding back to its own singleton — no `PanelWindow`, no `WlrLayershell`
+properties, no manual open/close wiring.
+
+this is a deliberately simpler base than caelestia's own `Wrapper.qml` — that
+component adds Hyprland-specific focus-grab, animated-detach, and queued-open
+behavior this project has no use for. `TriggeredPopup` is scoped to exactly
+what these four popups actually need, the same judgment call applied
+throughout rather than porting caelestia's abstractions wholesale.
+
+**a background-dismiss click assigning straight to a popup's own `readonly
+expanded` property is a silent no-op** — `Playlist`/`Sound`'s pre-conversion
+code did exactly this (`onClicked: Sound.expanded = false`, where `expanded`
+is computed from `Popups.current`, not settable). always dismiss via
+`Popups.current = ""`, which `TriggeredPopup`'s shared background `MouseArea`
+now does correctly for all four.
+
+### Components/TaskbarButton.qml — owns its own trigger-position binding
+
+each of the four toggle buttons (`Session`, `ThreatWatch`, `Playlist`,
+`Sound`) needs to report its own screen-space `x` onto its popup's singleton,
+so the popup can position itself underneath. this used to be four
+hand-copied `Binding { target: X; property: "triggerX"; value: {...} }`
+blocks in `Bar.qml`, one per button — folded into `TaskbarButton` itself via
+two properties:
+
+```qml
+Components.TaskbarButton {
+    glyph:         "\ue050"
+    isToggled:     Sound.expanded
+    triggerTarget: Sound
+    mapTarget:     taskbar.contentItem
+    onClicked:     Popups.toggle("sound")
+}
+```
+
+internally:
+
+```qml
+Binding {
+    target:   root.triggerTarget
+    property: "triggerX"
+    when:     root.triggerTarget !== null && root.mapTarget !== null
+    value: {
+        root.x
+        root.mapTarget ? root.mapToItem(root.mapTarget, 0, 0).x : 0
+    }
+}
+```
+
+two real bugs surfaced getting this right, worth remembering if this pattern
+is ever copied again:
+
+1. **`mapToItem`'s own internal reads aren't tracked as reactive
+   dependencies** — referencing `root.x` first, as a bare statement, forces a
+   real tracked dependency so the binding actually re-evaluates when the
+   button moves (e.g. a preceding `RowLayout` sibling changing width). without
+   it, the binding only evaluates once, at creation.
+2. **a plain `mapItem` vs. `mapToItem` typo** produced the exact same visible
+   symptom as a bug in the reactivity model would have (all four popups
+   landing at `x=0`) — caught by checking the file directly, not by more
+   reasoning about QML binding semantics.
 
 ### Components/ — shared, generic UI atoms
 
@@ -848,6 +957,45 @@ never fires — `MouseArea` swallows all pointer events including hover by defau
 
 fix: set `hoverEnabled: true` on the `MouseArea` and drive visibility from
 `containsMouse`. do not use a separate `HoverHandler`.
+
+### prefer NumberAnimation over the Animator family for popup/UI-transition fades
+
+`Components/PopupFrame.qml`'s open/close fade originally used `OpacityAnimator`
+(Qt Quick's render-thread-animated family — `OpacityAnimator`, `XAnimator`,
+`ScaleAnimator`, etc.), inherited unchanged from before this project had a
+shared popup base. once `PopupFrame` moved from being declared inline in each
+popup's own file into one reusable component (`TriggeredPopup.qml`)
+instantiated across multiple independent `wlr-layer-shell` surfaces, every
+popup after the first one opened started visibly flickering on reopen (never
+on the very first open).
+
+confirmed step by step, not guessed:
+
+- disabling the fade animation entirely removed the flicker — confirmed it
+  was animation-specific, not a window-visibility or content-reload issue
+- logging directly inside `PopupFrame.open()`/`close()` showed exactly one
+  call per real transition — ruled out a double-invocation/duplicate-handler
+  theory (a real, separate bug of that shape *was* found and fixed along the
+  way — a debug handler that should only ever have lived in
+  `TriggeredPopup.qml` had been added to `ThreatWatchPopup.qml` instead,
+  throwing a `ReferenceError` on every transition since `chrome` isn't in that
+  file's scope — but fixing it didn't resolve the flicker)
+- swapping `OpacityAnimator` → plain `NumberAnimation` (identical `from`/`to`/
+  `duration`/`easing`, only the type changed) fixed it while keeping the fade
+
+`OpacityAnimator`'s render-thread execution is an optimization for staying
+smooth while the GUI thread is under heavy, unrelated load — not something a
+simple popup fade triggered by a user click actually needs. validated against
+real precedent afterward: neither caelestia's own shared animation components
+(`components/Anim.qml`, `components/CAnim.qml` — used for every UI transition
+in that whole shell) nor Quickshell's own `ReloadPopup.qml` use the `Animator`
+family anywhere for this kind of fade; both use plain `NumberAnimation`/
+`ColorAnimation`.
+
+**lesson**: default to plain `NumberAnimation`/`ColorAnimation` for popup and
+UI-transition animations in this project, matching both reference
+implementations. reach for the `Animator` family only if a specific, real
+GUI-thread-contention symptom shows up — not preemptively.
 
 ### a colour slot must be checked against every background it can render over, not just colors.base
 
