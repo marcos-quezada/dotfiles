@@ -1,3 +1,6 @@
+// Workspaces.qml - workspace switcher. must be instantiated inline inside
+// Bar.qml - relies on an ancestor `id: taskbar`being in scope.
+
 import Quickshell.I3
 import QtQuick
 import QtQuick.Controls.Basic
