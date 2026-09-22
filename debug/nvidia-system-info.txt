@@ -1,0 +1,60 @@
+ℵ₀:auryn:~ ♥ › $ pkg search nvidia
+libva-nvidia-driver-0.0.17     NVDEC-based backend for VAAPI
+linux-nvidia-libs-595.84       NVIDIA graphics libraries and programs (Linux)
+linux-nvidia-libs-304-304.137  NVIDIA graphics libraries and programs (Linux)
+linux-nvidia-libs-340-340.108  NVIDIA graphics libraries and programs (Linux)
+linux-nvidia-libs-390-390.157  NVIDIA graphics libraries and programs (Linux)
+linux-nvidia-libs-470-470.256.02 NVIDIA graphics libraries and programs (Linux)
+linux-nvidia-libs-580-580.173.02 NVIDIA graphics libraries and programs (Linux)
+linux-nvidia-libs-devel-610.43.02 NVIDIA graphics libraries and programs (Linux)
+nvidia-driver-595.84           NVIDIA graphics driver userland
+nvidia-driver-304-304.137_11   NVIDIA graphics driver userland
+nvidia-driver-340-340.108_5    NVIDIA graphics driver userland
+nvidia-driver-390-390.157_1    NVIDIA graphics driver userland
+nvidia-driver-470-470.256.02_2 NVIDIA graphics driver userland
+nvidia-driver-580-580.173.02   NVIDIA graphics driver userland
+nvidia-driver-devel-610.43.02  NVIDIA graphics driver userland
+nvidia-drm-515-kmod-595.84.1500068_1 NVIDIA DRM Kernel Module
+nvidia-drm-515-kmod-580-580.173.02.1500068_1 NVIDIA DRM Kernel Module
+nvidia-drm-515-kmod-devel-610.43.02.1500068_1 NVIDIA DRM Kernel Module
+nvidia-drm-61-kmod-595.84.1500068_1 NVIDIA DRM Kernel Module
+nvidia-drm-61-kmod-580-580.173.02.1500068_1 NVIDIA DRM Kernel Module
+nvidia-drm-61-kmod-devel-610.43.02.1500068_1 NVIDIA DRM Kernel Module
+nvidia-drm-66-kmod-595.84.1500068_1 NVIDIA DRM Kernel Module
+nvidia-drm-66-kmod-580-580.173.02.1500068_1 NVIDIA DRM Kernel Module
+nvidia-drm-66-kmod-devel-610.43.02.1500068_1 NVIDIA DRM Kernel Module
+nvidia-drm-kmod-595.84         NVIDIA DRM kernel module
+nvidia-drm-kmod-580-580.173.02 NVIDIA DRM kernel module
+nvidia-drm-kmod-devel-610.43.02 NVIDIA DRM kernel module
+nvidia-kmod-595.84.1500068     NVIDIA graphics driver kernel module
+nvidia-kmod-304-304.137.1500068 NVIDIA graphics driver kernel module
+nvidia-kmod-340-340.108.1500068 NVIDIA graphics driver kernel module
+nvidia-kmod-390-390.157.1500068 NVIDIA graphics driver kernel module
+nvidia-kmod-470-470.256.02.1500068 NVIDIA graphics driver kernel module
+nvidia-kmod-580-580.173.02.1500068 NVIDIA graphics driver kernel module
+nvidia-kmod-devel-610.43.02.1500068 NVIDIA graphics driver kernel module
+nvidia-settings-595.84         Display Control Panel for NVIDIA graphics
+nvidia-texture-tools-2.1.2     Texture Tools with support for DirectX 10 formats
+nvidia-xconfig-595.84          NVIDIA graphics X configuration utility
+nvidia_gpu_prometheus_exporter-g20181028_44 NVIDIA GPU Prometheus exporter
+py312-nvidia_ml_py-13.590.48   Python bindings to the NVIDIA Management Library
+xlibre-nvidia-driver-595.84    NVIDIA graphics driver userland
+xlibre-nvidia-driver-304-304.137_11 NVIDIA graphics driver userland
+xlibre-nvidia-driver-340-340.108_5 NVIDIA graphics driver userland
+xlibre-nvidia-driver-390-390.157_1 NVIDIA graphics driver userland
+xlibre-nvidia-driver-470-470.256.02_2 NVIDIA graphics driver userland
+xlibre-nvidia-driver-580-580.173.02 NVIDIA graphics driver userland
+xlibre-nvidia-driver-devel-610.43.02 NVIDIA graphics driver userland
+nvidia-kmod-595.58.03.1501000  NVIDIA graphics driver kernel module
+
+ℵ₀:auryn:~ ♥ › $ pkg info nvidia-drm-66-kmod nvidia-kmod
+nvidia-drm-66-kmod-595.84.1500068_1
+nvidia-kmod-595.58.03.1501000
+
+ℵ₀:auryn:~ ♥ › $ freebsd-version -ku
+15.1-RELEASE-p3
+15.1-RELEASE-p3
+
+ℵ₀:auryn:~ ♥ › $ pkg query "%n %v %o" | grep -i nvidia
+nvidia-drm-66-kmod 595.84.1500068_1 graphics/nvidia-drm-66-kmod
+nvidia-kmod 595.58.03.1501000 x11/nvidia-kmod
