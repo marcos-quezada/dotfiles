@@ -1,0 +1,20 @@
+ℵ₀:auryn:~/git/dotfiles ♥ › $ dmesg | grep -i nvidia
+nvidia1: <NVIDIA GeForce MX150> on vgapci1
+vgapci1: child nvidia1 requested pci_enable_io
+vgapci1: child nvidia1 requested pci_enable_io
+nvidia-modeset: Loading NVIDIA Kernel Mode Setting Driver for UNIX platforms  580.173.02  Tue Jun 23 07:55:43 UTC 2026
+[drm] [nvidia-drm] [GPU ID 0x00000300] Loading driver
+[drm] Initialized nvidia-drm 0.0.0 20160202 for nvidia1 on minor 1
+nvidia1: <NVIDIA GeForce MX150> on vgapci1
+vgapci1: child nvidia1 requested pci_enable_io
+vgapci1: child nvidia1 requested pci_enable_io
+nvidia1: <NVIDIA GeForce MX150> on vgapci1
+vgapci1: child nvidia1 requested pci_enable_io
+vgapci1: child nvidia1 requested pci_enable_io
+ℵ₀:auryn:~/git/dotfiles ♥ › $ dmesg | grep -i sysctl_add_oid
+sysctl_add_oid: can't re-use a leaf (hw.dri.debug)!
+sysctl_add_oid: can't re-use a leaf (hw.dri.debug)!
+sysctl_add_oid: can't re-use a leaf (hw.dri.vblank_offdelay)!
+sysctl_add_oid: can't re-use a leaf (hw.dri.timestamp_precision)!
+sysctl_add_oid: can't re-use a leaf (hw.dri.debug)!
+sysctl_add_oid: can't re-use a leaf (hw.dri.debug)!
