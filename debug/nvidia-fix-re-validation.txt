@@ -1,0 +1,28 @@
+ℵ₀:auryn:~/git/dotfiles ♥ › $ kldstat | grep -i nvidia
+24    1 0xffffffff84400000  6075420 nvidia.ko
+ℵ₀:auryn:~/git/dotfiles ♥ › $ ls -la /dev/nvidia*
+crw-rw-rw-  1 root wheel 0x192 Sep 22 20:24 /dev/nvidia1
+crw-rw-rw-  1 root wheel 0x193 Sep 22 20:24 /dev/nvidiactl
+ℵ₀:auryn:~/git/dotfiles ♥ › $ dmesg | grep -i "sysctl_add_oid\|nvidia"
+sysctl_add_oid: can't re-use a leaf (hw.dri.debug)!
+nvidia1: <NVIDIA GeForce MX150> on vgapci1
+vgapci1: child nvidia1 requested pci_enable_io
+vgapci1: child nvidia1 requested pci_enable_io
+nvidia-modeset: Loading NVIDIA Kernel Mode Setting Driver for UNIX platforms  580.173.02  Tue Jun 23 07:55:43 UTC 2026
+[drm] [nvidia-drm] [GPU ID 0x00000300] Loading driver
+sysctl_add_oid: can't re-use a leaf (hw.dri.debug)!
+sysctl_add_oid: can't re-use a leaf (hw.dri.vblank_offdelay)!
+sysctl_add_oid: can't re-use a leaf (hw.dri.timestamp_precision)!
+[drm] Initialized nvidia-drm 0.0.0 20160202 for nvidia1 on minor 1
+sysctl_add_oid: can't re-use a leaf (hw.dri.debug)!
+nvidia1: <NVIDIA GeForce MX150> on vgapci1
+vgapci1: child nvidia1 requested pci_enable_io
+vgapci1: child nvidia1 requested pci_enable_io
+ℵ₀:auryn:~/git/dotfiles ♥ › $ bectl list
+BE                                 Active Mountpoint Space Created
+15.0-RELEASE-p13_2026-08-26_114803 -      -          2M    2026-08-26 11:48
+15.0-RELEASE_2026-08-26_112923     -      -          437M  2026-08-26 11:29
+15.1-RELEASE-p3_2026-08-26_123445  -      -          1.20M 2026-08-26 12:34
+15.1-RELEASE-p3_2026-08-26_124152  -      -          3.66M 2026-08-26 12:41
+default                            NR     /          23.7G 2018-01-01 08:10
+pre-nvidia-fix                     -      -          219M  2026-09-22 13:11
