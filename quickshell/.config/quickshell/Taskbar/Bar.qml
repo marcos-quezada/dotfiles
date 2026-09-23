@@ -44,9 +44,9 @@ Scope {
             commonBorderWidth: 4
             commonBorder: false
             lBorderwidth: 10
-            rBorderwidth: 0
-            tBorderwidth: 10
-            bBorderwidth: 0
+            rBorderwidth: 10
+            tBorderwidth: 1
+            bBorderwidth: 10
             borderColor: Config.colors.highlight
           }
 
@@ -82,6 +82,7 @@ Scope {
             // workspaces panel — shadow-backed container for the workspace switcher
             Item {
                 id:                     workspacesPanel
+                clip: true
                 Layout.preferredHeight: taskbar.height - 8
                 Layout.preferredWidth:  workspaces.width + 5
 
@@ -144,6 +145,7 @@ Scope {
         // system tray panel — same shadow treatment, anchored right for clock + widgets
         Item {
             id: trayPanel
+            clip: true
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
             anchors.rightMargin: 12

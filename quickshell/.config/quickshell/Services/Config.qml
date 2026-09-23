@@ -25,7 +25,7 @@ Singleton {
       id:                  themeDefault
       base:                "#d8d8d8"
       shadow:              "#9b9b9b"
-      highlight:           "#0000ff"
+      highlight:           "#efefef"
       urgent:              "#ff723e"
       accent:              "#207874"
       accentDark:          "#14514d"
