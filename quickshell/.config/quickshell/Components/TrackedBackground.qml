@@ -19,7 +19,7 @@ Rectangle {
     // to), pass the itemto translate into. leave null if target's x/y
     // are already in the right space.
     property Item mapTarget: null
-    property int  padding:   4
+    property int  padding:  4 
 
     x: {
         target.x

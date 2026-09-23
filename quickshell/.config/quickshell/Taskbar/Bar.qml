@@ -68,6 +68,8 @@ Scope {
             z:            -1
             target:       workspaces
             mapTarget:    taskbar.contentItem
+            height: Config.settings.bar.buttonSize + padding * 2
+            anchors.verticalCenter: parent.verticalCenter
             color:        Config.colors.shadow
             border.width: 1
             border.color: Config.colors.outline
@@ -129,6 +131,8 @@ Scope {
             id:           trayBg
             z:            -1
             target:       sysTray
+            height:       Config.settings.bar.buttonSize + padding * 2
+            anchors.verticalCenter: parent.verticalCenter
             color:        Config.colors.shadow
             border.width: 1
             border.color: Config.colors.outline

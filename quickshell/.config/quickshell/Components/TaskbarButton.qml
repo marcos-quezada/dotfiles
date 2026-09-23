@@ -16,8 +16,8 @@ Button {
   property var triggerTarget: null
   property var mapTarget:     null
 
-  implicitWidth: 22
-  implicitHeight: 22
+  implicitWidth:  Config.settings.bar.buttonSize
+  implicitHeight: Config.settings.bar.buttonSize
 
   Binding {
         target:   root.triggerTarget

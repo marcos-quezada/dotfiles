@@ -21,8 +21,8 @@ RowLayout {
         Rectangle {
             id:               control
             Layout.alignment: Qt.AlignVCenter
-            width:            22
-            height:           22
+            width:            Config.settings.bar.buttonSize
+            height:           Config.settings.bar.buttonSize
             border.width:     1
             border.color:     Config.colors.outline
             color:            (modelData.active || mouseArea.containsMouse) ? Config.colors.shadow : (modelData.urgent ? Config.colors.urgent : Config.colors.base)

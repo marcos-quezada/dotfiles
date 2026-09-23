@@ -146,7 +146,8 @@ Singleton {
   }
 
   component BarSettings: JsonObject {
-      property int fontSize: 12
-      property int height:   35
+      property int fontSize:   12
+      property int height:     35
+      property int buttonSize: 22
   }
 }
