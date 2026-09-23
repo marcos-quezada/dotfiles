@@ -8,8 +8,6 @@ RowLayout {
     anchors.rightMargin:    12
     spacing:                8
 
-    Rectangle { anchors.fill: parent; color: "#ff00ff"; z: -1 }
-
     NowPlaying {}
 
     ClockWidget {

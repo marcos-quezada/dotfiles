@@ -16,7 +16,6 @@ RowLayout {
 
     property var currentWorkspaces: I3.workspaces.values.filter(w => w.monitor.name == taskbar.screen.name)
 
-    Rectangle {anchors.fill: parent; color: "#ff00ff"; z: -1}
 
     Repeater { 
         model: parent.currentWorkspaces
