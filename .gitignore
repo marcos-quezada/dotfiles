@@ -45,3 +45,4 @@ staging/*
 openspec/
 .pi/
 AGENTS.md
+/drm-stage-a
