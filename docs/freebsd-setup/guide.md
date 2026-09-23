@@ -562,16 +562,97 @@ available for compute workloads only, not graphics offload).
 Ly is a lightweight TUI display manager. It handles session selection and
 PAM authentication, then execs the chosen session (Sway).
 
-### Install
+### Install — built from a fork, pinned to a specific commit and Zig version
+
+not installed via `pkg` — built from source, from this project's own fork
+of upstream `ly` (`github.com/fairyglade/ly`, itself a live, kept-in-sync
+mirror of the real upstream on Codeberg). the fork lives at
+`github.com/marcos-quezada/ly`, branch `freebsd-1.4.0-working`.
+
+this specific commit/branch/build combination was arrived at after an
+extensive investigation, not chosen arbitrarily — see "why this exact
+combination" below before changing any part of it.
+
+**prerequisite — a pinned Zig version, not the current default:**
 
 ```sh
-pkg install ly
+doas pkg install zig015
 ```
 
-> **TODO:** a local fork of ly is planned that fixes battery percentage
-> reporting on FreeBSD. When ready, the install step above will be replaced
-> with a `zig build` from source. The rest of this section remains valid
-> regardless of which variant is used.
+the currently-`pkg`-installed default `zig` (0.16) has real, breaking API
+changes vs. what this era of `ly` expects — confirmed two separate ways
+(a `build.zig` compile error on a removed `std.process.SpawnOptions.StdIo`
+variant, and a missing-argument compile error in a different code path).
+`zig015` installs as a separate, version-suffixed binary — it does not
+replace or conflict with the default `zig`.
+
+**build and install:**
+
+```sh
+git clone git@github.com:marcos-quezada/ly.git ~/ly
+cd ~/ly
+git checkout freebsd-1.4.0-working
+zig015 build -Dprefix_directory=/usr/local -Dconfig_directory=/usr/local/etc -Dinit_system=freebsd
+doas zig015 build installnoconf -Dprefix_directory=/usr/local -Dconfig_directory=/usr/local/etc -Dinit_system=freebsd
+```
+
+`installnoconf` (not `installexe`) is deliberate — `installexe` installs a
+fresh default config file every time, silently overwriting any existing
+customised one. `installnoconf` only installs the binary and init-system
+service files, leaving whatever's already at `/usr/local/etc/ly/config.ini`
+untouched.
+
+**do not pass `-Denable_x11_support=false`** even though this is a
+Wayland-only setup — that flag triggers a genuine, pre-existing compile
+bug in this specific commit's x11-disabled code path (a missing function
+argument). the X11-session-crawl warning this flag would have silenced is
+handled separately instead:
+
+```sh
+doas mkdir -p /usr/local/share/xsessions /usr/local/etc/ly/custom-sessions
+```
+(empty directories are enough — `ly` crawls them for `.desktop` files and
+just finds none, no error)
+
+the wrapper script and PAM config also need installing manually — `zig
+build` doesn't handle these two FreeBSD-specific extras on its own (this
+matches what the FreeBSD port's own `post-install` step does):
+
+```sh
+sed 's,$PREFIX_DIRECTORY,/usr/local,g; s,$EXECUTABLE_NAME,ly,g' res/ly-freebsd-wrapper | doas tee /usr/local/bin/ly_wrapper >/dev/null
+doas chmod +x /usr/local/bin/ly_wrapper
+doas install -m 644 res/pam.d/ly-freebsd /usr/local/etc/pam.d/ly
+```
+
+### Why this exact combination — a real bug, not a preference
+
+current upstream `ly` (and every commit tested between `v1.4.1` and
+current `master`, roughly 100 commits) has a real, reproducible bug on
+this FreeBSD setup: after authenticating, the session (Sway *or* a plain
+shell, doesn't matter which) launches, then immediately bounces back to
+the Ly prompt — `Ctrl-C` followed by logging in again is needed to
+actually reach a usable session.
+
+bisected extensively (both by testing specific upstream-linked TTY/session
+commits, e.g. the chown/chmod TTY rework from issue `#944`, and by binary
+search across the full `v1.4.1`→`master` commit range) without finding a
+single commit boundary — the bug was present at every point tested. that
+ruled out "a specific `ly` commit regression" as the explanation.
+
+the actual working combination (`0d887ef`, Zig `0.15.2`, X11 support left
+at its default) was found by returning to the exact commit this project's
+original, already-working install had been built from (confirmed via
+`git reflog`, not guessed), and removing every unrelated variable that had
+accumulated during testing (a newer Zig compiler, `-Denable_x11_support=false`).
+that combination has zero reported session-bounce issues. the exact
+responsible variable (Zig compiler version vs. the X11 flag) was **not**
+fully isolated — deferred, see `ly-fork-freebsd-fixes`'s task list.
+
+consequence of pinning to this commit: it predates upstream's Lua-based
+config format entirely, so this setup uses the older, still fully-supported
+`config.ini` format, not Lua. a Lua migration was done and worked correctly
+in isolation, but had to be abandoned for now since it isn't compatible
+with the one commit that's actually confirmed to work correctly.
 
 ### Enable — `/etc/gettytab` and `/etc/ttys`
 
@@ -608,14 +689,15 @@ seatd_enable="YES"   # in /etc/rc.conf — must start before the first login
 
 ### Configuration
 
-Config lives at `/usr/local/etc/ly/config.ini` (ly is a port; everything
-installs under `/usr/local`). Key customisations on this machine:
+Config lives at `/usr/local/etc/ly/config.ini`, tracked and stowed via this
+repo's `ly` package (`ly/usr/local/etc/ly/config.ini`). Key customisations
+on this machine:
 
 | Key | Value | Effect |
 |-----|-------|--------|
 | `animation` | `matrix` | CMatrix rain plays on the login screen |
 | `bigclock` | `en` | Large ASCII clock shown in English |
-| `battery_id` | `BAT0` | Battery percentage shown top-left |
+| `battery_id` | `BAT0` | Battery percentage shown top-left, via this fork's FreeBSD `sysctlbyname` patch |
 | `lang` | `de` | German locale for UI strings |
 | `full_color` | `true` | 24-bit colour in the TUI |
 | `vi_mode` | `false` | Standard keybindings (not vi) |
