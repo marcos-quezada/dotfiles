@@ -543,6 +543,40 @@ kern.ipc.shmseg="1024"
 kern.ipc.shmmni="1024"
 ```
 
+### Screenshots
+
+```sh
+doas pkg install grim slurp
+```
+
+`grim` captures a Wayland output directly (the wlroots-ecosystem standard
+tool — no X11 equivalent works under native Wayland). `slurp` adds
+interactive region selection on top of it. Both confirmed available via
+`pkg search` on FreeBSD — not assumed from Linux precedent.
+
+**basic usage:**
+
+```sh
+grim screenshot.png                    # full output, all monitors combined
+grim -o eDP-1 screenshot.png            # one specific output (see: swaymsg -t get_outputs)
+grim -g "$(slurp)" screenshot.png       # interactive region select
+```
+
+`sway/config` binds `Print` to `grim` already, though currently without a
+real destination path/filename — worth revisiting once `slurp` is wired in
+too, so `Print` does a sensible full capture and a second binding (e.g.
+`Shift+Print`) does region-select.
+
+a FreeBSD/Sway-specific wrapper, `grimshot`, also exists in `pkg`
+(`grimshot-1.8.1`, "Screenshot helper for Sway") — bundles grim+slurp+more
+under one command with subcommands like `grimshot save area`. not adopted
+yet, worth considering once basic `grim`/`slurp` usage is comfortable.
+
+`maim` (previously in the package list) is an X11-only tool — doesn't work
+for capturing a native Wayland compositor's output at all, and isn't
+referenced anywhere in `sway/config`. leftover, not actually in use; safe
+to remove.
+
 ### PRIME offload from Sway — not supported, do not use
 
 ```sh
@@ -825,19 +859,19 @@ dmenu-wayland       dmidecode           doas
 drm-66-kmod         en-freebsd-doc      feh
 firefox             focuswriter         foot
 git                 gmake               gpu-firmware-intel-kmod-kabylake
-jq                  libfido2            maim
+grim                jq                  libfido2
 neovim              nerd-fonts          ninja
 noto-emoji          nss_mdns            nvidia-drm-66-kmod
 pkg                 pkgconf             qt6-base
 qt6-declarative     qt6-shadertools     qt6-wayland
 quickshell          rust                sakura
-seatd               spleen-font         stow
-sway                swayidle            swaylock-effects
-u2f-devd            vim                 w3m
-webcamd             wifi-firmware-iwlwifi-kmod  wireguard-tools
-xclip               xdg-desktop-portal  xinit
-xkbcomp             xkeyboard-config    zig
-automount
+seatd               slurp               spleen-font
+stow                sway                swayidle
+swaylock-effects    u2f-devd            vim
+w3m                 webcamd             wifi-firmware-iwlwifi-kmod
+wireguard-tools     xclip               xdg-desktop-portal
+xinit               xkbcomp             xkeyboard-config
+zig                 automount
 ```
 
 ---
