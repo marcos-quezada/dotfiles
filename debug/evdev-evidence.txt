@@ -1,0 +1,36 @@
+ℵ₀:auryn:~/git/dotfiles ♥ › $ kldstat | grep -i evdev
+ℵ₀:auryn:~/git/dotfiles ♥ › $ sysctl kern.evdev
+kern.evdev.input.7.uniq: 
+kern.evdev.input.7.phys: acpi_lid0
+kern.evdev.input.7.id: { bustype = 0x0019, vendor = 0x0000, product = 0x0000, version = 0x0001 }
+kern.evdev.input.7.name: Control Method Lid Switch
+kern.evdev.input.6.uniq: 
+kern.evdev.input.6.phys: psm0
+kern.evdev.input.6.id: { bustype = 0x0011, vendor = 0x0002, product = 0x0007, version = 0x0000 }
+kern.evdev.input.6.name: SynPS/2 Synaptics TouchPad
+kern.evdev.input.5.uniq: 
+kern.evdev.input.5.phys: atkbd0
+kern.evdev.input.5.id: { bustype = 0x0011, vendor = 0x0001, product = 0x0001, version = 0x0000 }
+kern.evdev.input.5.name: AT keyboard
+kern.evdev.input.4.uniq: 
+kern.evdev.input.4.phys: acpi_button1
+kern.evdev.input.4.id: { bustype = 0x0019, vendor = 0x0000, product = 0x0000, version = 0x0001 }
+kern.evdev.input.4.name: Power Button
+kern.evdev.input.3.uniq: 
+kern.evdev.input.3.phys: acpi_button0
+kern.evdev.input.3.id: { bustype = 0x0019, vendor = 0x0000, product = 0x0000, version = 0x0001 }
+kern.evdev.input.3.name: Sleep Button
+kern.evdev.input.2.uniq: 
+kern.evdev.input.2.phys: acpi_video0
+kern.evdev.input.2.id: { bustype = 0x0019, vendor = 0x0000, product = 0x0000, version = 0x0001 }
+kern.evdev.input.2.name: ACPI video extension
+kern.evdev.input.1.uniq: 
+kern.evdev.input.1.phys: sysmouse
+kern.evdev.input.1.id: { bustype = 0x0006, vendor = 0x0000, product = 0x0000, version = 0x0000 }
+kern.evdev.input.1.name: System mouse
+kern.evdev.input.0.uniq: 
+kern.evdev.input.0.phys: kbdmux0
+kern.evdev.input.0.id: { bustype = 0x0006, vendor = 0x0000, product = 0x0000, version = 0x0000 }
+kern.evdev.input.0.name: System keyboard multiplexer
+kern.evdev.sysmouse_t_axis: 0
+kern.evdev.rcpt_mask: 12
