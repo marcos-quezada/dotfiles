@@ -49,6 +49,18 @@ Scope {
             bBorderwidth: 0
             borderColor: Config.colors.highlight
           }
+
+          Rectangle {
+              id: barBackground
+              anchors {
+                  fill: parent
+                  margins: 0
+                }
+              color: "transparent"
+              radius: 0
+              border.width: 1
+              border.color: Config.colors.outline
+          }
         }
 
         RowLayout {
@@ -77,7 +89,7 @@ Scope {
                     id: workspacesBg
                     anchors.fill: workspacesPanel
 
-                    anchors.bottomMargin: -4
+                    anchors.bottomMargin: -2
                     color: "transparent"
                     Rectangle {
                         anchors.fill: workspacesBg
@@ -141,7 +153,7 @@ Scope {
                 id: trayBg
                 anchors.fill: trayPanel
 
-                anchors.bottomMargin: -4
+                anchors.bottomMargin: -2
                 color: "transparent"
                 Rectangle {
                     anchors.fill: trayBg
