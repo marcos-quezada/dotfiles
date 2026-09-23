@@ -1,0 +1,8 @@
+ℵ₀:auryn:~/git/dotfiles ♥ › $ ./drm-stage-b /dev/drm/0
+opening /dev/drm/0
+created dumb buffer: handle=1 pitch=3200 size=1921024
+mapped 1921024 bytes at 0x82255c000
+wrote test pattern into the mapped buffer (in memory only, nothing displayed)
+unmapped cleanly
+destroyed dumb buffer cleanly
+done, fd closed cleanly
