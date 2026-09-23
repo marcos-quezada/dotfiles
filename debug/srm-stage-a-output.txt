@@ -1,0 +1,14 @@
+ℵ₀:auryn:~/git/dotfiles ♥ › $ ./drm-stage-a /dev/drm/0
+driver:      i915
+date:        20201103
+description: Intel Graphics
+version:     1.6.0
+
+connectors: 2
+    connector 95: type=14 connection=connected modes=1
+    connector 103: type=11 connection=disconnected modes=0
+
+crtcs: 2
+framebuffers currently owned by this fd: 0
+
+done, fd closed cleanly
