@@ -82,15 +82,14 @@ Scope {
             // workspaces panel — shadow-backed container for the workspace switcher
             Item {
                 id:                     workspacesPanel
-                clip: true
-                Layout.preferredHeight: taskbar.height - 8
+                Layout.preferredHeight: taskbar.height - 8 
                 Layout.preferredWidth:  workspaces.width + 5
 
                 Rectangle {
                     id: workspacesBg
                     anchors.fill: workspacesPanel
 
-                    anchors.bottomMargin: -2
+                    anchors.bottomMargin: 0 
                     color: "transparent"
                     Rectangle {
                         anchors.fill: workspacesBg
@@ -102,7 +101,7 @@ Scope {
                         color: "transparent"
                         border.width: 1
                         z: -5
-                        anchors.margins: -1
+                        anchors.margins: 1
                         anchors.bottomMargin: 1
                     }
                 }
@@ -145,7 +144,6 @@ Scope {
         // system tray panel — same shadow treatment, anchored right for clock + widgets
         Item {
             id: trayPanel
-            clip: true
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
             anchors.rightMargin: 12
@@ -155,7 +153,7 @@ Scope {
                 id: trayBg
                 anchors.fill: trayPanel
 
-                anchors.bottomMargin: -2
+                anchors.bottomMargin: 0
                 color: "transparent"
                 Rectangle {
                     anchors.fill: trayBg
