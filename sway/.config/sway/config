@@ -131,7 +131,8 @@ bindsym --locked XF86MonBrightnessDown exec backlight - 10%
 bindsym --locked XF86MonBrightnessUp   exec backlight + 10%
 bindsym $mod+F5 exec backlight - 10%
 bindsym $mod+F6 exec backlight + 10%
-bindsym Print exec grim
+bindsym Print exec mkdir -p ~/Pictures/screenshots && grim ~/Pictures/screenshots/$(date +%Y%m%d-%H%M%S).png
+bindsym Shift+Print exec mkdir -p ~/Pictures/screenshots && grim -g "$(slurp)" ~/Pictures/screenshots/$(date +%Y%m%d-%H%M%S).png
 
 # ── bar ───────────────────────────────────────────────────────────────────────
 # quickshell draws its own bar; no swaybar block needed
