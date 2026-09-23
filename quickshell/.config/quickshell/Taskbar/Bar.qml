@@ -24,7 +24,7 @@ Scope {
           left: true
           right: true
         }
-        implicitHeight: 35
+        implicitHeight: Config.settings.bar.height 
 
         // taskbar background — double NewBorder layers produce the shadow/highlight bevel
         color: Config.colors.base
@@ -56,27 +56,18 @@ Scope {
                   fill: parent
                   margins: 0
                 }
-              color: "transparent"
-              radius: 0
+              color:        "transparent"
+              radius:       0
               border.width: 1
               border.color: Config.colors.outline
           }
         }
 
-        Rectangle {
-            id: workspacesBg
-            z:  -1
-            readonly property int padding: 4
-            x: {
-                workspaces.x
-                return workspaces.mapToItem(taskbar.contentItem, 0, 0).x - padding
-            }
-            y: {
-                workspaces.y
-                return workspaces.mapToItem(taskbar.contentItem, 0, 0).y -padding
-            }
-            width:        workspaces.width  + padding * 2
-            height:       workspaces.height + padding * 2
+        Components.TrackedBackground {
+            id:           workspacesBg
+            z:            -1
+            target:       workspaces
+            mapTarget:    taskbar.contentItem
             color:        Config.colors.shadow
             border.width: 1
             border.color: Config.colors.outline
@@ -134,22 +125,10 @@ Scope {
             }
         }
 
-        // system tray background - independent layer tracking the real SysTray
-        // geometry directly, same pattern as workspacesBg above
-        Rectangle {
-            id: trayBg
-            z:  -1
-            readonly property int padding: 4
-            x: {
-                sysTray.x
-                return sysTray.x - padding
-            }
-            y: {
-                sysTray.y
-                return sysTray.y - padding
-            }
-            width:        sysTray.width  + padding * 2
-            height:       sysTray.height + padding * 2
+        Components.TrackedBackground {
+            id:           trayBg
+            z:            -1
+            target:       sysTray
             color:        Config.colors.shadow
             border.width: 1
             border.color: Config.colors.outline

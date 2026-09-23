@@ -6,7 +6,6 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
 
-import qs.Components as Components
 import qs.Services
 
 RowLayout {
@@ -33,16 +32,6 @@ RowLayout {
                 color: Config.colors.text
             }
             onPressed: I3.dispatch(`workspace ` + modelData.number)
-            Components.NewBorder {
-                commonBorderWidth: 2
-                commonBorder: false
-                lBorderwidth: -2
-                rBorderwidth: 0
-                tBorderwidth: -4
-                bBorderwidth: -1
-                borderColor: Config.colors.outline
-                zValue: -1
-            }
 
             background: Rectangle {
                 anchors.verticalCenter: parent.verticalCenter

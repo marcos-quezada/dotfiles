@@ -135,7 +135,7 @@ Singleton {
   }
 
   component AppSettings: JsonObject {
-      property string version: "0.1"
+    property string version: "0.1"
     property string currentTheme: "default"
     property BarSettings bar: BarSettings{}
 
@@ -147,6 +147,6 @@ Singleton {
 
   component BarSettings: JsonObject {
       property int fontSize: 12
-
+      property int height:   35
   }
 }
