@@ -42,7 +42,7 @@ PanelWindow {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
     anchors { top: true; left: true }
-    margins.top:  35
+    margins.top:  Config.settings.bar.height
     margins.left: triggerX
     color:        "transparent"
 
