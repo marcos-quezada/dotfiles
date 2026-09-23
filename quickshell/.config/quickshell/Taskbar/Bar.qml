@@ -35,9 +35,9 @@ Scope {
             commonBorderWidth: 4
             commonBorder: false
             lBorderwidth: 10
-            rBorderwidth: 1
+            rBorderwidth: 0 
             tBorderwidth: 10
-            bBorderwidth: 1
+            bBorderwidth: 0
             borderColor: Config.colors.shadow
           }
           Components.NewBorder {
