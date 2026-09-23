@@ -63,6 +63,27 @@ Scope {
           }
         }
 
+        // workspaces background - independent layer tracking the real workspace
+        // switcher geometry directly, not a container.
+        Rectangle {
+            id: workspacesBg
+            z:  -1
+            readonly property int padding: 4
+            x: {
+                workspaces.x
+                return workspaces.mapToItem(taskbar.contentItem, 0, 0).x - padding
+            }
+            y: {
+                workspaces.y
+                return workspaces.mapToItem(taskbar.contentItem, 0, 0).y -padding
+            }
+            width:        workspaces.width  + padding * 2
+            height:       workspaces.height + padding * 2
+            color:        Config.colors.shadow
+            border.width: 1
+            border.color: Config.colors.outline
+        }
+
         RowLayout {
             id:                     leftCluster
             anchors.left:           parent.left
@@ -80,37 +101,11 @@ Scope {
             }
 
             // workspaces panel — shadow-backed container for the workspace switcher
-            Item {
-                id:                     workspacesPanel
-                Layout.preferredHeight: taskbar.height - 8 
-                Layout.preferredWidth:  workspaces.width + 5
-
-                Rectangle {
-                    id: workspacesBg
-                    anchors.fill: workspacesPanel
-
-                    anchors.bottomMargin: 0 
-                    color: "transparent"
-                    Rectangle {
-                        anchors.fill: workspacesBg
-                        border.width: 0
-                        color: Config.colors.shadow
-                    }
-                    Rectangle {
-                        anchors.fill: workspacesBg
-                        color: "transparent"
-                        border.width: 1
-                        z: -5
-                        anchors.margins: 1
-                        anchors.bottomMargin: 1
-                    }
-                }
-                Workspaces {
-                    id: workspaces
-                    anchors.leftMargin: 2
-                    anchors.rightMargin: 0
-                }
-              }
+            Workspaces {
+                id: workspaces
+                anchors.leftMargin: 2
+                anchors.rightMargin: 0
+            }
 
             // threat watch button - toggle button to show the threatwatch map
             Components.TaskbarButton {
