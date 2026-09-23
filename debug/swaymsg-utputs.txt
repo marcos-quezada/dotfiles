@@ -1,0 +1,16 @@
+ℵ₀:auryn:~/git/dotfiles ♥ › $ swaymsg -t get_outputs
+Output eDP-1 'Chimei Innolux Corporation 0x14D5 Unknown' (focused)
+  Current mode: 1920x1080 @ 60.008 Hz
+  Power: on
+  Position: 0,0
+  Scale factor: 1.000000
+  Scale filter: nearest
+  Subpixel hinting: unknown
+  Transform: normal
+  Workspace: 1
+  Max render time: off
+  Adaptive sync: unsupported
+  Allow tearing: no
+  HDR: unsupported
+  Available modes:
+    1920x1080 @ 60.008 Hz
