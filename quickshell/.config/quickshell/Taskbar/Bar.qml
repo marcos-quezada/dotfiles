@@ -63,8 +63,6 @@ Scope {
           }
         }
 
-        // workspaces background - independent layer tracking the real workspace
-        // switcher geometry directly, not a container.
         Rectangle {
             id: workspacesBg
             z:  -1
@@ -136,37 +134,29 @@ Scope {
             }
         }
 
-        // system tray panel — same shadow treatment, anchored right for clock + widgets
-        Item {
-            id: trayPanel
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.right: parent.right
-            anchors.rightMargin: 12
-            height: parent.height - 8
-            width: sysTray.width + 18
-            Rectangle {
-                id: trayBg
-                anchors.fill: trayPanel
+        // system tray background - independent layer tracking the real SysTray
+        // geometry directly, same pattern as workspacesBg above
+        Rectangle {
+            id: trayBg
+            z:  -1
+            readonly property int padding: 4
+            x: {
+                sysTray.x
+                return sysTray.x - padding
+            }
+            y: {
+                sysTray.y
+                return sysTray.y - padding
+            }
+            width:        sysTray.width  + padding * 2
+            height:       sysTray.height + padding * 2
+            color:        Config.colors.shadow
+            border.width: 1
+            border.color: Config.colors.outline
+        }  
 
-                anchors.bottomMargin: 0
-                color: "transparent"
-                Rectangle {
-                    anchors.fill: trayBg
-                    border.width: 0
-                    color: Config.colors.shadow
-                }
-                Rectangle {
-                    anchors.fill: trayBg
-                    color: "transparent"
-                    border.width: 1
-                    z: -5
-                    anchors.margins: -1
-                    anchors.bottomMargin: 1
-                }
-            }
-            SysTray {
-                id: sysTray
-            }
+        SysTray {
+            id: sysTray
         }
       }
     }
