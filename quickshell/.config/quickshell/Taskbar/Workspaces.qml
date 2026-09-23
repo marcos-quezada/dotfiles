@@ -18,39 +18,29 @@ RowLayout {
 
     Repeater { 
         model: parent.currentWorkspaces
-        Button {
+        Rectangle {
             id:               control
             Layout.alignment: Qt.AlignVCenter
-            contentItem: Text {
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
+            width:            22
+            height:           22
+            border.width:     1
+            border.color:     Config.colors.outline
+            color:            (modelData.active || mouseArea.containsMouse) ? Config.colors.shadow : (modelData.urgent ? Config.colors.urgent : Config.colors.base)
+
+            Text {
+                anchors.centerIn: parent
                 text: modelData.number
                 font.family: Fonts.body
-                width: 10
-                height: 10
                 font.pixelSize: Config.settings.bar.fontSize
                 color: Config.colors.text
-
-                Rectangle { anchors.fill: parent; color: "#00ff00"; opacity: 0.5; z: -1 }
-            }
-            onPressed: I3.dispatch(`workspace ` + modelData.number)
-
-            background: Rectangle {
-                anchors.verticalCenter:   parent.verticalCenter
-                anchors.horizontalCenter: parent.horizontalCenter
-                border.width:             1
-                border.color:             Config.colors.outline
-                width:                    22
-                height:                   22
-                color:                    (modelData.active || mouse.hovered) ? Config.colors.shadow : (modelData.urgent ? Config.colors.urgent : Config.colors.base)
-                
-                Rectangle { anchors.fill: parent; color: "#ff00ff"; opacity: 0.3; z: -1 }
             }
 
-            HoverHandler {
-                id: mouse
-                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            MouseArea {
+                id: mouseArea
+                anchors.fill: parent
+                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
+                onClicked: I3.dispatch(`workspace ` + modelData.number)
             }
         }
     }
