@@ -3,9 +3,9 @@
 
 import Quickshell.I3
 import QtQuick
-import QtQuick.Controls.Basic
 import QtQuick.Layouts
 
+import qs.Components as Components
 import qs.Services
 
 RowLayout {
@@ -18,30 +18,12 @@ RowLayout {
 
     Repeater { 
         model: parent.currentWorkspaces
-        Rectangle {
-            id:               control
+        Components.TaskbarButton {
             Layout.alignment: Qt.AlignVCenter
-            width:            Config.settings.bar.buttonSize
-            height:           Config.settings.bar.buttonSize
-            border.width:     1
-            border.color:     Config.colors.outline
-            color:            (modelData.active || mouseArea.containsMouse) ? Config.colors.shadow : (modelData.urgent ? Config.colors.urgent : Config.colors.base)
-
-            Text {
-                anchors.centerIn: parent
-                text: modelData.number
-                font.family: Fonts.body
-                font.pixelSize: Config.settings.bar.fontSize
-                color: Config.colors.text
-            }
-
-            MouseArea {
-                id: mouseArea
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: I3.dispatch(`workspace ` + modelData.number)
-            }
+            label:            String(modelData.number)
+            isToggled:        modelData.active
+            isUrgent:         modelData.urgent
+            onClicked:        I3.dispatch(`workspace ` + modelData.number)
         }
     }
 }

@@ -63,18 +63,6 @@ Scope {
           }
         }
 
-        Components.TrackedBackground {
-            id:           workspacesBg
-            z:            -1
-            target:       workspaces
-            mapTarget:    taskbar.contentItem
-            height: Config.settings.bar.buttonSize + padding * 2
-            anchors.verticalCenter: parent.verticalCenter
-            color:        Config.colors.shadow
-            border.width: 1
-            border.color: Config.colors.outline
-        }
-
         RowLayout {
             id:                     leftCluster
             anchors.left:           parent.left
@@ -91,11 +79,21 @@ Scope {
                 onClicked:     Popups.toggle("session")
             }
 
+            Components.Separator {
+                shadowColor:    Config.colors.shadow
+                highlightColor: Config.colors.highlight
+            }
+
             // workspaces panel — shadow-backed container for the workspace switcher
             Workspaces {
                 id: workspaces
                 anchors.leftMargin: 2
                 anchors.rightMargin: 0
+            }
+            
+            Components.Separator {
+                shadowColor:    Config.colors.shadow
+                highlightColor: Config.colors.highlight
             }
 
             // threat watch button - toggle button to show the threatwatch map
@@ -132,7 +130,7 @@ Scope {
             z:            -1
             target:       sysTray
             height:       Config.settings.bar.buttonSize + padding * 2
-            anchors.verticalCenter: parent.verticalCenter
+            y: (Config.settings.bar.height - height) / 2
             color:        Config.colors.shadow
             border.width: 1
             border.color: Config.colors.outline

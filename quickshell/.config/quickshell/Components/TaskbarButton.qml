@@ -6,9 +6,11 @@ import qs.Services
 Button {
   id: root
 
-  property bool isToggled: false
-  property string glyph: ""
+  property bool isToggled:      false
+  property bool isUrgent:       false
+  property string glyph:        ""
   property string toggledGlyph: glyph
+  property string label:        ""
 
   // when set, this button reports its own screen space x (mapped into
   // mapTarget) onto triggerTarget.triggerX - the position popups read to
@@ -57,10 +59,10 @@ Button {
 
     Text {
       anchors.centerIn: parent
-      font.family: Fonts.icon
-      font.pixelSize: root.isToggled ? 18 : 14
-      text: root.isToggled ? root.toggledGlyph : root.glyph
-      color: root.isToggled ? Config.colors.accent : Config.colors.text
+      font.family:      root.label !== "" ? Fonts.body : Fonts.icon
+      font.pixelSize:   root.label !== "" ? Config.settings.bar.fontSize : (root.isToggled ? 18 : 14)
+      text:             root.label !== "" ? root.label : (root.isToggled ? root.toggledGlyph : root.glyph)
+      color:            root.isUrgent ? Config.colors.urgent : (root.isToggled ? Config.colors.accent : Config.colors.text)
     }
   }
 
