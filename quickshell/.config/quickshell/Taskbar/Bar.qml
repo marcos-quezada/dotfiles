@@ -35,18 +35,18 @@ Scope {
             commonBorderWidth: 4
             commonBorder: false
             lBorderwidth: 10
-            rBorderwidth: 0 
+            rBorderwidth: 1 
             tBorderwidth: 10
-            bBorderwidth: 0
+            bBorderwidth: 1
             borderColor: Config.colors.shadow
           }
           Components.NewBorder {
             commonBorderWidth: 4
             commonBorder: false
             lBorderwidth: 10
-            rBorderwidth: 1
+            rBorderwidth: 0
             tBorderwidth: 10
-            bBorderwidth: 1
+            bBorderwidth: 0
             borderColor: Config.colors.highlight
           }
         }
@@ -77,7 +77,7 @@ Scope {
                     id: workspacesBg
                     anchors.fill: workspacesPanel
 
-                    anchors.bottomMargin: -2
+                    anchors.bottomMargin: -4
                     color: "transparent"
                     Rectangle {
                         anchors.fill: workspacesBg
@@ -141,7 +141,7 @@ Scope {
                 id: trayBg
                 anchors.fill: trayPanel
 
-                anchors.bottomMargin: -2
+                anchors.bottomMargin: -4
                 color: "transparent"
                 Rectangle {
                     anchors.fill: trayBg
