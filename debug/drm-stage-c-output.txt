@@ -1,0 +1,9 @@
+using connector 95, mode 1920x1080
+using crtc 51
+saved original crtc state (mode 1920x1080, fb 111) for restore
+filled buffer with solid gray test pattern
+added framebuffer id 110
+setting crtc 51 to show the test pattern for 3 seconds...
+restoring original crtc state...
+restored cleanly
+done, fd closed cleanly
