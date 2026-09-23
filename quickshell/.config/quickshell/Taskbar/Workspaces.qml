@@ -10,7 +10,7 @@ import qs.Services
 
 RowLayout {
     id: workspaces
-    spacing: 3
+    spacing: Config.settings.bar.spacing / 4
     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
 
     property var currentWorkspaces: I3.workspaces.values.filter(w => w.monitor.name == taskbar.screen.name)

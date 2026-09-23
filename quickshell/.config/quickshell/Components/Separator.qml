@@ -1,14 +1,17 @@
 import QtQuick
 
+import qs.Services
+
 // Sepparator.qml - a thin vertical "etched groove" divider, matching the
 // clasic win95 toolbar convention for marking a section boundary without
 // wrapping either side in a full sunken panel. Two 1px lines side by side
 // (shadow then highlight) read as a subtle engraved line, using the same
 // bevel colors as everything else in this project.
 Item {
-    id:            root
-    implicitWidth: 2
-    
+    id:             root
+    implicitWidth:  2
+    implicitHeight: Config.settings.bar.buttonSize
+
     property color shadowColor
     property color highlightColor
 

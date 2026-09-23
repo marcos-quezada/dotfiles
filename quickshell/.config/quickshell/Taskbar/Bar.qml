@@ -68,7 +68,7 @@ Scope {
             anchors.left:           parent.left
             anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin:     11
-            spacing:                11 
+            spacing:                Config.settings.bar.spacing 
 
             Components.TaskbarButton {
                 id:            sessionButton
