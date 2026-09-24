@@ -1,0 +1,15 @@
+--- src/gem/CMakeLists.txt	2026-09-24 10:23:05
++++ /tmp/gem-check/src/gem/CMakeLists.txt	2026-09-24 10:21:45
+@@ -20,7 +20,11 @@
+         ${PROJECT_SOURCE_DIR}/include
+ )
+ 
+-target_link_libraries(gem PUBLIC platform_linux)
++if(GEM_PLATFORM STREQUAL "linux")
++    target_link_libraries(gem PUBLIC platform_linux)
++else()
++    target_link_libraries(gem PUBLIC rasta)
++endif()
+ 
+ target_compile_features(gem PUBLIC c_std_11)
+ 
