@@ -215,6 +215,17 @@ int gem_raster_init(uint16_t width, uint16_t height, gem_raster_format_t format)
     int i;
     int ok = 0;
 
+    /*
+     * When stderr is redirected to a file (not a terminal), it's
+     * normally fully buffered, not line-buffered -- meaning these debug
+     * prints could sit unflushed for a long time while gemd keeps
+     * running, making the log file look "stuck" even though real
+     * activity is happening. Force unbuffered output so every line
+     * appears immediately, matching what we actually need for live
+     * debugging.
+     */
+    setvbuf(stderr, NULL, _IONBF, 0);
+
     fprintf(stderr, "[raster-debug] gem_raster_init called: width=%u height=%u format=%d\n",
             width, height, (int)format);
 
