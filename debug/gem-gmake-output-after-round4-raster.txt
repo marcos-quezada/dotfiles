@@ -1,0 +1,61 @@
+ℵ₀:auryn:~/git/gem ♥ › $ gmake CMAKE_FLAGS="-DGEM_PLATFORM=freebsd" 2>&1 | tail -60
+[ 84%] Linking C executable /home/mquezada/git/gem/bin/apps/clock
+[ 84%] Built target desktop_hosted
+[ 85%] Building C object src/apps/calculator/CMakeFiles/calc_gemd.dir/calc.c.o
+[ 85%] Built target clock_gemd
+[ 86%] Building C object src/apps/calculator/CMakeFiles/calc.dir/calc_engine.c.o
+[ 86%] Building C object src/gemd/CMakeFiles/gemd.dir/main.c.o
+[ 86%] Building C object src/apps/calculator/CMakeFiles/calc_gemd.dir/calc_ui.c.o
+[ 86%] Linking C executable /home/mquezada/git/gem/bin/apps/calc_hosted
+[ 87%] Building C object src/gemd/CMakeFiles/gemd.dir/session.c.o
+[ 87%] Building C object src/apps/calculator/CMakeFiles/calc_gemd.dir/calc_engine.c.o
+[ 87%] Built target calc
+[ 87%] Building C object samples/src/gemscape/CMakeFiles/gemscape_hosted.dir/gemscape.c.o
+[ 88%] Building C object samples/src/gemscape/CMakeFiles/gemscape_hosted.dir/gemscape_ui.c.o
+[ 89%] Linking C executable /home/mquezada/git/gem/bin/apps/calc
+In file included from /home/mquezada/git/gem/samples/src/gemscape/gemscape_ui.c:11:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+[ 89%] Building C object src/gemd/CMakeFiles/gemd.dir/dispatch_vdi.c.o
+[ 89%] Built target calc_gemd
+[ 90%] Building C object samples/src/maestro/CMakeFiles/maestro_hosted.dir/maestro.c.o
+1 warning generated.
+[ 90%] Linking C executable /home/mquezada/git/gem/bin/samples/gemscape_hosted
+[ 91%] Building C object src/gemd/CMakeFiles/gemd.dir/dispatch_aes.c.o
+[ 91%] Building C object samples/src/maestro/CMakeFiles/maestro_hosted.dir/maestro_ui.c.o
+In file included from /home/mquezada/git/gem/samples/src/maestro/maestro_ui.c:10:
+In file included from /home/mquezada/git/gem/samples/src/maestro/maestro_private.h:12:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+[ 91%] Built target gemscape_hosted
+[ 91%] Building C object samples/src/maestro/CMakeFiles/maestro_hosted.dir/maestro_draw.c.o
+1 warning generated.
+[ 91%] Building C object src/gemd/CMakeFiles/gemd.dir/transport.c.o
+[ 91%] Building C object src/gemd/CMakeFiles/gemd.dir/drawing.c.o
+[ 92%] Building C object src/gemd/CMakeFiles/gemd.dir/aes_dispatch.c.o
+[ 93%] Linking C executable /home/mquezada/git/gem/bin/samples/maestro_hosted
+[ 93%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/aes_validate.c.o
+[ 94%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/tree_decode.c.o
+[ 94%] Built target maestro_hosted
+[ 94%] Building C object src/gemd/CMakeFiles/gemd.dir/vdi_dispatch.c.o
+[ 95%] Building C object src/gemd/CMakeFiles/gemd.dir/vdi_bitmap.c.o
+[ 95%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/bitmap_size.c.o
+[ 96%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/vdi_validate.c.o
+[ 96%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/protocol.c.o
+[ 97%] Linking C executable /home/mquezada/git/gem/bin/core/gemd
+[ 97%] Built target gemd
+[ 98%] Linking C static library ../../../libmusashi.a
+[ 98%] Built target musashi
+[ 99%] Building C object samples/src/stout/CMakeFiles/stout.dir/traps.c.o
+[ 99%] Building C object samples/src/stout/CMakeFiles/stout.dir/main.c.o
+In file included from /home/mquezada/git/gem/samples/src/stout/traps.c:11:
+In file included from /home/mquezada/git/gem/samples/src/stout/stout.h:13:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+1 warning generated.
+[100%] Linking C executable /home/mquezada/git/gem/bin/samples/stout
+[100%] Built target stout
+gmake[1]: Leaving directory '/home/mquezada/git/gem/build'
