@@ -510,6 +510,7 @@ int gem_hid_poll(gem_hid_event_t *event)
         freebsd_hid_device_t *device = &g_devices[g_next_device];
         struct input_event input;
         ssize_t count;
+        static unsigned long raw_read_log_count;
 
         g_next_device = (g_next_device + 1u) % g_device_count;
         for (;;) {
@@ -518,6 +519,14 @@ int gem_hid_poll(gem_hid_event_t *event)
             count = read(device->fd, &input, sizeof(input));
             if (count != (ssize_t)sizeof(input)) {
                 break;
+            }
+            if (device->has_pointer && device->has_abs_x &&
+                raw_read_log_count < 60u) {
+                ++raw_read_log_count;
+                fprintf(stderr,
+                        "[hid-debug] RAW read from fd=%d: type=%u code=%u "
+                        "value=%d\n",
+                        device->fd, input.type, input.code, input.value);
             }
             if (!translate_event(device, &translated, &input)) {
                 continue;
