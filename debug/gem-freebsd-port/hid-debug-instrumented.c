@@ -386,8 +386,27 @@ static int translate_pointer(freebsd_hid_device_t *device, gem_hid_event_t *even
     int old_y = g_mouse_y;
     int max_x;
     int max_y;
+    static unsigned long trace_count;
+    int trace = (input->type == EV_ABS &&
+                 (input->code == ABS_X || input->code == ABS_MT_POSITION_X) &&
+                 trace_count < 20u);
+
+    if (trace) {
+        ++trace_count;
+        fprintf(stderr,
+                "[hid-debug] translate_pointer trace: surface=%p "
+                "has_abs_x=%d abs_x=[%d,%d] input.type=%u input.code=%u "
+                "input.value=%d\n",
+                (void *)surface, device->has_abs_x, device->abs_x.minimum,
+                device->abs_x.maximum, input->type, input->code,
+                input->value);
+    }
 
     if (surface == NULL) {
+        if (trace) {
+            fprintf(stderr,
+                    "[hid-debug] translate_pointer: REJECTED, surface==NULL\n");
+        }
         return 0;
     }
     max_x = surface->width - 1;
@@ -414,6 +433,11 @@ static int translate_pointer(freebsd_hid_device_t *device, gem_hid_event_t *even
             (int16_t)(((int64_t)input->value - device->abs_y.minimum) * max_y /
                       (device->abs_y.maximum - device->abs_y.minimum));
     } else {
+        if (trace) {
+            fprintf(stderr,
+                    "[hid-debug] translate_pointer: REJECTED, fell through "
+                    "all branches\n");
+        }
         return 0;
     }
 
