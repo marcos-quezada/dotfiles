@@ -161,6 +161,27 @@ static int add_device(const char *path)
     if (bit_is_set(event_bits, EV_ABS)) {
         device->has_abs_x = ioctl(fd, EVIOCGABS(ABS_X), &device->abs_x) == 0;
         device->has_abs_y = ioctl(fd, EVIOCGABS(ABS_Y), &device->abs_y) == 0;
+
+        /*
+         * Confirmed this session via direct, repeated live testing:
+         * this hardware's touchpad reports its LEGACY ABS_X/ABS_Y axis
+         * only once (an initial compatibility report), then relies
+         * entirely on the multi-touch "protocol type B" axes
+         * (ABS_MT_POSITION_X/Y) for continuous tracking. GEM has no
+         * concept of multi-touch gestures at all, so this deliberately
+         * does NOT implement real MT-B slot tracking -- it just treats
+         * ABS_MT_POSITION_X/Y as equivalent inputs to ABS_X/Y for a
+         * single-pointer model, falling back to the legacy axis's
+         * calibration range if the MT-specific query fails.
+         */
+        if (!device->has_abs_x) {
+            device->has_abs_x =
+                ioctl(fd, EVIOCGABS(ABS_MT_POSITION_X), &device->abs_x) == 0;
+        }
+        if (!device->has_abs_y) {
+            device->has_abs_y =
+                ioctl(fd, EVIOCGABS(ABS_MT_POSITION_Y), &device->abs_y) == 0;
+        }
     }
 
     /*
@@ -340,13 +361,15 @@ static int translate_pointer(freebsd_hid_device_t *device, gem_hid_event_t *even
     } else if (input->type == EV_REL && input->code == REL_Y) {
         g_mouse_y =
             clamp_coordinate(g_mouse_y + input->value * g_rel_scale, max_y);
-    } else if (input->type == EV_ABS && input->code == ABS_X &&
+    } else if (input->type == EV_ABS &&
+               (input->code == ABS_X || input->code == ABS_MT_POSITION_X) &&
                device->has_abs_x &&
                device->abs_x.maximum != device->abs_x.minimum) {
         g_mouse_x =
             (int16_t)(((int64_t)input->value - device->abs_x.minimum) * max_x /
                       (device->abs_x.maximum - device->abs_x.minimum));
-    } else if (input->type == EV_ABS && input->code == ABS_Y &&
+    } else if (input->type == EV_ABS &&
+               (input->code == ABS_Y || input->code == ABS_MT_POSITION_Y) &&
                device->has_abs_y &&
                device->abs_y.maximum != device->abs_y.minimum) {
         g_mouse_y =
