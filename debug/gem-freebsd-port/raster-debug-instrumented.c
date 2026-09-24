@@ -138,33 +138,62 @@ static void teardown_drm(int restore_crtc)
  * matching GEM_FREEBSD_DRM's existing env-var-override pattern) --
  * override via GEM_FREEBSD_DRM_DEVCTL if a different machine's GPU
  * newbus device name differs from the default below.
+ *
+ * Confirmed via a clean, dmesg-verified test (kernel ring buffer
+ * cleared beforehand, so no stale entries): a SINGLE cycle is not
+ * always enough -- consistent with real eDP link training genuinely
+ * being flaky at the hardware level (a documented, known category of
+ * behavior, not specific to this driver). No clean way exists to query
+ * "did the link actually train" from userspace to decide whether a
+ * retry is needed, so this pragmatically cycles twice, unconditionally,
+ * matching exactly what was empirically confirmed to work. Override the
+ * cycle count via GEM_FREEBSD_DRM_POWERCYCLES if a different machine
+ * needs more (or fewer, though 1 is not recommended given the evidence).
  */
 static void power_cycle_gpu_device(void)
 {
     const char *device = getenv("GEM_FREEBSD_DRM_DEVCTL");
+    const char *count_env = getenv("GEM_FREEBSD_DRM_POWERCYCLES");
+    int count = 2;
+    int attempt;
 
     if (device == NULL || device[0] == '\0') {
         device = "drmn0";
     }
+    if (count_env != NULL && count_env[0] != '\0') {
+        char *end = NULL;
+        long parsed = strtol(count_env, &end, 10);
 
-    fprintf(stderr,
-            "[raster-debug] power-cycling %s via devctl_suspend/resume "
-            "(the only mechanism confirmed to actually make this eDP link "
-            "display content -- see the comment above this function)\n",
-            device);
+        if (end != count_env && *end == '\0' && parsed >= 1L &&
+            parsed <= 10L) {
+            count = (int)parsed;
+        }
+    }
 
-    if (devctl_suspend(device) != 0) {
-        fprintf(stderr, "[raster-debug] devctl_suspend(%s) failed: %s\n",
-                device, strerror(errno));
-        return;
+    for (attempt = 1; attempt <= count; ++attempt) {
+        fprintf(stderr,
+                "[raster-debug] power-cycling %s via devctl_suspend/resume "
+                "(attempt %d/%d)\n",
+                device, attempt, count);
+
+        if (devctl_suspend(device) != 0) {
+            fprintf(stderr, "[raster-debug] devctl_suspend(%s) failed: %s\n",
+                    device, strerror(errno));
+            continue;
+        }
+        usleep(300000);
+        if (devctl_resume(device) != 0) {
+            fprintf(stderr, "[raster-debug] devctl_resume(%s) failed: %s\n",
+                    device, strerror(errno));
+            continue;
+        }
+        fprintf(stderr, "[raster-debug] power-cycle attempt %d/%d of %s "
+                        "completed\n",
+                attempt, count, device);
+        if (attempt < count) {
+            usleep(300000); /* brief settle time between cycles */
+        }
     }
-    usleep(300000);
-    if (devctl_resume(device) != 0) {
-        fprintf(stderr, "[raster-debug] devctl_resume(%s) failed: %s\n",
-                device, strerror(errno));
-        return;
-    }
-    fprintf(stderr, "[raster-debug] power-cycle of %s completed\n", device);
 }
 
 int gem_raster_init(uint16_t width, uint16_t height, gem_raster_format_t format)
