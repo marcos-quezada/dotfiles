@@ -1,0 +1,31 @@
+diff --git i/src/vdi/cursor.c w/src/vdi/cursor.c
+index f4cf399..37405f8 100644
+--- i/src/vdi/cursor.c
++++ w/src/vdi/cursor.c
+@@ -72,6 +72,7 @@ void vdi_set_mouse_state(WORD x, WORD y, WORD status)
+     WORD hot_y = vdi_state.mouse_form.mf_yhot;
+     WORD old_cursor_x = vdi_state.cursor_x;
+     WORD old_cursor_y = vdi_state.cursor_y;
++    static unsigned long trace_count;
+ 
+     vdi_cursor_restore();
+     vdi_state.mouse_x = x;
+@@ -80,6 +81,18 @@ void vdi_set_mouse_state(WORD x, WORD y, WORD status)
+     vdi_state.cursor_x = (WORD)(x - hot_x);
+     vdi_state.cursor_y = (WORD)(y - hot_y);
+     vdi_cursor_draw();
++
++    if (trace_count < 60) {
++        ++trace_count;
++        fprintf(stderr,
++                "[cursor-debug] vdi_set_mouse_state: x=%d y=%d "
++                "cursor_x=%d cursor_y=%d cursor_hidden=%d cursor_drawn=%d "
++                "update_depth=%d open=%d\n",
++                x, y, vdi_state.cursor_x, vdi_state.cursor_y,
++                vdi_state.cursor_hidden, vdi_state.cursor_drawn,
++                vdi_state.update_depth, vdi_state.open);
++    }
++
+     /*
+      * Always push only the old/new 16x16 cursor boxes to the FB — even
+      * while begin_update is nested (window drag). A full-screen present
