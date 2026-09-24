@@ -1,0 +1,81 @@
+ℵ₀:auryn:~/git/gem ♥ › $ gmake CMAKE_FLAGS="-DGEM_PLATFORM=freebsd" 2>&1 | tail -80
+[ 80%] Building C object src/gemd/CMakeFiles/gemd.dir/main.c.o
+[ 81%] Building C object samples/src/gemscape/CMakeFiles/gemscape_hosted.dir/gemscape_ui.c.o
+[ 81%] Building C object samples/src/maestro/CMakeFiles/maestro_hosted.dir/maestro_ui.c.o
+In file included from /home/mquezada/git/gem/samples/src/gemscape/gemscape_ui.c:11:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+In file included from /home/mquezada/git/gem/samples/src/maestro/maestro_ui.c:10:
+In file included from /home/mquezada/git/gem/samples/src/maestro/maestro_private.h:12:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+[ 82%] Building C object src/gemd/CMakeFiles/gemd.dir/session.c.o
+1 warning generated.
+[ 82%] Building C object samples/src/maestro/CMakeFiles/maestro_hosted.dir/maestro_draw.c.o
+1 warning generated.
+[ 82%] Linking C executable /home/mquezada/git/gem/bin/samples/gemscape_hosted
+[ 82%] Building C object src/gemd/CMakeFiles/gemd.dir/dispatch_vdi.c.o
+[ 83%] Linking C executable /home/mquezada/git/gem/bin/samples/maestro_hosted
+[ 83%] Built target gemscape_hosted
+[ 83%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/desktop_assets.c.o
+[ 84%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/main.c.o
+[ 84%] Built target maestro_hosted
+[ 85%] Building C object src/gemd/CMakeFiles/gemd.dir/dispatch_aes.c.o
+[ 85%] Building C object src/apps/clock/CMakeFiles/clock.dir/clock.c.o
+In file included from /home/mquezada/git/gem/src/apps/desktop/main.c:13:
+In file included from /home/mquezada/git/gem/src/apps/desktop/desktop.h:13:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+[ 86%] Building C object src/apps/clock/CMakeFiles/clock.dir/clock_ui.c.o
+In file included from /home/mquezada/git/gem/src/apps/clock/clock_ui.c:16:
+In file included from /home/mquezada/git/gem/samples/include/sample_resources.h:11:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+1 warning generated.
+[ 86%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/browser.c.o
+1 warning generated.
+[ 86%] Linking C executable /home/mquezada/git/gem/bin/apps/clock_hosted
+[ 86%] Building C object src/gemd/CMakeFiles/gemd.dir/transport.c.o
+[ 87%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/browser_list.c.o
+[ 87%] Building C object src/gemd/CMakeFiles/gemd.dir/drawing.c.o
+[ 87%] Built target clock
+[ 88%] Building C object src/apps/calculator/CMakeFiles/calc.dir/calc.c.o
+[ 89%] Building C object src/gemd/CMakeFiles/gemd.dir/aes_dispatch.c.o
+[ 89%] Building C object src/apps/calculator/CMakeFiles/calc.dir/calc_ui.c.o
+[ 89%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/browser_view.c.o
+[ 89%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/aes_validate.c.o
+[ 90%] Building C object src/apps/calculator/CMakeFiles/calc.dir/calc_engine.c.o
+[ 91%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/tree_decode.c.o
+[ 91%] Linking C executable /home/mquezada/git/gem/bin/apps/calc_hosted
+[ 91%] Building C object src/gemd/CMakeFiles/gemd.dir/vdi_dispatch.c.o
+[ 91%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/gem_trash.c.o
+[ 91%] Built target calc
+[ 92%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/trash_ui.c.o
+[ 92%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/disks.c.o
+[ 93%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/icons.c.o
+[ 94%] Building C object src/gemd/CMakeFiles/gemd.dir/vdi_bitmap.c.o
+[ 94%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/desk_redraw.c.o
+[ 94%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/bitmap_size.c.o
+[ 95%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/vdi_validate.c.o
+[ 95%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/protocol.c.o
+[ 96%] Linking C executable /home/mquezada/git/gem/bin/apps/desktop_hosted
+[ 97%] Linking C executable /home/mquezada/git/gem/bin/core/gemd
+[ 97%] Built target desktop_hosted
+[ 97%] Built target gemd
+[ 98%] Linking C static library ../../../libmusashi.a
+[ 98%] Built target musashi
+[ 98%] Building C object samples/src/stout/CMakeFiles/stout.dir/traps.c.o
+[ 99%] Building C object samples/src/stout/CMakeFiles/stout.dir/main.c.o
+In file included from /home/mquezada/git/gem/samples/src/stout/traps.c:11:
+In file included from /home/mquezada/git/gem/samples/src/stout/stout.h:13:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+1 warning generated.
+[100%] Linking C executable /home/mquezada/git/gem/bin/samples/stout
+[100%] Built target stout
+gmake[1]: Leaving directory '/home/mquezada/git/gem/build'
