@@ -1,0 +1,181 @@
+ℵ₀:auryn:~/git/gem ♥ › $ gmake
+cmake -S . -B /home/mquezada/git/gem/build -DCMAKE_C_COMPILER=cc -DCMAKE_BUILD_TYPE=Debug -DGEM_PLATFORM=rasta -DBUILD_TESTING=OFF 
+-- The C compiler identification is Clang 19.1.7
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - found
+-- Found Threads: TRUE
+-- Found Git: /usr/local/bin/git (found version "2.54.0")
+-- Configuring done (1.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/mquezada/git/gem/build
+cmake --build /home/mquezada/git/gem/build --parallel 4
+gmake[1]: Entering directory '/home/mquezada/git/gem/build'
+[  2%] Built target gem_runtime_fonts
+[  2%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/hid.c.o
+[  2%] Creating directories for 'rasta_viewer'
+[  2%] Building C object tools/resgen/CMakeFiles/resgen.dir/resgen.c.o
+[  2%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_0.c.o
+[  3%] Performing download step (download, verify and extract) for 'rasta_viewer'
+-- Downloading...
+   dst='/home/mquezada/git/gem/build/deps/downloads/archive.tar'
+   timeout='none'
+   inactivity timeout='none'
+-- Using src='https://codeload.github.com/tstih/rasta/tar.gz/3dd2426f5c4bddf7d0eb4961d73c2e8c68e3510a'
+[  4%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_1.c.o
+[  4%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/keys.c.o
+[  5%] Building C object tools/resgen/CMakeFiles/resgen.dir/png_form.c.o
+[  6%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/options.c.o
+[  6%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_2.c.o
+[  6%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/os.c.o
+[  6%] Building C object tools/resgen/CMakeFiles/resgen.dir/rsc_writer.c.o
+[  7%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_local.c.o
+In file included from /home/mquezada/git/gem/lib/platform/rasta/os.c:26:
+In file included from /usr/include/sys/mount.h:36:
+/usr/include/sys/ucred.h:110:2: error: unknown type name 'u_int'
+  110 |         u_int   cr_version;             /* structure layout version */
+      |         ^
+/usr/include/sys/ucred.h:150:2: error: unknown type name 'u_int'
+  150 |         u_int    sc_pad;                /* see 32-bit compat structure */
+      |         ^
+/usr/include/sys/ucred.h:151:2: error: unknown type name 'u_int'
+  151 |         u_int    sc_supp_groups_nb;     /* number of supplementary groups */
+      |         ^
+/usr/include/sys/ucred.h:280:13: error: unknown type name 'u_int'
+  280 | int     setcred(u_int flags, const struct setcred *wcred, size_t size);
+      |                 ^
+In file included from /home/mquezada/git/gem/lib/platform/rasta/os.c:26:
+/usr/include/sys/mount.h:74:2: error: unknown type name 'u_short'; did you mean 'short'?
+   74 |         u_short         fid_len;                /* length of data in bytes */
+      |         ^
+/usr/include/sys/mount.h:75:2: error: unknown type name 'u_short'; did you mean 'short'?
+   75 |         u_short         fid_data0;              /* force longword alignment */
+      |         ^
+/usr/include/sys/mount.h:588:2: error: unknown type name 'u_char'; did you mean 'char'?
+  588 |         u_char  ex_addrlen;             /* and the net address length */
+      |         ^
+/usr/include/sys/mount.h:590:2: error: unknown type name 'u_char'; did you mean 'char'?
+  590 |         u_char  ex_masklen;             /* and the smask length */
+      |         ^
+/usr/include/sys/mount.h:603:2: error: unknown type name 'u_char'; did you mean 'char'?
+  603 |         u_char  ex_addrlen;             /* and the net address length */
+      |         ^
+/usr/include/sys/mount.h:605:2: error: unknown type name 'u_char'; did you mean 'char'?
+  605 |         u_char  ex_masklen;             /* and the smask length */
+      |         ^
+/usr/include/sys/mount.h:621:2: error: unknown type name 'u_char'; did you mean 'char'?
+  621 |         u_char  ex_addrlen;             /* and the net address length */
+      |         ^
+/usr/include/sys/mount.h:623:2: error: unknown type name 'u_char'; did you mean 'char'?
+  623 |         u_char  ex_masklen;             /* and the smask length */
+      |         ^
+/usr/include/sys/mount.h:648:2: error: unknown type name 'u_int'
+  648 |         u_int   vfc_version;            /* ABI version number */
+      |         ^
+/home/mquezada/git/gem/lib/platform/rasta/os.c:563:9: warning: call to undeclared function 'pipe2'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+  563 |     if (pipe2(error_pipe, O_CLOEXEC) != 0) {
+      |         ^
+1 warning and 13 errors generated.
+gmake[3]: *** [lib/platform/rasta/CMakeFiles/rasta.dir/build.make:121: lib/platform/rasta/CMakeFiles/rasta.dir/os.c.o] Error 1
+gmake[2]: *** [CMakeFiles/Makefile2:722: lib/platform/rasta/CMakeFiles/rasta.dir/all] Error 2
+gmake[2]: *** Waiting for unfinished jobs....
+-- verifying file...
+       file='/home/mquezada/git/gem/build/deps/downloads/archive.tar'
+-- Downloading... done
+[  7%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_resource.c.o
+-- extracting...
+     src='/home/mquezada/git/gem/build/deps/downloads/archive.tar'
+     dst='/home/mquezada/git/gem/build/deps/rasta-source'
+-- extracting... [tar xf]
+[  8%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_shel.c.o
+-- extracting... [analysis]
+-- extracting... [rename]
+-- extracting... [clean up]
+-- extracting... done
+[  9%] Linking C executable ../../resgen
+[ 10%] No update step for 'rasta_viewer'
+[ 10%] No patch step for 'rasta_viewer'
+[ 10%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_tree.c.o
+[ 10%] Performing gem_inverse step for 'rasta_viewer'
+[ 11%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_0.c.o
+[ 11%] Performing configure step for 'rasta_viewer'
+[ 11%] Built target resgen
+[ 11%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_1.c.o
+[ 11%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_2.c.o
+[ 12%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_3.c.o
+-- The C compiler identification is Clang 19.1.7
+[ 12%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_4.c.o
+[ 13%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_5.c.o
+[ 13%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_6.c.o
+[ 14%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_7.c.o
+[ 14%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_8.c.o
+-- The CXX compiler identification is Clang 19.1.7
+[ 15%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_9.c.o
+-- Detecting C compiler ABI info
+[ 15%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_bitmap.c.o
+[ 16%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_input.c.o
+[ 16%] Building C object src/gem/CMakeFiles/gem.dir/bitmap_size.c.o
+-- Detecting C compiler ABI info - done
+[ 16%] Building C object src/gem/CMakeFiles/gem.dir/vdi_validate.c.o
+[ 17%] Building C object src/gem/CMakeFiles/gem.dir/tree_pack.c.o
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+[ 17%] Building C object src/gem/CMakeFiles/gem.dir/tree_decode.c.o
+-- Detecting CXX compiler ABI info
+[ 18%] Building C object src/gem/CMakeFiles/gem.dir/aes_validate.c.o
+[ 18%] Building C object src/gem/CMakeFiles/gem.dir/client.c.o
+[ 19%] Building C object src/gem/CMakeFiles/gem.dir/client_draw.c.o
+-- Detecting CXX compiler ABI info - done
+/home/mquezada/git/gem/src/gem/client.c:86:18: error: variable has incomplete type 'struct ucred'
+   86 |     struct ucred peer;
+      |                  ^
+/home/mquezada/git/gem/src/gem/client.c:86:12: note: forward declaration of 'struct ucred'
+   86 |     struct ucred peer;
+      |            ^
+/home/mquezada/git/gem/src/gem/client.c:110:36: error: use of undeclared identifier 'SO_PEERCRED'
+  110 |     if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &peer, &peer_size) != 0 ||
+      |                                    ^
+2 errors generated.
+gmake[3]: *** [src/gem/CMakeFiles/gem.dir/build.make:415: src/gem/CMakeFiles/gem.dir/client.c.o] Error 1
+gmake[3]: *** Waiting for unfinished jobs....
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found PkgConfig: /usr/local/bin/pkg-config (found version "2.4.3")
+-- Checking for module 'sdl2'
+gmake[2]: *** [CMakeFiles/Makefile2:918: src/gem/CMakeFiles/gem.dir/all] Error 2
+--   Found sdl2, version 2.32.10
+-- Configuring done (0.6s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/mquezada/git/gem/build/deps/rasta-build
+[ 20%] Performing build step for 'rasta_viewer'
+gmake[4]: warning: -j4 forced in submake: resetting jobserver mode.
+[ 25%] Building CXX object src/CMakeFiles/rasta_core.dir/input_broadcaster.cpp.o
+[ 25%] Building CXX object src/CMakeFiles/rasta_core.dir/raster_decoder.cpp.o
+[ 37%] Building CXX object src/CMakeFiles/rasta_core.dir/framebuffer_file.cpp.o
+[ 50%] Building CXX object src/CMakeFiles/rasta_core.dir/rasta_options.cpp.o
+[ 62%] Building CXX object src/CMakeFiles/rasta_core.dir/sdl_emulator.cpp.o
+[ 75%] Linking CXX static library librasta_core.a
+[ 75%] Built target rasta_core
+[ 87%] Building CXX object src/CMakeFiles/rasta.dir/main.cpp.o
+[100%] Linking CXX executable /home/mquezada/git/gem/build/deps/rasta-source/bin/rasta
+ld: error: unable to find library -lSDL2
+c++: error: linker command failed with exit code 1 (use -v to see invocation)
+gmake[7]: *** [src/CMakeFiles/rasta.dir/build.make:102: /home/mquezada/git/gem/build/deps/rasta-source/bin/rasta] Error 1
+gmake[6]: *** [CMakeFiles/Makefile2:264: src/CMakeFiles/rasta.dir/all] Error 2
+gmake[5]: *** [CMakeFiles/Makefile2:271: src/CMakeFiles/rasta.dir/rule] Error 2
+gmake[4]: *** [Makefile:160: rasta] Error 2
+gmake[3]: *** [CMakeFiles/rasta_viewer.dir/build.make:87: deps/rasta/src/rasta_viewer-stamp/rasta_viewer-build] Error 2
+gmake[2]: *** [CMakeFiles/Makefile2:690: CMakeFiles/rasta_viewer.dir/all] Error 2
+gmake[1]: *** [Makefile:91: all] Error 2
+gmake[1]: Leaving directory '/home/mquezada/git/gem/build'
+gmake: *** [Makefile:8: all] Error 2
