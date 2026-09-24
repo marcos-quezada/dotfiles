@@ -159,29 +159,67 @@ static int add_device(const char *path)
     }
 
     if (bit_is_set(event_bits, EV_ABS)) {
-        device->has_abs_x = ioctl(fd, EVIOCGABS(ABS_X), &device->abs_x) == 0;
-        device->has_abs_y = ioctl(fd, EVIOCGABS(ABS_Y), &device->abs_y) == 0;
+        struct input_absinfo legacy_x;
+        struct input_absinfo legacy_y;
+        struct input_absinfo mt_x;
+        struct input_absinfo mt_y;
+        int have_legacy_x = ioctl(fd, EVIOCGABS(ABS_X), &legacy_x) == 0;
+        int have_legacy_y = ioctl(fd, EVIOCGABS(ABS_Y), &legacy_y) == 0;
+        int have_mt_x =
+            ioctl(fd, EVIOCGABS(ABS_MT_POSITION_X), &mt_x) == 0;
+        int have_mt_y =
+            ioctl(fd, EVIOCGABS(ABS_MT_POSITION_Y), &mt_y) == 0;
 
         /*
          * Confirmed this session via direct, repeated live testing:
-         * this hardware's touchpad reports its LEGACY ABS_X/ABS_Y axis
-         * only once (an initial compatibility report), then relies
-         * entirely on the multi-touch "protocol type B" axes
-         * (ABS_MT_POSITION_X/Y) for continuous tracking. GEM has no
-         * concept of multi-touch gestures at all, so this deliberately
-         * does NOT implement real MT-B slot tracking -- it just treats
-         * ABS_MT_POSITION_X/Y as equivalent inputs to ABS_X/Y for a
-         * single-pointer model, falling back to the legacy axis's
-         * calibration range if the MT-specific query fails.
+         * this hardware's touchpad's LEGACY ABS_X/ABS_Y ioctl query
+         * succeeds (returns 0, no error) but with a DEGENERATE range
+         * (min == max -- no real calibration data on that axis for
+         * this hardware), while the real, continuously-updated,
+         * correctly-calibrated position data lives entirely on the
+         * multi-touch "protocol type B" axes (ABS_MT_POSITION_X/Y).
+         * A naive "only try MT if the legacy query failed" check
+         * never reaches the axis that actually works, since the
+         * legacy query doesn't fail, it just returns garbage. Query
+         * both, unconditionally, and explicitly prefer whichever one
+         * has a real (non-degenerate) range.
+         *
+         * GEM has no concept of multi-touch gestures at all, so this
+         * deliberately does NOT implement real MT-B slot tracking --
+         * it just treats ABS_MT_POSITION_X/Y as equivalent inputs to
+         * ABS_X/Y for a single-pointer model.
          */
-        if (!device->has_abs_x) {
-            device->has_abs_x =
-                ioctl(fd, EVIOCGABS(ABS_MT_POSITION_X), &device->abs_x) == 0;
+        if (have_mt_x && mt_x.maximum != mt_x.minimum) {
+            device->has_abs_x = 1;
+            device->abs_x = mt_x;
+        } else if (have_legacy_x && legacy_x.maximum != legacy_x.minimum) {
+            device->has_abs_x = 1;
+            device->abs_x = legacy_x;
+        } else {
+            device->has_abs_x = 0;
         }
-        if (!device->has_abs_y) {
-            device->has_abs_y =
-                ioctl(fd, EVIOCGABS(ABS_MT_POSITION_Y), &device->abs_y) == 0;
+        if (have_mt_y && mt_y.maximum != mt_y.minimum) {
+            device->has_abs_y = 1;
+            device->abs_y = mt_y;
+        } else if (have_legacy_y && legacy_y.maximum != legacy_y.minimum) {
+            device->has_abs_y = 1;
+            device->abs_y = legacy_y;
+        } else {
+            device->has_abs_y = 0;
         }
+        fprintf(stderr,
+                "[hid-debug] %s: abs ranges -- legacy_x=[%d,%d] mt_x=[%d,%d] "
+                "legacy_y=[%d,%d] mt_y=[%d,%d] -> using has_abs_x=%d "
+                "[%d,%d] has_abs_y=%d [%d,%d]\n",
+                path, have_legacy_x ? legacy_x.minimum : -1,
+                have_legacy_x ? legacy_x.maximum : -1,
+                have_mt_x ? mt_x.minimum : -1, have_mt_x ? mt_x.maximum : -1,
+                have_legacy_y ? legacy_y.minimum : -1,
+                have_legacy_y ? legacy_y.maximum : -1,
+                have_mt_y ? mt_y.minimum : -1, have_mt_y ? mt_y.maximum : -1,
+                device->has_abs_x, device->abs_x.minimum,
+                device->abs_x.maximum, device->has_abs_y,
+                device->abs_y.minimum, device->abs_y.maximum);
     }
 
     /*
