@@ -70,6 +70,7 @@ static uint32_t g_fb_id;
 static int g_drm_fd = -1;
 static uint32_t g_connector_id;
 static drmModeCrtcPtr g_saved_crtc;
+static int g_power_cycled_after_first_content;
 
 static const char *drm_device_path(void)
 {
@@ -333,7 +334,6 @@ int gem_raster_init(uint16_t width, uint16_t height, gem_raster_format_t format)
         goto fail;
     }
     fprintf(stderr, "[raster-debug] drmModeSetCrtc succeeded\n");
-    power_cycle_gpu_device();
 
     pitch = ((size_t)width + 7u) / 8u;
     if (pitch > UINT16_MAX) {
@@ -386,6 +386,7 @@ void gem_raster_shutdown(void)
     free(g_surface.pixels);
     memset(&g_surface, 0, sizeof(g_surface));
     g_dumb_pitch = 0u;
+    g_power_cycled_after_first_content = 0;
 }
 
 gem_raster_surface_t *gem_raster_surface(void)
@@ -473,6 +474,30 @@ void gem_raster_present_rect(int x, int y, int width, int height)
                 "[raster-debug]   dumb buffer readback: pixel[0]=0x%08x "
                 "pixel[mid]=0x%08x\n",
                 readback_0, readback_mid);
+    }
+
+    /*
+     * Deferred, one-time power-cycle: every case that actually worked
+     * this session had real content ALREADY written into the buffer
+     * before a devctl power-cycle happened -- never before. Doing the
+     * cycle during gem_raster_init() (before any real content exists)
+     * was tested and confirmed NOT sufficient, regardless of retry
+     * count or delay between retries. This tests the buffer-state
+     * variable directly: cycle once, here, after the FIRST real write
+     * has actually landed, then re-present the whole screen afterward
+     * since the cycle likely blanks the display again.
+     */
+    if (!g_power_cycled_after_first_content) {
+        g_power_cycled_after_first_content = 1;
+        fprintf(stderr,
+                "[raster-debug] first real content written -- now doing "
+                "the deferred power-cycle (previously done too early, "
+                "before any real content existed)\n");
+        power_cycle_gpu_device();
+        fprintf(stderr,
+                "[raster-debug] re-presenting the whole screen after the "
+                "deferred power-cycle\n");
+        gem_raster_present();
     }
 }
 
