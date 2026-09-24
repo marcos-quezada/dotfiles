@@ -414,19 +414,27 @@ void gem_raster_present_rect(int x, int y, int width, int height)
     int64_t y1;
     int row_y;
     static unsigned long call_count;
+    static unsigned long moving_cursor_log_count;
     unsigned long set_bits = 0;
     unsigned long clear_bits = 0;
     int verbose;
+    int is_moving_cursor_call;
 
     ++call_count;
+    is_moving_cursor_call = (width <= 20 && height <= 20 && (x != 0 || y != 0) &&
+                            moving_cursor_log_count < 40u);
     verbose = (call_count <= 5 || (call_count >= 25 && call_count <= 35) ||
-               call_count % 200 == 0);
+               call_count % 200 == 0 || is_moving_cursor_call);
+    if (is_moving_cursor_call) {
+        ++moving_cursor_log_count;
+    }
     if (verbose) {
         fprintf(stderr,
                 "[raster-debug] present_rect call #%lu: x=%d y=%d w=%d h=%d "
-                "source=%p dumb=%p\n",
+                "source=%p dumb=%p%s\n",
                 call_count, x, y, width, height, (const void *)source,
-                (const void *)g_dumb_pixels);
+                (const void *)g_dumb_pixels,
+                is_moving_cursor_call ? " [MOVING CURSOR]" : "");
     }
 
     if (source == NULL || g_dumb_pixels == NULL || width <= 0 || height <= 0) {
@@ -477,6 +485,9 @@ void gem_raster_present_rect(int x, int y, int width, int height)
         uint32_t readback_0 = first_row[0];
         uint32_t readback_mid =
             first_row[(size_t)g_surface.width / 2u];
+        uint32_t *at_row =
+            (uint32_t *)(g_dumb_pixels + (size_t)y0 * g_dumb_pitch);
+        uint32_t readback_at_xy = at_row[x0];
 
         fprintf(stderr,
                 "[raster-debug]   shadow bits in this rect: set(black)=%lu "
@@ -484,8 +495,8 @@ void gem_raster_present_rect(int x, int y, int width, int height)
                 set_bits, clear_bits);
         fprintf(stderr,
                 "[raster-debug]   dumb buffer readback: pixel[0]=0x%08x "
-                "pixel[mid]=0x%08x\n",
-                readback_0, readback_mid);
+                "pixel[mid]=0x%08x pixel[AT x0=%d,y0=%d]=0x%08x\n",
+                readback_0, readback_mid, x0, y0, readback_at_xy);
     }
 
     /*
