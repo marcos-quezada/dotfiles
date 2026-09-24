@@ -1,0 +1,438 @@
+ℵ₀:auryn:~/git/gem ♥ › $ gmake CMAKE_FLAGS="-DGEM_PLATFORM=freebsd"
+cmake -S . -B /home/mquezada/git/gem/build -DCMAKE_C_COMPILER=cc -DCMAKE_BUILD_TYPE=Debug -DGEM_PLATFORM=rasta -DBUILD_TESTING=OFF -DGEM_PLATFORM=freebsd
+-- The C compiler identification is Clang 19.1.7
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - found
+-- Found Threads: TRUE
+-- Found Git: /usr/local/bin/git (found version "2.54.0")
+-- Configuring done (1.3s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/mquezada/git/gem/build
+cmake --build /home/mquezada/git/gem/build --parallel 4
+gmake[1]: Entering directory '/home/mquezada/git/gem/build'
+[  2%] Building C object tools/resgen/CMakeFiles/resgen.dir/resgen.c.o
+[  3%] Built target gem_runtime_fonts
+[  3%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/hid.c.o
+[  3%] Building C object samples/lib/musashi/CMakeFiles/m68kmake.dir/__/__/__/deps/musashi-313ebf1bd9f4d0d93341eb5ce21fd8a119e9dbdd-eb9ff2d29a6ea3719920f780f7a09fd44de5e71c0d1aba40aafaf97bae370a41-v1/m68kmake.c.o
+[  3%] Building C object samples/lib/fat12/CMakeFiles/fat12.dir/fat12.c.o
+[  4%] Building C object samples/lib/fat12/CMakeFiles/fat12.dir/fat12_dir.c.o
+[  4%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/keys.c.o
+[  5%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/options.c.o
+[  5%] Building C object tools/resgen/CMakeFiles/resgen.dir/png_form.c.o
+[  6%] Linking C executable m68kmake
+[  6%] Linking C shared library /home/mquezada/git/gem/bin/samples/lib/libfat12.so
+[  6%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/os.c.o
+[  7%] Building C object tools/resgen/CMakeFiles/resgen.dir/rsc_writer.c.o
+[  7%] Built target fat12
+[  7%] Built target m68kmake
+[  8%] Building C object samples/lib/msa/CMakeFiles/msa.dir/msa.c.o
+[  8%] Building C object samples/lib/prg/CMakeFiles/prg.dir/prg.c.o
+[  8%] Linking C shared library /home/mquezada/git/gem/bin/samples/lib/libmsa.so
+[  8%] Linking C shared library /home/mquezada/git/gem/bin/samples/lib/libprg.so
+[  8%] Linking C executable ../../resgen
+[  8%] Built target msa
+[  8%] Built target prg
+[  9%] Building C object samples/lib/resources/CMakeFiles/sample_resources.dir/resources.c.o
+[ 10%] Building C object samples/src/msa/CMakeFiles/msa_cli.dir/cli.c.o
+[ 10%] Built target resgen
+[ 10%] Generating Musashi opcode tables
+
+	Musashi v4.60 68000, 68008, 68010, 68EC020, 68020, 68EC030, 68030, 68EC040, 68040 emulator
+		Copyright Karl Stenerud (kstenerud@gmail.com)
+
+[ 11%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/pty.c.o
+[ 11%] Linking C static library ../../../libsample_resources.a
+Generated 1967 opcode handlers from 518 primitives
+[ 12%] Building C object samples/lib/musashi/CMakeFiles/musashi.dir/__/__/__/deps/musashi-313ebf1bd9f4d0d93341eb5ce21fd8a119e9dbdd-eb9ff2d29a6ea3719920f780f7a09fd44de5e71c0d1aba40aafaf97bae370a41-v1/m68kcpu.c.o
+[ 12%] Built target sample_resources
+[ 12%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/raster.c.o
+[ 12%] Building C object samples/src/msa/CMakeFiles/msa_cli.dir/extract.c.o
+[ 13%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/volumes.c.o
+[ 14%] Linking C executable /home/mquezada/git/gem/bin/samples/msa
+[ 14%] Building C object samples/lib/musashi/CMakeFiles/musashi.dir/__/__/__/deps/musashi-313ebf1bd9f4d0d93341eb5ce21fd8a119e9dbdd-eb9ff2d29a6ea3719920f780f7a09fd44de5e71c0d1aba40aafaf97bae370a41-v1/m68kdasm.c.o
+[ 14%] Linking C shared library /home/mquezada/git/gem/bin/lib/librasta.so
+[ 14%] Built target rasta
+[ 14%] Built target msa_cli
+[ 14%] Generating GEM runtime cursor resource
+[ 15%] Generating GEM alert icon resource
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 15%] Built target gem_runtime_alert_icons
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 16%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_0.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 16%] Built target gem_runtime_cursors
+[ 17%] Generating GEM desktop icon resource
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 17%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_1.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 17%] Built target gem_runtime_desktop_icons
+[ 17%] Padding clock numeral icon 12.png
+[ 18%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_2.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 19%] Building C object samples/lib/musashi/CMakeFiles/musashi.dir/__/__/__/deps/musashi-313ebf1bd9f4d0d93341eb5ce21fd8a119e9dbdd-eb9ff2d29a6ea3719920f780f7a09fd44de5e71c0d1aba40aafaf97bae370a41-v1/softfloat/softfloat.c.o
+[ 20%] Padding clock numeral icon 01.png
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 20%] Padding clock numeral icon 02.png
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 20%] Building C object samples/lib/musashi/CMakeFiles/musashi.dir/generated/m68kops.c.o
+[ 21%] Padding clock numeral icon 03.png
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 21%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_local.c.o
+[ 21%] Padding clock numeral icon 04.png
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 22%] Padding clock numeral icon 05.png
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 22%] Padding clock numeral icon 06.png
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 23%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_resource.c.o
+[ 24%] Padding clock numeral icon 07.png
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 24%] Padding clock numeral icon 08.png
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 25%] Padding clock numeral icon 09.png
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 25%] Padding clock numeral icon 10.png
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 25%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_shel.c.o
+[ 26%] Padding clock numeral icon 11.png
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 26%] Generating GEM clock number resource
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 27%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_tree.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 27%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_0.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 27%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_1.c.o
+[ 28%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_2.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 28%] Built target gem_runtime_clock_numbers
+[ 28%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_3.c.o
+[ 29%] Flattening Gemscape toolbar icon MENU.PNG
+[ 29%] Flattening Maestro tree icon COLLAPSE.PNG
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 30%] Flattening Gemscape toolbar icon BACK.PNG
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 31%] Flattening Maestro tree icon FOLDER.PNG
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 31%] Flattening Gemscape toolbar icon FORE.PNG
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 32%] Flattening Maestro tree icon DOCUMENT.PNG
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 33%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_4.c.o
+[ 33%] Flattening Gemscape toolbar icon RELOAD.PNG
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 33%] Flattening Maestro tree icon EXPAND.PNG
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 33%] Generating Gemscape toolbar resource
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 34%] Generating Maestro tree resource
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 34%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_5.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 34%] Built target gem_runtime_gemscape_toolbar
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 34%] Built target gem_runtime_maestro_tree
+[ 34%] Building C object src/vdi/CMakeFiles/vdi.dir/alpha.c.o
+[ 35%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_6.c.o
+[ 35%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_7.c.o
+[ 36%] Building C object src/vdi/CMakeFiles/vdi.dir/cursor.c.o
+[ 37%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_8.c.o
+[ 37%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_9.c.o
+[ 38%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_bitmap.c.o
+[ 38%] Building C object src/vdi/CMakeFiles/vdi.dir/cursor_forms.c.o
+[ 38%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_input.c.o
+[ 39%] Building C object src/vdi/CMakeFiles/vdi.dir/fill.c.o
+[ 40%] Building C object src/gem/CMakeFiles/gem.dir/bitmap_size.c.o
+[ 40%] Building C object src/gem/CMakeFiles/gem.dir/vdi_validate.c.o
+[ 41%] Building C object src/gem/CMakeFiles/gem.dir/tree_pack.c.o
+[ 41%] Building C object src/vdi/CMakeFiles/vdi.dir/fonts.c.o
+[ 41%] Building C object src/gem/CMakeFiles/gem.dir/tree_decode.c.o
+[ 42%] Building C object src/gem/CMakeFiles/gem.dir/aes_validate.c.o
+[ 42%] Building C object src/gem/CMakeFiles/gem.dir/client.c.o
+[ 43%] Building C object src/vdi/CMakeFiles/vdi.dir/glyphs.c.o
+[ 44%] Building C object src/gem/CMakeFiles/gem.dir/client_draw.c.o
+[ 44%] Building C object src/vdi/CMakeFiles/vdi.dir/input.c.o
+[ 44%] Building C object src/gem/CMakeFiles/gem.dir/client_wind.c.o
+[ 44%] Building C object src/gem/CMakeFiles/gem.dir/client_menu.c.o
+[ 45%] Building C object src/vdi/CMakeFiles/vdi.dir/lines.c.o
+[ 45%] Building C object src/vdi/CMakeFiles/vdi.dir/misc.c.o
+[ 46%] Building C object src/gem/CMakeFiles/gem.dir/client_queries.c.o
+[ 47%] Building C object src/vdi/CMakeFiles/vdi.dir/primitives.c.o
+[ 47%] Building C object src/gem/CMakeFiles/gem.dir/protocol.c.o
+[ 47%] Building C object src/vdi/CMakeFiles/vdi.dir/raster.c.o
+[ 48%] Building C object src/gem/CMakeFiles/gem.dir/client_objc.c.o
+[ 49%] Building C object src/vdi/CMakeFiles/vdi.dir/surface.c.o
+[ 49%] Building C object src/vdi/CMakeFiles/vdi.dir/text.c.o
+[ 49%] Linking C shared library /home/mquezada/git/gem/bin/lib/libgem.so
+[ 50%] Building C object src/vdi/CMakeFiles/vdi.dir/vdi_core.c.o
+[ 50%] Built target gem
+[ 50%] Building C object src/vdi/CMakeFiles/vdi.dir/workstation.c.o
+[ 50%] Building C object samples/src/gemscape/CMakeFiles/gemscape.dir/gemscape.c.o
+[ 51%] Building C object samples/src/gemscape/CMakeFiles/gemscape.dir/gemscape_ui.c.o
+[ 51%] Building C object samples/src/maestro/CMakeFiles/maestro.dir/maestro.c.o
+[ 51%] Building C object samples/src/maestro/CMakeFiles/maestro.dir/maestro_ui.c.o
+In file included from /home/mquezada/git/gem/samples/src/gemscape/gemscape_ui.c:11:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+[ 52%] Linking C shared library /home/mquezada/git/gem/bin/lib/libvdi.so
+In file included from /home/mquezada/git/gem/samples/src/maestro/maestro_ui.c:10:
+In file included from /home/mquezada/git/gem/samples/src/maestro/maestro_private.h:12:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+[ 52%] Built target vdi
+[ 53%] Building C object src/apps/desktop/CMakeFiles/desktop.dir/desktop_assets.c.o
+1 warning generated.
+[ 54%] Building C object samples/src/maestro/CMakeFiles/maestro.dir/maestro_draw.c.o
+1 warning generated.
+[ 54%] Linking C executable /home/mquezada/git/gem/bin/samples/gemscape
+[ 54%] Building C object src/apps/desktop/CMakeFiles/desktop.dir/main.c.o
+In file included from /home/mquezada/git/gem/src/apps/desktop/main.c:13:
+In file included from /home/mquezada/git/gem/src/apps/desktop/desktop.h:13:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+[ 54%] Built target gemscape
+[ 54%] Building C object src/apps/terminal/CMakeFiles/terminal.dir/main.c.o
+[ 54%] Linking C executable /home/mquezada/git/gem/bin/samples/maestro
+1 warning generated.
+[ 55%] Building C object src/apps/desktop/CMakeFiles/desktop.dir/browser.c.o
+In file included from /home/mquezada/git/gem/src/apps/terminal/main.c:12:
+In file included from /home/mquezada/git/gem/src/apps/terminal/terminal.h:12:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+[ 55%] Built target maestro
+[ 55%] Building C object src/apps/clock/CMakeFiles/clock_gemd.dir/clock.c.o
+1 warning generated.
+[ 56%] Building C object src/apps/clock/CMakeFiles/clock_gemd.dir/clock_ui.c.o
+[ 56%] Building C object src/apps/terminal/CMakeFiles/terminal.dir/screen.c.o
+[ 56%] Building C object src/apps/desktop/CMakeFiles/desktop.dir/browser_list.c.o
+In file included from /home/mquezada/git/gem/src/apps/clock/clock_ui.c:16:
+In file included from /home/mquezada/git/gem/samples/include/sample_resources.h:11:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+[ 57%] Building C object src/apps/terminal/CMakeFiles/terminal.dir/draw.c.o
+[ 58%] Building C object src/apps/desktop/CMakeFiles/desktop.dir/browser_view.c.o
+1 warning generated.
+[ 58%] Linking C executable /home/mquezada/git/gem/bin/apps/clock
+[ 58%] Building C object src/apps/terminal/CMakeFiles/terminal.dir/vt100.c.o
+[ 58%] Built target clock_gemd
+[ 58%] Building C object src/apps/calculator/CMakeFiles/calc_gemd.dir/calc.c.o
+[ 59%] Building C object src/apps/calculator/CMakeFiles/calc_gemd.dir/calc_ui.c.o
+[ 59%] Building C object src/apps/calculator/CMakeFiles/calc_gemd.dir/calc_engine.c.o
+[ 59%] Building C object src/apps/desktop/CMakeFiles/desktop.dir/gem_trash.c.o
+[ 60%] Linking C executable /home/mquezada/git/gem/bin/apps/terminal
+[ 60%] Built target terminal
+[ 61%] Linking C executable /home/mquezada/git/gem/bin/apps/calc
+[ 62%] Building C object src/apps/desktop/CMakeFiles/desktop.dir/trash_ui.c.o
+[ 62%] Building C object src/aes/CMakeFiles/aes.dir/system_menu.c.o
+[ 62%] Built target calc_gemd
+[ 62%] Building C object src/apps/desktop/CMakeFiles/desktop.dir/disks.c.o
+[ 63%] Building C object src/apps/desktop/CMakeFiles/desktop.dir/icons.c.o
+[ 63%] Building C object src/aes/CMakeFiles/aes.dir/alert_icons.c.o
+[ 64%] Building C object src/aes/CMakeFiles/aes.dir/aes_core.c.o
+[ 64%] Building C object src/apps/desktop/CMakeFiles/desktop.dir/desk_redraw.c.o
+[ 64%] Building C object src/aes/CMakeFiles/aes.dir/aes_shel.c.o
+[ 65%] Building C object src/aes/CMakeFiles/aes.dir/aes_files.c.o
+[ 66%] Linking C executable /home/mquezada/git/gem/bin/apps/desktop
+[ 66%] Building C object src/aes/CMakeFiles/aes.dir/aes_geometry.c.o
+[ 67%] Building C object src/aes/CMakeFiles/aes.dir/menu_internal.c.o
+[ 67%] Built target desktop
+[ 67%] Building C object src/aes/CMakeFiles/aes.dir/menu_layout.c.o
+[ 68%] Building C object src/aes/CMakeFiles/aes.dir/menu_track.c.o
+[ 68%] Building C object src/aes/CMakeFiles/aes.dir/window_geometry.c.o
+[ 69%] Building C object src/aes/CMakeFiles/aes.dir/window_redraw.c.o
+[ 69%] Building C object src/aes/CMakeFiles/aes.dir/window_chrome.c.o
+[ 70%] Building C object src/aes/CMakeFiles/aes.dir/paint.c.o
+[ 70%] Building C object src/aes/CMakeFiles/aes.dir/object_parts.c.o
+[ 71%] Building C object src/aes/CMakeFiles/aes.dir/object_draw.c.o
+[ 71%] Building C object src/aes/CMakeFiles/aes.dir/aes.c.o
+[ 72%] Building C object src/aes/CMakeFiles/aes.dir/event.c.o
+[ 72%] Building C object src/aes/CMakeFiles/aes.dir/window_track.c.o
+[ 73%] Building C object src/aes/CMakeFiles/aes.dir/window_drag.c.o
+[ 73%] Building C object src/aes/CMakeFiles/aes.dir/file_selector.c.o
+[ 73%] Building C object src/aes/CMakeFiles/aes.dir/fsel_paths.c.o
+[ 74%] Building C object src/aes/CMakeFiles/aes.dir/fsel_draw.c.o
+[ 74%] Building C object src/aes/CMakeFiles/aes.dir/menu.c.o
+[ 75%] Building C object src/aes/CMakeFiles/aes.dir/alert.c.o
+[ 75%] Building C object src/aes/CMakeFiles/aes.dir/form.c.o
+[ 76%] Building C object src/aes/CMakeFiles/aes.dir/form_edit.c.o
+[ 76%] Building C object src/aes/CMakeFiles/aes.dir/resource.c.o
+[ 77%] Building C object src/aes/CMakeFiles/aes.dir/window.c.o
+[ 77%] Building C object src/aes/CMakeFiles/aes.dir/window_visible.c.o
+[ 78%] Linking C shared library /home/mquezada/git/gem/bin/lib/libaes.so
+[ 78%] Built target aes
+[ 79%] Building C object samples/src/maestro/CMakeFiles/maestro_hosted.dir/maestro.c.o
+[ 80%] Building C object src/gemd/CMakeFiles/gemd.dir/main.c.o
+[ 80%] Building C object samples/src/gemscape/CMakeFiles/gemscape_hosted.dir/gemscape.c.o
+[ 80%] Building C object samples/src/maestro/CMakeFiles/maestro_hosted.dir/maestro_ui.c.o
+[ 80%] Building C object samples/src/gemscape/CMakeFiles/gemscape_hosted.dir/gemscape_ui.c.o
+In file included from /home/mquezada/git/gem/samples/src/gemscape/gemscape_ui.c:11:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+In file included from /home/mquezada/git/gem/samples/src/maestro/maestro_ui.c:10:
+In file included from /home/mquezada/git/gem/samples/src/maestro/maestro_private.h:12:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+[ 81%] Building C object src/gemd/CMakeFiles/gemd.dir/session.c.o
+1 warning generated.
+1 warning generated.
+[ 82%] Linking C executable /home/mquezada/git/gem/bin/samples/gemscape_hosted
+[ 83%] Building C object samples/src/maestro/CMakeFiles/maestro_hosted.dir/maestro_draw.c.o
+[ 83%] Building C object src/gemd/CMakeFiles/gemd.dir/dispatch_vdi.c.o
+[ 83%] Built target gemscape_hosted
+[ 83%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/desktop_assets.c.o
+[ 83%] Linking C executable /home/mquezada/git/gem/bin/samples/maestro_hosted
+[ 84%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/main.c.o
+In file included from /home/mquezada/git/gem/src/apps/desktop/main.c:13:
+In file included from /home/mquezada/git/gem/src/apps/desktop/desktop.h:13:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+[ 84%] Built target maestro_hosted
+[ 85%] Building C object src/gemd/CMakeFiles/gemd.dir/dispatch_aes.c.o
+[ 85%] Building C object src/apps/clock/CMakeFiles/clock.dir/clock.c.o
+[ 85%] Building C object src/apps/clock/CMakeFiles/clock.dir/clock_ui.c.o
+1 warning generated.
+[ 85%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/browser.c.o
+In file included from /home/mquezada/git/gem/src/apps/clock/clock_ui.c:16:
+In file included from /home/mquezada/git/gem/samples/include/sample_resources.h:11:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+1 warning generated.
+[ 86%] Linking C executable /home/mquezada/git/gem/bin/apps/clock_hosted
+[ 86%] Building C object src/gemd/CMakeFiles/gemd.dir/transport.c.o
+[ 86%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/browser_list.c.o
+[ 86%] Building C object src/gemd/CMakeFiles/gemd.dir/drawing.c.o
+[ 86%] Built target clock
+[ 86%] Building C object src/apps/calculator/CMakeFiles/calc.dir/calc.c.o
+[ 87%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/browser_view.c.o
+[ 88%] Building C object src/gemd/CMakeFiles/gemd.dir/aes_dispatch.c.o
+[ 89%] Building C object src/apps/calculator/CMakeFiles/calc.dir/calc_ui.c.o
+[ 89%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/aes_validate.c.o
+[ 89%] Building C object src/apps/calculator/CMakeFiles/calc.dir/calc_engine.c.o
+[ 89%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/gem_trash.c.o
+[ 90%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/tree_decode.c.o
+[ 91%] Linking C executable /home/mquezada/git/gem/bin/apps/calc_hosted
+[ 92%] Linking C static library ../../../libmusashi.a
+[ 92%] Building C object src/gemd/CMakeFiles/gemd.dir/vdi_dispatch.c.o
+[ 92%] Built target calc
+[ 93%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/trash_ui.c.o
+[ 93%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/disks.c.o
+[ 93%] Built target musashi
+[ 94%] Building C object src/gemd/CMakeFiles/gemd.dir/vdi_bitmap.c.o
+[ 95%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/icons.c.o
+[ 95%] Building C object src/apps/desktop/CMakeFiles/desktop_hosted.dir/desk_redraw.c.o
+[ 95%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/bitmap_size.c.o
+[ 96%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/vdi_validate.c.o
+[ 96%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/protocol.c.o
+[ 97%] Building C object samples/src/stout/CMakeFiles/stout.dir/main.c.o
+[ 98%] Linking C executable /home/mquezada/git/gem/bin/apps/desktop_hosted
+[ 98%] Building C object samples/src/stout/CMakeFiles/stout.dir/traps.c.o
+[ 98%] Built target desktop_hosted
+[ 99%] Linking C executable /home/mquezada/git/gem/bin/core/gemd
+In file included from /home/mquezada/git/gem/samples/src/stout/traps.c:11:
+In file included from /home/mquezada/git/gem/samples/src/stout/stout.h:13:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+1 warning generated.
+[100%] Linking C executable /home/mquezada/git/gem/bin/samples/stout
+[100%] Built target gemd
+[100%] Built target stout
+gmake[1]: Leaving directory '/home/mquezada/git/gem/build'
