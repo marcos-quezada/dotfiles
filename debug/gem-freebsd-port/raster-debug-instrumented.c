@@ -119,6 +119,63 @@ static void teardown_drm(int restore_crtc)
     }
 }
 
+#ifndef DRM_MODE_OBJECT_CONNECTOR
+#define DRM_MODE_OBJECT_CONNECTOR 0xc0c0c0c0
+#endif
+#ifndef DRM_MODE_DPMS_ON
+#define DRM_MODE_DPMS_ON 0
+#endif
+
+static void ensure_dpms_on(int fd, uint32_t connector_id)
+{
+    drmModeObjectPropertiesPtr props;
+    uint32_t i;
+    int found = 0;
+
+    props = drmModeObjectGetProperties(fd, connector_id,
+                                        DRM_MODE_OBJECT_CONNECTOR);
+    if (props == NULL) {
+        fprintf(stderr,
+                "[raster-debug] drmModeObjectGetProperties failed: %s\n",
+                strerror(errno));
+        return;
+    }
+
+    for (i = 0; i < props->count_props; ++i) {
+        drmModePropertyPtr prop = drmModeGetProperty(fd, props->props[i]);
+
+        if (prop == NULL) {
+            continue;
+        }
+        if (strcmp(prop->name, "DPMS") == 0) {
+            found = 1;
+            fprintf(stderr,
+                    "[raster-debug] found DPMS property (id=%u), current "
+                    "value=%llu, forcing to DRM_MODE_DPMS_ON\n",
+                    prop->prop_id,
+                    (unsigned long long)props->prop_values[i]);
+            if (drmModeObjectSetProperty(fd, connector_id,
+                                         DRM_MODE_OBJECT_CONNECTOR,
+                                         prop->prop_id,
+                                         DRM_MODE_DPMS_ON) < 0) {
+                fprintf(stderr,
+                        "[raster-debug] drmModeObjectSetProperty(DPMS) "
+                        "failed: %s\n",
+                        strerror(errno));
+            } else {
+                fprintf(stderr, "[raster-debug] DPMS set to ON\n");
+            }
+        }
+        drmModeFreeProperty(prop);
+    }
+    if (!found) {
+        fprintf(stderr,
+                "[raster-debug] no DPMS property found on this "
+                "connector\n");
+    }
+    drmModeFreeObjectProperties(props);
+}
+
 int gem_raster_init(uint16_t width, uint16_t height, gem_raster_format_t format)
 {
     drmModeResPtr res = NULL;
@@ -250,6 +307,7 @@ int gem_raster_init(uint16_t width, uint16_t height, gem_raster_format_t format)
         goto fail;
     }
     fprintf(stderr, "[raster-debug] drmModeSetCrtc succeeded\n");
+    ensure_dpms_on(g_drm_fd, g_connector_id);
 
     pitch = ((size_t)width + 7u) / 8u;
     if (pitch > UINT16_MAX) {
