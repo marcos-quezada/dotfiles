@@ -318,9 +318,13 @@ void gem_raster_present_rect(int x, int y, int width, int height)
     int64_t y1;
     int row_y;
     static unsigned long call_count;
+    unsigned long set_bits = 0;
+    unsigned long clear_bits = 0;
+    int verbose;
 
     ++call_count;
-    if (call_count <= 5 || call_count % 200 == 0) {
+    verbose = (call_count <= 5 || call_count % 200 == 0);
+    if (verbose) {
         fprintf(stderr,
                 "[raster-debug] present_rect call #%lu: x=%d y=%d w=%d h=%d "
                 "source=%p dumb=%p\n",
@@ -362,8 +366,29 @@ void gem_raster_present_rect(int x, int y, int width, int height)
             uint8_t bits = src_row[col_x / 8];
             int bit_set = (bits & (uint8_t)(0x80u >> (col_x & 7))) != 0u;
 
+            if (bit_set) {
+                ++set_bits;
+            } else {
+                ++clear_bits;
+            }
             dst_row[col_x] = shadow_bit_to_xrgb8888(bit_set);
         }
+    }
+
+    if (verbose) {
+        uint32_t *first_row = (uint32_t *)g_dumb_pixels;
+        uint32_t readback_0 = first_row[0];
+        uint32_t readback_mid =
+            first_row[(size_t)g_surface.width / 2u];
+
+        fprintf(stderr,
+                "[raster-debug]   shadow bits in this rect: set(black)=%lu "
+                "clear(white)=%lu\n",
+                set_bits, clear_bits);
+        fprintf(stderr,
+                "[raster-debug]   dumb buffer readback: pixel[0]=0x%08x "
+                "pixel[mid]=0x%08x\n",
+                readback_0, readback_mid);
     }
 }
 
