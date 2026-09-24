@@ -1,0 +1,52 @@
+ℵ₀:auryn:~/git/gem ♥ › $ gmake
+cmake -S . -B /home/mquezada/git/gem/build -DCMAKE_C_COMPILER=cc -DCMAKE_BUILD_TYPE=Debug -DGEM_PLATFORM=rasta -DBUILD_TESTING=OFF 
+-- The C compiler identification is Clang 19.1.7
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - found
+-- Found Threads: TRUE
+-- Found Git: /usr/local/bin/git (found version "2.54.0")
+-- Configuring done (2.0s)
+CMake Error at CMakeLists.txt:97 (add_custom_target):
+  Error evaluating generator expression:
+
+    $<TARGET_FILE:platform_linux>
+
+  No target "platform_linux"
+
+
+CMake Error at CMakeLists.txt:155 (add_custom_target):
+  Error evaluating generator expression:
+
+    $<TARGET_FILE:platform_linux>
+
+  No target "platform_linux"
+
+
+CMake Error at CMakeLists.txt:97 (add_custom_target):
+  Error evaluating generator expression:
+
+    $<TARGET_FILE:platform_linux>
+
+  No target "platform_linux"
+
+
+CMake Error at CMakeLists.txt:155 (add_custom_target):
+  Error evaluating generator expression:
+
+    $<TARGET_FILE:platform_linux>
+
+  No target "platform_linux"
+
+
+-- Generating done (0.1s)
+CMake Generate step failed.  Build files cannot be regenerated correctly.
+gmake: *** [Makefile:6: configure] Error 1
