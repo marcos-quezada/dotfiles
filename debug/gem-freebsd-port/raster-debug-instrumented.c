@@ -67,6 +67,7 @@ static uint64_t g_dumb_size;
 static uint32_t g_dumb_handle;
 static uint32_t g_dumb_pitch;
 static uint32_t g_fb_id;
+static uint32_t g_crtc_id;
 static int g_drm_fd = -1;
 static uint32_t g_connector_id;
 static drmModeCrtcPtr g_saved_crtc;
@@ -275,6 +276,7 @@ int gem_raster_init(uint16_t width, uint16_t height, gem_raster_format_t format)
         goto fail;
     }
     g_connector_id = conn->connector_id;
+    g_crtc_id = enc->crtc_id;
 
     /* Save the CRTC's current state so gem_raster_shutdown can restore
      * it exactly, leaving the console/compositor state untouched. */
@@ -530,6 +532,28 @@ void gem_raster_present_rect(int x, int y, int width, int height)
                 "[raster-debug] re-presenting the whole screen after the "
                 "deferred power-cycle\n");
         gem_raster_present();
+    }
+
+    /*
+     * Test hypothesis: after the devctl power-cycle, the display shows
+     * one correct frame and then never rescans the framebuffer again,
+     * even though the memory keeps being correctly updated underneath.
+     * Issue an explicit page-flip to the SAME fb_id after the
+     * power-cycle has happened, to force KMS to re-latch/rescan at the
+     * next vblank instead of relying on continuous automatic scanout.
+     * Rate-limited (not every call) to avoid flooding the kernel with
+     * flip requests; ignores EBUSY (a flip already pending is fine).
+     */
+    if (g_power_cycled_after_first_content && g_crtc_id != 0u &&
+        g_fb_id != 0u) {
+        int flip_ret = drmModePageFlip(g_drm_fd, g_crtc_id, g_fb_id, 0, NULL);
+
+        if (verbose) {
+            fprintf(stderr,
+                    "[raster-debug]   drmModePageFlip -> %d (errno=%d %s)\n",
+                    flip_ret, flip_ret < 0 ? errno : 0,
+                    flip_ret < 0 ? strerror(errno) : "ok");
+        }
     }
 }
 
