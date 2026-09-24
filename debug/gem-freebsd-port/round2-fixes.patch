@@ -1,0 +1,561 @@
+diff --git i/CMakeLists.txt w/CMakeLists.txt
+index 55a452c..4c079bb 100644
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -6,12 +6,13 @@ include(CTest)
+ find_package(Threads REQUIRED)
+ 
+ set(GEM_PLATFORM "rasta" CACHE STRING
+-    "Display/input backend used by VDI (rasta or linux)")
+-set_property(CACHE GEM_PLATFORM PROPERTY STRINGS rasta linux)
++    "Display/input backend used by VDI (rasta, linux or freebsd)")
++set_property(CACHE GEM_PLATFORM PROPERTY STRINGS rasta linux freebsd)
+ if(NOT GEM_PLATFORM STREQUAL "rasta" AND
+-   NOT GEM_PLATFORM STREQUAL "linux")
++   NOT GEM_PLATFORM STREQUAL "linux" AND
++   NOT GEM_PLATFORM STREQUAL "freebsd")
+     message(FATAL_ERROR
+-        "GEM_PLATFORM must be either 'rasta' or 'linux'")
++        "GEM_PLATFORM must be one of 'rasta', 'linux' or 'freebsd'")
+ endif()
+ 
+ set(CMAKE_C_STANDARD 11)
+@@ -94,6 +95,13 @@ set(GEMIX_LIB ${GEMIX_ROOT}/lib)
+ set(GEMIX_INCLUDE ${GEMIX_ROOT}/include)
+ set(GEMIX_SHARE ${GEMIX_ROOT}/share/gem)
+ 
++# gemix_package assembles the Linux-specific gemix deployment tree and
++# gem_sdk's library list bundles every platform's library (platform_linux
++# included) -- both reference platform_linux directly and only make sense
++# when it was actually built. Guarded rather than fixed to reference a
++# platform-generic target: a real FreeBSD packaging/SDK-export story is
++# deferred, out of scope for getting the native backend itself building.
++if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+ add_custom_target(gemix_package
+     COMMAND ${CMAKE_COMMAND} -E remove_directory ${GEMIX_ROOT}
+     COMMAND ${CMAKE_COMMAND} -E make_directory ${GEMIX_BIN}
+@@ -165,3 +173,4 @@ add_custom_target(gem_sdk
+         gem_runtime_cursors gem_runtime_alert_icons resgen
+     COMMENT "Exporting the public GEM SDK"
+     VERBATIM)
++endif()
+diff --git i/lib/platform/rasta/os.c w/lib/platform/rasta/os.c
+index f40692f..ceca57b 100644
+--- i/lib/platform/rasta/os.c
++++ w/lib/platform/rasta/os.c
+@@ -8,7 +8,16 @@
+  */
+ 
+ #define _GNU_SOURCE
++#if !defined(__FreeBSD__)
++/*
++ * FreeBSD's libc treats an explicit _POSIX_C_SOURCE as "strict POSIX
++ * only", which hides BSD/Linux extensions like pipe2() that this file
++ * also uses (no equivalent macro is required for them per pipe2(2)'s
++ * own SYNOPSIS). Only defined on non-FreeBSD, where it's needed and
++ * doesn't suppress anything this file relies on.
++ */
+ #define _POSIX_C_SOURCE 200809L
++#endif
+ 
+ #include "platform/os.h"
+ 
+@@ -21,7 +30,13 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++#if defined(__FreeBSD__)
++#include <sys/types.h>
++#include <sys/param.h>
++#include <sys/mount.h>
++#else
+ #include <mntent.h>
++#endif
+ #include <signal.h>
+ #include <sys/stat.h>
+ #include <sys/statvfs.h>
+@@ -32,6 +47,65 @@
+ #include <time.h>
+ #include <unistd.h>
+ 
++#if defined(__FreeBSD__)
++/*
++ * FreeBSD has no /proc/mounts or mntent.h; getfsstat(2) returns the whole
++ * mount table in one call instead of a streaming iterator, so we snapshot
++ * it once per gem_os_mount_iter_open()/gem_os_mount_for_path() call and
++ * walk the snapshot. Mirrors the Linux mntent-based behavior seen by
++ * callers: same iterator shape, same "one absolute path per read" contract.
++ */
++struct gem_os_mount_scan {
++    struct statfs *entries;
++    int count;
++    int index;
++};
++
++static struct gem_os_mount_scan *gem_os_mount_scan_create(void)
++{
++    struct gem_os_mount_scan *scan;
++    int count;
++
++    count = getfsstat(NULL, 0, MNT_NOWAIT);
++    if (count < 0) {
++        return NULL;
++    }
++
++    scan = malloc(sizeof(*scan));
++    if (scan == NULL) {
++        return NULL;
++    }
++
++    scan->entries = calloc((size_t)count, sizeof(struct statfs));
++    if (scan->entries == NULL) {
++        free(scan);
++        return NULL;
++    }
++
++    count = getfsstat(scan->entries,
++                       (long)((size_t)count * sizeof(struct statfs)),
++                       MNT_NOWAIT);
++    if (count < 0) {
++        free(scan->entries);
++        free(scan);
++        return NULL;
++    }
++
++    scan->count = count;
++    scan->index = 0;
++    return scan;
++}
++
++static void gem_os_mount_scan_destroy(struct gem_os_mount_scan *scan)
++{
++    if (scan == NULL) {
++        return;
++    }
++    free(scan->entries);
++    free(scan);
++}
++#endif
++
+ extern char **environ;
+ 
+ enum {
+@@ -1301,8 +1375,12 @@ int gem_os_mount_for_path(const char *path, char *out, size_t out_size)
+     char best[PATH_MAX] = "";
+     char name[PATH_MAX];
+     char *slash;
++#if defined(__FreeBSD__)
++    struct gem_os_mount_scan *scan;
++#else
+     FILE *mounts;
+     struct mntent *mount;
++#endif
+     int length;
+ 
+     if (path == NULL || out == NULL || out_size == 0u ||
+@@ -1333,6 +1411,28 @@ int gem_os_mount_for_path(const char *path, char *out, size_t out_size)
+         return 0;
+     }
+     strcpy(resolved, parent);
++#if defined(__FreeBSD__)
++    scan = gem_os_mount_scan_create();
++    if (scan == NULL) {
++        return 0;
++    }
++    for (; scan->index < scan->count; ++scan->index) {
++        const char *mnt_dir = scan->entries[scan->index].f_mntonname;
++        struct stat mount_stat;
++        size_t current_length;
++
++        if (gem_os_path_prefix(mnt_dir, resolved) == 0 ||
++            stat(mnt_dir, &mount_stat) != 0 ||
++            mount_stat.st_dev != source_stat.st_dev) {
++            continue;
++        }
++        current_length = strlen(mnt_dir);
++        if (current_length > strlen(best) && current_length < sizeof(best)) {
++            memcpy(best, mnt_dir, current_length + 1u);
++        }
++    }
++    gem_os_mount_scan_destroy(scan);
++#else
+     mounts = setmntent("/proc/mounts", "r");
+     if (mounts == NULL) {
+         return 0;
+@@ -1353,6 +1453,7 @@ int gem_os_mount_for_path(const char *path, char *out, size_t out_size)
+         }
+     }
+     (void)endmntent(mounts);
++#endif
+     if (best[0] == '\0' || strlen(best) >= out_size) {
+         errno = ENAMETOOLONG;
+         return 0;
+@@ -1577,6 +1678,20 @@ int gem_os_format_timestamp(int64_t seconds, const char *format, char *out,
+ 
+ int gem_os_mount_iter_open(gem_os_mount_iter_t *iter)
+ {
++#if defined(__FreeBSD__)
++    struct gem_os_mount_scan *scan;
++
++    if (iter == NULL) {
++        errno = EINVAL;
++        return 0;
++    }
++    scan = gem_os_mount_scan_create();
++    if (scan == NULL) {
++        return 0;
++    }
++    iter->handle = scan;
++    return 1;
++#else
+     FILE *mounts;
+ 
+     if (iter == NULL) {
+@@ -1589,11 +1704,34 @@ int gem_os_mount_iter_open(gem_os_mount_iter_t *iter)
+     }
+     iter->handle = mounts;
+     return 1;
++#endif
+ }
+ 
+ int gem_os_mount_iter_read(gem_os_mount_iter_t *iter, char *path,
+                            size_t path_size)
+ {
++#if defined(__FreeBSD__)
++    struct gem_os_mount_scan *scan;
++    size_t length;
++
++    if (iter == NULL || iter->handle == NULL || path == NULL ||
++        path_size == 0u) {
++        errno = EINVAL;
++        return 0;
++    }
++    scan = (struct gem_os_mount_scan *)iter->handle;
++    while (scan->index < scan->count) {
++        const char *mnt_dir = scan->entries[scan->index].f_mntonname;
++
++        scan->index++;
++        length = strlen(mnt_dir);
++        if (length < path_size) {
++            memcpy(path, mnt_dir, length + 1u);
++            return 1;
++        }
++    }
++    return 0;
++#else
+     struct mntent *mount;
+     size_t length;
+ 
+@@ -1617,6 +1755,7 @@ int gem_os_mount_iter_read(gem_os_mount_iter_t *iter, char *path,
+     }
+     memcpy(path, mount->mnt_dir, length + 1u);
+     return 1;
++#endif
+ }
+ 
+ void gem_os_mount_iter_close(gem_os_mount_iter_t *iter)
+@@ -1624,7 +1763,11 @@ void gem_os_mount_iter_close(gem_os_mount_iter_t *iter)
+     if (iter == NULL || iter->handle == NULL) {
+         return;
+     }
++#if defined(__FreeBSD__)
++    gem_os_mount_scan_destroy((struct gem_os_mount_scan *)iter->handle);
++#else
+     (void)endmntent((FILE *)iter->handle);
++#endif
+     iter->handle = NULL;
+ }
+ 
+diff --git i/lib/platform/rasta/volumes.c w/lib/platform/rasta/volumes.c
+index f47e4aa..6f2e5e9 100644
+--- i/lib/platform/rasta/volumes.c
++++ w/lib/platform/rasta/volumes.c
+@@ -2,6 +2,12 @@
+  * Enumerates mounted volumes for the GEM desktop from the mount table,
+  * exposing only real filesystems with capitalized labels.
+  *
++ * On Linux this reads /proc/mounts via mntent.h. FreeBSD has neither;
++ * getfsstat(2) returns the whole mount table in one call instead of a
++ * streaming iterator, so the FreeBSD path snapshots it once per
++ * gem_os_volume_iter_open() call and walks the snapshot, matching the
++ * same "one absolute path per read" contract callers already expect.
++ *
+  * MIT License (see: LICENSE)
+  * Copyright (C) 2026 tomaz stih
+  */
+@@ -11,10 +17,58 @@
+ 
+ #include <ctype.h>
+ #include <errno.h>
+-#include <mntent.h>
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <string.h>
+ 
++#if defined(__FreeBSD__)
++#include <sys/types.h>
++#include <sys/param.h>
++#include <sys/mount.h>
++#else
++#include <mntent.h>
++#endif
++
++#if defined(__FreeBSD__)
++
++/*
++ * FreeBSD pseudo-filesystem type names to skip, mirroring the intent of
++ * the Linux ignore-list above (proc/sysfs/cgroup/overlay/etc.): virtual
++ * or bookkeeping mounts a user would never pick as a "volume". Real,
++ * user-mountable filesystems (zfs, ufs, msdosfs, cd9660, exfat, ...) are
++ * deliberately NOT in this list.
++ *
++ * This list is a best-effort port of Linux's list's *intent*, not a
++ * verified-exhaustive FreeBSD survey -- worth revisiting against real
++ * `getfsstat`/`mount` output on the target machine once this is
++ * actually exercised there.
++ */
++static const char *const gem_os_ignored_fstypes[] = {
++    "devfs",   "fdescfs", "procfs", "linprocfs", "linsysfs",
++    "tmpfs",   "nullfs",  "unionfs", "fdesc",    "pseudofs"};
++
++static int gem_os_should_expose_statfs(const struct statfs *sfs)
++{
++    size_t i;
++
++    if (sfs == NULL) {
++        return 0;
++    }
++    if (strcmp(sfs->f_mntonname, "/") == 0) {
++        return 1;
++    }
++    for (i = 0;
++         i < sizeof(gem_os_ignored_fstypes) / sizeof(gem_os_ignored_fstypes[0]);
++         ++i) {
++        if (strcmp(sfs->f_fstypename, gem_os_ignored_fstypes[i]) == 0) {
++            return 0;
++        }
++    }
++    return 1;
++}
++
++#else
++
+ static int gem_os_should_expose_mount(const struct mntent *mnt)
+ {
+     static const char *const ignored_fs[] = {
+@@ -46,6 +100,8 @@ static int gem_os_should_expose_mount(const struct mntent *mnt)
+     return 1;
+ }
+ 
++#endif
++
+ static void gem_os_capitalize_label(char *label, size_t size)
+ {
+     size_t i;
+@@ -69,6 +125,111 @@ static void gem_os_capitalize_label(char *label, size_t size)
+     }
+ }
+ 
++#if defined(__FreeBSD__)
++
++struct gem_os_volume_scan {
++    struct statfs *entries;
++    int count;
++    int index;
++};
++
++int gem_os_volume_iter_open(gem_os_volume_iter_t *iter)
++{
++    struct gem_os_volume_scan *scan;
++    int count;
++
++    if (iter == NULL) {
++        errno = EINVAL;
++        return 0;
++    }
++
++    count = getfsstat(NULL, 0, MNT_NOWAIT);
++    if (count < 0) {
++        return 0;
++    }
++
++    scan = malloc(sizeof(*scan));
++    if (scan == NULL) {
++        return 0;
++    }
++    scan->entries = calloc((size_t)count, sizeof(struct statfs));
++    if (scan->entries == NULL) {
++        free(scan);
++        return 0;
++    }
++
++    count = getfsstat(scan->entries,
++                       (long)((size_t)count * sizeof(struct statfs)),
++                       MNT_NOWAIT);
++    if (count < 0) {
++        free(scan->entries);
++        free(scan);
++        return 0;
++    }
++
++    scan->count = count;
++    scan->index = 0;
++    iter->handle = scan;
++    return 1;
++}
++
++int gem_os_volume_iter_read(gem_os_volume_iter_t *iter, gem_os_volume_t *volume)
++{
++    struct gem_os_volume_scan *scan;
++    const char *base;
++
++    if (iter == NULL || volume == NULL || iter->handle == NULL) {
++        errno = EINVAL;
++        return 0;
++    }
++
++    scan = (struct gem_os_volume_scan *)iter->handle;
++    while (scan->index < scan->count) {
++        const struct statfs *sfs = &scan->entries[scan->index];
++
++        scan->index++;
++        if (!gem_os_should_expose_statfs(sfs)) {
++            continue;
++        }
++
++        strncpy(volume->mount_path, sfs->f_mntonname,
++                sizeof(volume->mount_path) - 1u);
++        volume->mount_path[sizeof(volume->mount_path) - 1u] = '\0';
++
++        if (strcmp(sfs->f_mntonname, "/") == 0) {
++            strncpy(volume->label, "Root", sizeof(volume->label) - 1u);
++            volume->label[sizeof(volume->label) - 1u] = '\0';
++        } else {
++            base = strrchr(sfs->f_mntonname, '/');
++            if (base != NULL && base[1] != '\0') {
++                ++base;
++            } else {
++                base = sfs->f_mntonname;
++            }
++            strncpy(volume->label, base, sizeof(volume->label) - 1u);
++            volume->label[sizeof(volume->label) - 1u] = '\0';
++            gem_os_capitalize_label(volume->label, sizeof(volume->label));
++        }
++        return 1;
++    }
++    return 0;
++}
++
++void gem_os_volume_iter_close(gem_os_volume_iter_t *iter)
++{
++    struct gem_os_volume_scan *scan;
++
++    if (iter == NULL || iter->handle == NULL) {
++        return;
++    }
++    scan = (struct gem_os_volume_scan *)iter->handle;
++    free(scan->entries);
++    free(scan);
++    iter->handle = NULL;
++}
++
++#else
++
+ int gem_os_volume_iter_open(gem_os_volume_iter_t *iter)
+ {
+     FILE *fp;
+@@ -139,3 +300,5 @@ void gem_os_volume_iter_close(gem_os_volume_iter_t *iter)
+     (void)endmntent((FILE *)iter->handle);
+     iter->handle = NULL;
+ }
++
++#endif
+diff --git i/src/gem/client.c w/src/gem/client.c
+index 7bb0db1..570bd6f 100644
+--- i/src/gem/client.c
++++ w/src/gem/client.c
+@@ -21,6 +21,9 @@
+ #include <string.h>
+ #include <sys/socket.h>
+ #include <sys/un.h>
++#if defined(__FreeBSD__)
++#include <sys/ucred.h>
++#endif
+ #include <unistd.h>
+ 
+ WORD contrl[12] __attribute__((weak));
+@@ -83,7 +86,11 @@ static int gem_rpc_recv_all(int fd, void *buf, size_t size)
+ static int gem_rpc_connect(void)
+ {
+     struct sockaddr_un addr;
++#if defined(__FreeBSD__)
++    struct xucred peer;
++#else
+     struct ucred peer;
++#endif
+     socklen_t peer_size = sizeof(peer);
+     int fd;
+ 
+@@ -107,11 +114,19 @@ static int gem_rpc_connect(void)
+         (void)close(fd);
+         return 0;
+     }
++#if defined(__FreeBSD__)
++    if (getsockopt(fd, SOL_LOCAL, LOCAL_PEERCRED, &peer, &peer_size) != 0 ||
++        peer.cr_version != XUCRED_VERSION || peer.cr_uid != geteuid()) {
++        (void)close(fd);
++        return 0;
++    }
++#else
+     if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &peer, &peer_size) != 0 ||
+         peer.uid != geteuid()) {
+         (void)close(fd);
+         return 0;
+     }
++#endif
+ 
+     g_gem_socket = fd;
+     return 1;
+diff --git i/src/gemd/session.c w/src/gemd/session.c
+index 18ce0fb..b40df0d 100644
+--- i/src/gemd/session.c
++++ w/src/gemd/session.c
+@@ -21,6 +21,9 @@
+ #include <sys/socket.h>
+ #include <sys/stat.h>
+ #include <sys/un.h>
++#if defined(__FreeBSD__)
++#include <sys/ucred.h>
++#endif
+ #include <unistd.h>
+ 
+ void gemd_free_session_menu(gemd_session_t *session)
+@@ -241,6 +244,20 @@ void gemd_accept_client(void)
+     gemd_session_t *session = gemd_alloc_session();
+     int fd = accept(g_listen_fd, NULL, NULL);
+     if (fd >= 0) {
++#if defined(__FreeBSD__)
++        struct xucred peer;
++        socklen_t length = sizeof(peer);
++        if (session && gemd_nonblocking(fd) &&
++            getsockopt(fd, SOL_LOCAL, LOCAL_PEERCRED, &peer, &length) == 0 &&
++            peer.cr_version == XUCRED_VERSION && peer.cr_uid == geteuid()) {
++            memset(session, 0, sizeof(*session));
++            session->fd = fd;
++            session->pid = (int)peer.cr_pid;
++            session->generation = ++g_next_generation;
++            session->accepted_at = gem_os_ticks_ms();
++        } else
++            close(fd);
++#else
+         struct ucred peer;
+         socklen_t length = sizeof(peer);
+         if (session && gemd_nonblocking(fd) &&
+@@ -253,6 +270,7 @@ void gemd_accept_client(void)
+             session->accepted_at = gem_os_ticks_ms();
+         } else
+             close(fd);
++#endif
+     }
+ }
+ 
