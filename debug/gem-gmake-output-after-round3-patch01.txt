@@ -1,0 +1,41 @@
+ℵ₀:auryn:~/git/gem ♥ › $ gmake CMAKE_FLAGS="-DGEM_PLATFORM=freebsd" 2>&1 | tail -40
+[ 89%] Building C object samples/src/maestro/CMakeFiles/maestro_hosted.dir/maestro.c.o
+[ 90%] Building C object samples/src/maestro/CMakeFiles/maestro_hosted.dir/maestro_ui.c.o
+1 warning generated.
+[ 91%] Linking C executable /home/mquezada/git/gem/bin/samples/gemscape_hosted
+In file included from /home/mquezada/git/gem/samples/src/maestro/maestro_ui.c:10:
+In file included from /home/mquezada/git/gem/samples/src/maestro/maestro_private.h:12:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+[ 91%] Building C object src/gemd/CMakeFiles/gemd.dir/dispatch_aes.c.o
+[ 91%] Built target gemscape_hosted
+1 warning generated.
+[ 92%] Building C object src/gemd/CMakeFiles/gemd.dir/transport.c.o
+[ 92%] Building C object samples/src/maestro/CMakeFiles/maestro_hosted.dir/maestro_draw.c.o
+[ 92%] Building C object src/gemd/CMakeFiles/gemd.dir/drawing.c.o
+[ 93%] Linking C executable /home/mquezada/git/gem/bin/samples/maestro_hosted
+[ 93%] Building C object src/gemd/CMakeFiles/gemd.dir/aes_dispatch.c.o
+[ 94%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/aes_validate.c.o
+[ 94%] Built target maestro_hosted
+[ 94%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/tree_decode.c.o
+[ 95%] Building C object src/gemd/CMakeFiles/gemd.dir/vdi_dispatch.c.o
+[ 95%] Building C object src/gemd/CMakeFiles/gemd.dir/vdi_bitmap.c.o
+[ 96%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/bitmap_size.c.o
+[ 96%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/vdi_validate.c.o
+[ 97%] Building C object src/gemd/CMakeFiles/gemd.dir/__/gem/protocol.c.o
+[ 97%] Linking C executable /home/mquezada/git/gem/bin/core/gemd
+[ 97%] Built target gemd
+[ 98%] Linking C static library ../../../libmusashi.a
+[ 98%] Built target musashi
+[ 99%] Building C object samples/src/stout/CMakeFiles/stout.dir/traps.c.o
+[ 99%] Building C object samples/src/stout/CMakeFiles/stout.dir/main.c.o
+In file included from /home/mquezada/git/gem/samples/src/stout/traps.c:11:
+In file included from /home/mquezada/git/gem/samples/src/stout/stout.h:13:
+/home/mquezada/git/gem/include/gem.h:140:48: warning: token pasting of ',' and __VA_ARGS__ is a GNU extension [-Wgnu-zero-variadic-macro-arguments]
+  140 |     gem_compat_graf_handlev(((WORD *[5]){NULL, ##__VA_ARGS__}) + 1)
+      |                                                ^
+1 warning generated.
+[100%] Linking C executable /home/mquezada/git/gem/bin/samples/stout
+[100%] Built target stout
+gmake[1]: Leaving directory '/home/mquezada/git/gem/build'
