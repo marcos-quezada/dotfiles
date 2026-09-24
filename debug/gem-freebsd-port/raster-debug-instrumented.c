@@ -34,6 +34,8 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include <devctl.h>
+
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
@@ -119,85 +121,50 @@ static void teardown_drm(int restore_crtc)
     }
 }
 
-#ifndef DRM_MODE_OBJECT_CONNECTOR
-#define DRM_MODE_OBJECT_CONNECTOR 0xc0c0c0c0
-#endif
-#ifndef DRM_MODE_DPMS_ON
-#define DRM_MODE_DPMS_ON 0
-#endif
-
-#ifndef DRM_MODE_DPMS_OFF
-#define DRM_MODE_DPMS_OFF 3
-#endif
-
-static void cycle_dpms_off_then_on(int fd, uint32_t connector_id)
+/*
+ * Confirmed via direct evidence this session (not guessed): neither
+ * drmModeSetCrtc succeeding nor a DPMS property OFF/ON cycle is
+ * sufficient to make this hardware's eDP link actually display content
+ * for a freshly-opened client on a cold boot -- only an ACTUAL PCI
+ * power-state cycle of the GPU device does (confirmed via `devctl
+ * suspend drmn0` / `devctl resume drmn0`, cross-checked against dmesg
+ * showing real `pci_set_powerstate`/`pci_enable_io` transitions, and an
+ * HDA audio codec reacting with "unsolicited response" messages
+ * consistent with a real display-link retraining event). This performs
+ * the same operation devctl(8) does, via the documented devctl(3) C API
+ * (devctl_suspend()/devctl_resume()), rather than shelling out.
+ *
+ * The device name is machine-specific (this project's own convention,
+ * matching GEM_FREEBSD_DRM's existing env-var-override pattern) --
+ * override via GEM_FREEBSD_DRM_DEVCTL if a different machine's GPU
+ * newbus device name differs from the default below.
+ */
+static void power_cycle_gpu_device(void)
 {
-    drmModeObjectPropertiesPtr props;
-    uint32_t i;
-    uint32_t dpms_prop_id = 0;
-    int found = 0;
+    const char *device = getenv("GEM_FREEBSD_DRM_DEVCTL");
 
-    props = drmModeObjectGetProperties(fd, connector_id,
-                                        DRM_MODE_OBJECT_CONNECTOR);
-    if (props == NULL) {
-        fprintf(stderr,
-                "[raster-debug] drmModeObjectGetProperties failed: %s\n",
-                strerror(errno));
-        return;
-    }
-
-    for (i = 0; i < props->count_props; ++i) {
-        drmModePropertyPtr prop = drmModeGetProperty(fd, props->props[i]);
-
-        if (prop == NULL) {
-            continue;
-        }
-        if (strcmp(prop->name, "DPMS") == 0) {
-            found = 1;
-            dpms_prop_id = prop->prop_id;
-            fprintf(stderr,
-                    "[raster-debug] found DPMS property (id=%u), current "
-                    "value=%llu\n",
-                    prop->prop_id,
-                    (unsigned long long)props->prop_values[i]);
-        }
-        drmModeFreeProperty(prop);
-    }
-    drmModeFreeObjectProperties(props);
-
-    if (!found) {
-        fprintf(stderr,
-                "[raster-debug] no DPMS property found on this "
-                "connector\n");
-        return;
+    if (device == NULL || device[0] == '\0') {
+        device = "drmn0";
     }
 
     fprintf(stderr,
-            "[raster-debug] cycling DPMS OFF, then ON (forcing a real "
-            "power-state transition, not just asserting ON from whatever "
-            "state it's already in -- attempting to trigger the same "
-            "link-training a suspend/resume forces)\n");
-    if (drmModeObjectSetProperty(fd, connector_id, DRM_MODE_OBJECT_CONNECTOR,
-                                 dpms_prop_id, DRM_MODE_DPMS_OFF) < 0) {
-        fprintf(stderr,
-                "[raster-debug] drmModeObjectSetProperty(DPMS_OFF) failed: "
-                "%s\n",
-                strerror(errno));
-    } else {
-        fprintf(stderr, "[raster-debug] DPMS set to OFF\n");
-    }
+            "[raster-debug] power-cycling %s via devctl_suspend/resume "
+            "(the only mechanism confirmed to actually make this eDP link "
+            "display content -- see the comment above this function)\n",
+            device);
 
-    usleep(300000); /* 300ms -- give the panel/link time to actually drop */
-
-    if (drmModeObjectSetProperty(fd, connector_id, DRM_MODE_OBJECT_CONNECTOR,
-                                 dpms_prop_id, DRM_MODE_DPMS_ON) < 0) {
-        fprintf(stderr,
-                "[raster-debug] drmModeObjectSetProperty(DPMS_ON) failed: "
-                "%s\n",
-                strerror(errno));
-    } else {
-        fprintf(stderr, "[raster-debug] DPMS set to ON\n");
+    if (devctl_suspend(device) != 0) {
+        fprintf(stderr, "[raster-debug] devctl_suspend(%s) failed: %s\n",
+                device, strerror(errno));
+        return;
     }
+    usleep(300000);
+    if (devctl_resume(device) != 0) {
+        fprintf(stderr, "[raster-debug] devctl_resume(%s) failed: %s\n",
+                device, strerror(errno));
+        return;
+    }
+    fprintf(stderr, "[raster-debug] power-cycle of %s completed\n", device);
 }
 
 int gem_raster_init(uint16_t width, uint16_t height, gem_raster_format_t format)
@@ -331,7 +298,7 @@ int gem_raster_init(uint16_t width, uint16_t height, gem_raster_format_t format)
         goto fail;
     }
     fprintf(stderr, "[raster-debug] drmModeSetCrtc succeeded\n");
-    cycle_dpms_off_then_on(g_drm_fd, g_connector_id);
+    power_cycle_gpu_device();
 
     pitch = ((size_t)width + 7u) / 8u;
     if (pitch > UINT16_MAX) {
