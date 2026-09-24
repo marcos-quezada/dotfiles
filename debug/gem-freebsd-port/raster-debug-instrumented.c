@@ -408,7 +408,8 @@ void gem_raster_present_rect(int x, int y, int width, int height)
     int verbose;
 
     ++call_count;
-    verbose = (call_count <= 5 || call_count % 200 == 0);
+    verbose = (call_count <= 5 || (call_count >= 25 && call_count <= 35) ||
+               call_count % 200 == 0);
     if (verbose) {
         fprintf(stderr,
                 "[raster-debug] present_rect call #%lu: x=%d y=%d w=%d h=%d "
@@ -486,13 +487,22 @@ void gem_raster_present_rect(int x, int y, int width, int height)
      * variable directly: cycle once, here, after the FIRST real write
      * has actually landed, then re-present the whole screen afterward
      * since the cycle likely blanks the display again.
+     *
+     * Refined further: cycling after just the FIRST write was still too
+     * early -- every manual devctl success happened after gemd/desktop
+     * had been running and drawing for a while (the full desktop UI
+     * already up, cursor tracking already active), not right after the
+     * very first write. Deferred to call #30 instead of call #1, giving
+     * AES substantially more time to finish its real startup drawing
+     * first.
      */
-    if (!g_power_cycled_after_first_content) {
+    if (!g_power_cycled_after_first_content && call_count >= 30u) {
         g_power_cycled_after_first_content = 1;
         fprintf(stderr,
-                "[raster-debug] first real content written -- now doing "
-                "the deferred power-cycle (previously done too early, "
-                "before any real content existed)\n");
+                "[raster-debug] call #%lu -- now doing the deferred "
+                "power-cycle (waited for real drawing activity, not just "
+                "the first write)\n",
+                call_count);
         power_cycle_gpu_device();
         fprintf(stderr,
                 "[raster-debug] re-presenting the whole screen after the "
