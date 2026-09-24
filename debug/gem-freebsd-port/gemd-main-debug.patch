@@ -1,0 +1,31 @@
+diff --git i/src/gemd/main.c w/src/gemd/main.c
+index c6edc8e..d6aab21 100644
+--- i/src/gemd/main.c
++++ w/src/gemd/main.c
+@@ -35,6 +35,14 @@ gemd_session_t *g_modal_session;
+ static void gemd_pump_hid(void)
+ {
+     gem_hid_event_t evt;
++    static unsigned long pump_count;
++
++    if (pump_count < 300) {
++        ++pump_count;
++        fprintf(stderr,
++                "[gemd-debug] gemd_pump_hid call #%lu: update_depth=%d\n",
++                pump_count, aes_state.update_depth);
++    }
+ 
+     if (aes_state.update_depth > 0) {
+         return;
+@@ -42,6 +50,11 @@ static void gemd_pump_hid(void)
+ 
+     for (unsigned i = 0; i < 128 && gem_hid_poll(&evt); ++i) {
+         uint32_t started = gem_os_ticks_ms();
++        if (pump_count <= 300 && evt.type == GEM_HID_MOUSE_MOVE) {
++            fprintf(stderr,
++                    "[gemd-debug] dispatching MOUSE_MOVE evt.x=%d evt.y=%d\n",
++                    evt.x, evt.y);
++        }
+         aes_dispatch_hid_event(&evt);
+         uint32_t elapsed = gem_os_ticks_ms() - started;
+ 
