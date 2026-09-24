@@ -1,0 +1,20 @@
+--- CMakeLists.txt	2026-09-24 10:07:46
++++ /tmp/gem-check/CMakeLists.txt	2026-09-24 10:06:20
+@@ -6,12 +6,13 @@
+ find_package(Threads REQUIRED)
+ 
+ set(GEM_PLATFORM "rasta" CACHE STRING
+-    "Display/input backend used by VDI (rasta or linux)")
+-set_property(CACHE GEM_PLATFORM PROPERTY STRINGS rasta linux)
++    "Display/input backend used by VDI (rasta, linux or freebsd)")
++set_property(CACHE GEM_PLATFORM PROPERTY STRINGS rasta linux freebsd)
+ if(NOT GEM_PLATFORM STREQUAL "rasta" AND
+-   NOT GEM_PLATFORM STREQUAL "linux")
++   NOT GEM_PLATFORM STREQUAL "linux" AND
++   NOT GEM_PLATFORM STREQUAL "freebsd")
+     message(FATAL_ERROR
+-        "GEM_PLATFORM must be either 'rasta' or 'linux'")
++        "GEM_PLATFORM must be one of 'rasta', 'linux' or 'freebsd'")
+ endif()
+ 
+ set(CMAKE_C_STANDARD 11)

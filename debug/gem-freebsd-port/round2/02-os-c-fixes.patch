@@ -1,0 +1,27 @@
+--- lib/platform/rasta/os.c	2026-09-24 10:07:46
++++ /tmp/gem-check/lib/platform/rasta/os.c	2026-09-24 10:05:31
+@@ -8,7 +8,16 @@
+  */
+ 
+ #define _GNU_SOURCE
++#if !defined(__FreeBSD__)
++/*
++ * FreeBSD's libc treats an explicit _POSIX_C_SOURCE as "strict POSIX
++ * only", which hides BSD/Linux extensions like pipe2() that this file
++ * also uses (no equivalent macro is required for them per pipe2(2)'s
++ * own SYNOPSIS). Only defined on non-FreeBSD, where it's needed and
++ * doesn't suppress anything this file relies on.
++ */
+ #define _POSIX_C_SOURCE 200809L
++#endif
+ 
+ #include "platform/os.h"
+ 
+@@ -22,6 +31,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #if defined(__FreeBSD__)
++#include <sys/types.h>
+ #include <sys/param.h>
+ #include <sys/mount.h>
+ #else
