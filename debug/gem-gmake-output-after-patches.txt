@@ -1,0 +1,269 @@
+ℵ₀:auryn:~/git/gem ♥ › $ gmake CMAKE_FLAGS="-DGEM_PLATFORM=freebsd"
+cmake -S . -B /home/mquezada/git/gem/build -DCMAKE_C_COMPILER=cc -DCMAKE_BUILD_TYPE=Debug -DGEM_PLATFORM=rasta -DBUILD_TESTING=OFF -DGEM_PLATFORM=freebsd
+-- The C compiler identification is Clang 19.1.7
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - found
+-- Found Threads: TRUE
+-- Found Git: /usr/local/bin/git (found version "2.54.0")
+-- Configuring done (1.3s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/mquezada/git/gem/build
+cmake --build /home/mquezada/git/gem/build --parallel 4
+gmake[1]: Entering directory '/home/mquezada/git/gem/build'
+[  2%] Built target gem_runtime_fonts
+[  2%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/hid.c.o
+[  3%] Building C object tools/resgen/CMakeFiles/resgen.dir/resgen.c.o
+[  4%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_0.c.o
+[  4%] Building C object samples/lib/musashi/CMakeFiles/m68kmake.dir/__/__/__/deps/musashi-313ebf1bd9f4d0d93341eb5ce21fd8a119e9dbdd-eb9ff2d29a6ea3719920f780f7a09fd44de5e71c0d1aba40aafaf97bae370a41-v1/m68kmake.c.o
+[  4%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/keys.c.o
+[  4%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_1.c.o
+[  4%] Building C object tools/resgen/CMakeFiles/resgen.dir/png_form.c.o
+[  5%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/options.c.o
+[  6%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_2.c.o
+[  6%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/os.c.o
+[  7%] Building C object tools/resgen/CMakeFiles/resgen.dir/rsc_writer.c.o
+[  8%] Linking C executable m68kmake
+[  8%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_local.c.o
+[  8%] Built target m68kmake
+[  8%] Building C object samples/lib/fat12/CMakeFiles/fat12.dir/fat12.c.o
+[  8%] Linking C executable ../../resgen
+[  9%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_resource.c.o
+[  9%] Built target resgen
+[ 10%] Building C object samples/lib/fat12/CMakeFiles/fat12.dir/fat12_dir.c.o
+[ 11%] Building C object samples/lib/msa/CMakeFiles/msa.dir/msa.c.o
+[ 11%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_shel.c.o
+[ 12%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/pty.c.o
+[ 12%] Linking C shared library /home/mquezada/git/gem/bin/samples/lib/libfat12.so
+[ 13%] Building C object src/gem/CMakeFiles/gem.dir/client_aes_tree.c.o
+[ 13%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/raster.c.o
+[ 13%] Linking C shared library /home/mquezada/git/gem/bin/samples/lib/libmsa.so
+[ 13%] Built target fat12
+[ 13%] Building C object samples/lib/prg/CMakeFiles/prg.dir/prg.c.o
+[ 13%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_0.c.o
+[ 13%] Built target msa
+[ 14%] Building C object lib/platform/rasta/CMakeFiles/rasta.dir/volumes.c.o
+[ 15%] Building C object samples/lib/resources/CMakeFiles/sample_resources.dir/resources.c.o
+[ 15%] Linking C shared library /home/mquezada/git/gem/bin/samples/lib/libprg.so
+[ 15%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_1.c.o
+[ 15%] Linking C shared library /home/mquezada/git/gem/bin/lib/librasta.so
+[ 15%] Linking C static library ../../../libsample_resources.a
+[ 15%] Built target prg
+[ 15%] Built target sample_resources
+[ 15%] Built target rasta
+[ 16%] Building C object samples/src/msa/CMakeFiles/msa_cli.dir/cli.c.o
+[ 16%] Building C object samples/src/msa/CMakeFiles/msa_cli.dir/extract.c.o
+[ 16%] Generating GEM runtime cursor resource
+[ 17%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_2.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 18%] Generating GEM alert icon resource
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 19%] Linking C executable /home/mquezada/git/gem/bin/samples/msa
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 19%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_3.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 19%] Built target gem_runtime_alert_icons
+[ 19%] Built target gem_runtime_cursors
+[ 20%] Generating GEM desktop icon resource
+[ 20%] Padding clock numeral icon 12.png
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 20%] Built target msa_cli
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 21%] Padding clock numeral icon 01.png
+[ 22%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_4.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 23%] Flattening Gemscape toolbar icon MENU.PNG
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 23%] Padding clock numeral icon 02.png
+[ 24%] Flattening Gemscape toolbar icon BACK.PNG
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 25%] Padding clock numeral icon 03.png
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 25%] Flattening Gemscape toolbar icon FORE.PNG
+[ 25%] Built target gem_runtime_desktop_icons
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 25%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_5.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 25%] Padding clock numeral icon 04.png
+[ 26%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_6.c.o
+[ 26%] Flattening Gemscape toolbar icon RELOAD.PNG
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 27%] Padding clock numeral icon 05.png
+[ 27%] Generating Gemscape toolbar resource
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 27%] Padding clock numeral icon 06.png
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 27%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_7.c.o
+[ 28%] Padding clock numeral icon 07.png
+[ 28%] Padding clock numeral icon 08.png
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 29%] Padding clock numeral icon 09.png
+[ 29%] Padding clock numeral icon 10.png
+[ 29%] Built target gem_runtime_gemscape_toolbar
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 30%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_8.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 31%] Padding clock numeral icon 11.png
+[ 31%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_9.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 32%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_bitmap.c.o
+[ 32%] Generating GEM clock number resource
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 32%] Building C object src/gem/CMakeFiles/gem.dir/client_vdi_input.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 33%] Building C object src/gem/CMakeFiles/gem.dir/bitmap_size.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 33%] Building C object src/gem/CMakeFiles/gem.dir/vdi_validate.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 34%] Building C object src/gem/CMakeFiles/gem.dir/tree_decode.c.o
+[ 34%] Building C object src/gem/CMakeFiles/gem.dir/tree_pack.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 34%] Flattening Maestro tree icon COLLAPSE.PNG
+[ 35%] Building C object src/gem/CMakeFiles/gem.dir/aes_validate.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 36%] Flattening Maestro tree icon FOLDER.PNG
+[ 36%] Building C object src/gem/CMakeFiles/gem.dir/client.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 37%] Flattening Maestro tree icon DOCUMENT.PNG
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 37%] Flattening Maestro tree icon EXPAND.PNG
+[ 37%] Built target gem_runtime_clock_numbers
+[ 37%] Generating Musashi opcode tables
+[ 38%] Building C object src/gem/CMakeFiles/gem.dir/client_draw.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+
+	Musashi v4.60 68000, 68008, 68010, 68EC020, 68020, 68EC030, 68030, 68EC040, 68040 emulator
+		Copyright Karl Stenerud (kstenerud@gmail.com)
+
+[ 39%] Generating Maestro tree resource
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 39%] Building C object src/gem/CMakeFiles/gem.dir/client_wind.c.o
+Generated 1967 opcode handlers from 518 primitives
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 40%] Building C object samples/lib/musashi/CMakeFiles/musashi.dir/__/__/__/deps/musashi-313ebf1bd9f4d0d93341eb5ce21fd8a119e9dbdd-eb9ff2d29a6ea3719920f780f7a09fd44de5e71c0d1aba40aafaf97bae370a41-v1/m68kcpu.c.o
+WARNING: The convert command is deprecated in IMv7, use "magick" instead of "convert" or "magick convert"
+
+[ 40%] Built target gem_runtime_maestro_tree
+[ 40%] Building C object samples/lib/musashi/CMakeFiles/musashi.dir/__/__/__/deps/musashi-313ebf1bd9f4d0d93341eb5ce21fd8a119e9dbdd-eb9ff2d29a6ea3719920f780f7a09fd44de5e71c0d1aba40aafaf97bae370a41-v1/m68kdasm.c.o
+[ 40%] Building C object src/vdi/CMakeFiles/vdi.dir/alpha.c.o
+[ 40%] Building C object src/gem/CMakeFiles/gem.dir/client_menu.c.o
+[ 41%] Building C object src/vdi/CMakeFiles/vdi.dir/cursor.c.o
+[ 42%] Building C object src/gem/CMakeFiles/gem.dir/client_queries.c.o
+[ 42%] Building C object src/gem/CMakeFiles/gem.dir/protocol.c.o
+[ 42%] Building C object src/vdi/CMakeFiles/vdi.dir/cursor_forms.c.o
+[ 43%] Building C object src/gem/CMakeFiles/gem.dir/client_objc.c.o
+[ 44%] Building C object src/vdi/CMakeFiles/vdi.dir/fill.c.o
+[ 44%] Linking C shared library /home/mquezada/git/gem/bin/lib/libgem.so
+[ 44%] Building C object src/vdi/CMakeFiles/vdi.dir/fonts.c.o
+ld: error: unable to find library -lplatform_linux
+cc: error: linker command failed with exit code 1 (use -v to see invocation)
+gmake[3]: *** [src/gem/CMakeFiles/gem.dir/build.make:581: /home/mquezada/git/gem/bin/lib/libgem.so] Error 1
+gmake[2]: *** [CMakeFiles/Makefile2:883: src/gem/CMakeFiles/gem.dir/all] Error 2
+gmake[2]: *** Waiting for unfinished jobs....
+[ 45%] Building C object samples/lib/musashi/CMakeFiles/musashi.dir/__/__/__/deps/musashi-313ebf1bd9f4d0d93341eb5ce21fd8a119e9dbdd-eb9ff2d29a6ea3719920f780f7a09fd44de5e71c0d1aba40aafaf97bae370a41-v1/softfloat/softfloat.c.o
+[ 45%] Building C object samples/lib/musashi/CMakeFiles/musashi.dir/generated/m68kops.c.o
+[ 46%] Building C object src/vdi/CMakeFiles/vdi.dir/glyphs.c.o
+[ 46%] Building C object src/vdi/CMakeFiles/vdi.dir/input.c.o
+[ 47%] Building C object src/vdi/CMakeFiles/vdi.dir/lines.c.o
+[ 47%] Building C object src/vdi/CMakeFiles/vdi.dir/misc.c.o
+[ 48%] Building C object src/vdi/CMakeFiles/vdi.dir/primitives.c.o
+[ 48%] Building C object src/vdi/CMakeFiles/vdi.dir/raster.c.o
+[ 49%] Building C object src/vdi/CMakeFiles/vdi.dir/surface.c.o
+[ 49%] Building C object src/vdi/CMakeFiles/vdi.dir/text.c.o
+[ 50%] Building C object src/vdi/CMakeFiles/vdi.dir/vdi_core.c.o
+[ 50%] Building C object src/vdi/CMakeFiles/vdi.dir/workstation.c.o
+[ 51%] Linking C shared library /home/mquezada/git/gem/bin/lib/libvdi.so
+[ 51%] Built target vdi
+[ 52%] Linking C static library ../../../libmusashi.a
+[ 52%] Built target musashi
+gmake[1]: *** [Makefile:91: all] Error 2
+gmake[1]: Leaving directory '/home/mquezada/git/gem/build'
+gmake: *** [Makefile:8: all] Error 2
