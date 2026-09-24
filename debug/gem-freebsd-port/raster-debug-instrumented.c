@@ -191,7 +191,13 @@ static void power_cycle_gpu_device(void)
                         "completed\n",
                 attempt, count, device);
         if (attempt < count) {
-            usleep(300000); /* brief settle time between cycles */
+            fprintf(stderr,
+                    "[raster-debug] waiting 3s before next attempt (a "
+                    "manual retry that worked had a real, multi-second "
+                    "human-timescale gap; testing whether that settle "
+                    "time itself matters, not just the retry count)\n");
+            sleep(3); /* settle time between cycles -- was 300ms, testing
+                       * a much longer gap given 300ms didn't work */
         }
     }
 }
