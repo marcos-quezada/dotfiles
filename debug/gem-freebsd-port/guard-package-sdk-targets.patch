@@ -1,0 +1,23 @@
+diff --git i/CMakeLists.txt w/CMakeLists.txt
+index 55a452c..fa33e60 100644
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -94,6 +94,13 @@ set(GEMIX_LIB ${GEMIX_ROOT}/lib)
+ set(GEMIX_INCLUDE ${GEMIX_ROOT}/include)
+ set(GEMIX_SHARE ${GEMIX_ROOT}/share/gem)
+ 
++# gemix_package assembles the Linux-specific gemix deployment tree and
++# gem_sdk's library list bundles every platform's library (platform_linux
++# included) -- both reference platform_linux directly and only make sense
++# when it was actually built. Guarded rather than fixed to reference a
++# platform-generic target: a real FreeBSD packaging/SDK-export story is
++# deferred, out of scope for getting the native backend itself building.
++if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+ add_custom_target(gemix_package
+     COMMAND ${CMAKE_COMMAND} -E remove_directory ${GEMIX_ROOT}
+     COMMAND ${CMAKE_COMMAND} -E make_directory ${GEMIX_BIN}
+@@ -165,3 +172,4 @@ add_custom_target(gem_sdk
+         gem_runtime_cursors gem_runtime_alert_icons resgen
+     COMMENT "Exporting the public GEM SDK"
+     VERBATIM)
++endif()
