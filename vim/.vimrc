@@ -36,8 +36,8 @@ set smarttab                           " backspace over indent in multiples of s
 
 " ── editing ───────────────────────────────────────────────────────────────────
 set backspace=indent,eol,start         " backspace works across indent, line breaks, and insert start
+set nofoldenable                       " folding was slow (syntax-based) and added nothing useful; never fold
 set path+=**                           " recursive file search (powers :find)
-set foldmethod=syntax                  " fold blocks using language syntax rules
 set completeopt=menu,menuone,noinsert  " autocomplete: show menu, don't auto-insert
 set mouse=                             " disable mouse (keep terminal copy/paste behaviour)
 
