@@ -1,7 +1,14 @@
 # terminal-agnostic color config — works on both light (foot/gameboy) and dark (VT) backgrounds
-# uses only bold/reverse/dim/italic — no named colors or ANSI slots
-# reverse swaps fg↔bg regardless of palette: dark block on light bg, light block on dark bg
-# bold increases weight on both: heavier dark text on light, brighter text on dark
+# was attribute-only (bold/reverse/dim/italic, no named colors) everywhere at first, on the
+# reasoning that reverse swaps fg↔bg regardless of palette (dark block on light bg, light block
+# on dark bg) and bold increases weight on both. Revised after a real, screenshot-driven review:
+# bold-only differentiation is too weak once two things need telling apart (e.g. diff added vs.
+# context lines rendered nearly identically). foot's gameboy palette (foot.ini) only has ONE
+# genuinely distinct hue available at all — the "red" ANSI slot, deliberately set to a warm
+# brown (8b530f) specifically for this — every other slot (green/blue/magenta/cyan) maps to the
+# same medium-dark green (306230), and yellow is barely distinguishable from the background.
+# So: red is now used deliberately, exactly once per concern, wherever attributes alone weren't
+# enough — never as a general-purpose accent, since there's only the one real option.
 
 [color]
     ui = true
@@ -34,9 +41,28 @@
     frag = dim
     # context lines: plain, no decoration
     context = normal
-    # removed: bold reverse — dark block, the most visually heavy treatment available
-    old = bold reverse
-    # added: bold — heavier than context but not a full block
-    new = bold
+    # removed: red (the one reserved accent) + bold reverse — a brown block, unmistakably
+    # different from every other block in the diff, not just heavier
+    old = red bold reverse
+    # added: bold reverse, no color — same visual weight/treatment as removed (a block, not
+    # just bold text), differentiated from it by hue (green-toned block vs. brown block)
+    # rather than by weight alone. confirmed via screenshot: bold-only was too close to
+    # context lines to tell apart at a glance
+    new = bold reverse
     # function/hunk header: italic to distinguish from content
     func = italic
+
+[color "commit"]
+    # the commit hash itself: red bold. git's own default (yellow) is a shade very close
+    # to the gameboy background (8bac0f vs 9bbc0f, near-invisible) — confirmed unreadable
+    # via screenshot on "lol"/"ll" (bare --decorate/--oneline, no custom format, so they
+    # inherit this default rather than lool's own hardcoded %C tokens)
+    commit = red bold
+
+[color "decorate"]
+    # ref names shown by --decorate (used by "lol"/"ll"). attribute-only is enough here —
+    # these aren't competing with diff content for attention the way added/removed lines are
+    HEAD = bold reverse
+    branch = bold
+    remoteBranch = dim
+    tag = italic
