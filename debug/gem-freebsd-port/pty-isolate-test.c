@@ -19,6 +19,15 @@ int main(void)
     char *slave_name;
     pid_t pid;
 
+    master_fd = posix_openpt(O_RDWR | O_NOCTTY);
+    if (master_fd < 0) {
+        fprintf(stderr, "posix_openpt(O_RDWR|O_NOCTTY) failed: %s (errno=%d)\n",
+                strerror(errno), errno);
+    } else {
+        fprintf(stderr, "posix_openpt(O_RDWR|O_NOCTTY) OK, fd=%d\n", master_fd);
+        close(master_fd);
+    }
+
     master_fd = posix_openpt(O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (master_fd < 0) {
         fprintf(stderr, "posix_openpt failed: %s (errno=%d)\n",
