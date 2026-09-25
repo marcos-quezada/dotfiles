@@ -14,17 +14,47 @@
 # ---------------------------------------------------------------------------
 
 PROGNAME="${0##*/}"
-VERSION="0.1"
+VERSION="0.2"
 
 GEMD_PID=""
+GEMD_BIRTH=""
+
+# gem-launch polish: FreeBSD has no /proc by default, so unlike
+# tools/scripts/sample_session.py's /proc/{pid}/stat-based "birth
+# identity" check (guards against a dead PID being reused by an
+# unrelated process before we notice), use ps(1)'s process start time
+# instead -- same idea, portable to this platform.
+birth_of() {
+    ps -o lstart= -p "$1" 2>/dev/null
+}
+
+# still the same process, not a PID-reuse false positive
+still_alive() {
+    pid="$1"
+    expected_birth="$2"
+    kill -0 "$pid" 2>/dev/null && [ "$(birth_of "$pid")" = "$expected_birth" ]
+}
 
 clean_up() { # perform pre-exit housekeeping
-    if [ -n "$GEMD_PID" ] && kill -0 "$GEMD_PID" 2>/dev/null; then
-        # graceful shutdown only -- gem-freebsd-libseat confirmed a
+    if [ -n "$GEMD_PID" ] && still_alive "$GEMD_PID" "$GEMD_BIRTH"; then
+        # graceful shutdown first -- gem-freebsd-libseat confirmed a
         # SIGKILL'd gemd can leave the console keyboard stuck in raw
         # mode (still under investigation); a plain TERM lets gemd_stop()
         # run gemd_shutdown()/gem_freebsd_seat_shutdown() normally.
         kill -TERM "$GEMD_PID" 2>/dev/null
+        waited=0
+        while still_alive "$GEMD_PID" "$GEMD_BIRTH" && [ "$waited" -lt 50 ]; do
+            sleep 0.1
+            waited=$((waited + 1))
+        done
+        # bounded fallback, matching sample_session.py's graceful-then-
+        # forceful pattern -- only reached if gemd genuinely hung and
+        # never responded to TERM within 5s, not the routine path
+        if still_alive "$GEMD_PID" "$GEMD_BIRTH"; then
+            printf '%s: gemd did not exit within 5s of TERM, sending KILL\n' \
+                "$PROGNAME" >&2
+            kill -KILL "$GEMD_PID" 2>/dev/null
+        fi
     fi
     return
 }
@@ -149,9 +179,23 @@ while [ ! -S "$sock" ]; do
     sleep 0.1
     waited=$((waited + 1))
 done
+GEMD_BIRTH=$(birth_of "$GEMD_PID")
 
 "$app_bin" "$@" > "$app_log" 2>&1 &
 app_pid=$!
+
+# confirm the app actually stays up, rather than trusting a successful
+# fork/exec alone -- matches sample_session.py's own
+# "raise if the process already exited during startup" checks. This
+# script has no external, file-based way to confirm real rendered
+# content the way sample_session.py's framebuffer-byte-diversity check
+# does (our native DRM/KMS backend writes directly to the kernel, not a
+# file we can poll) -- a short liveness grace period is the closest
+# equivalent available here.
+sleep 0.5
+if ! kill -0 "$app_pid" 2>/dev/null; then
+    error_exit "$app exited immediately after starting -- check $app_log"
+fi
 
 # wait on the client app, not gemd -- gemd is meant to keep running for
 # as long as any client might connect; this script's job ends once the
