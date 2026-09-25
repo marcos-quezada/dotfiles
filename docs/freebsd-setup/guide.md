@@ -1026,6 +1026,13 @@ fast for this touchpad's raw coordinate density). Run `gem-launch
   keeps the cursor stable during a normal click+move gesture, but
   deliberately unrealistic rapid multi-finger tapping can still produce
   some erratic movement. Not encountered during normal use.
+- **`terminal`'s VDI text rendering only supports GEM's classic
+  bitmap/Atari charset**, confirmed via `vst_font(vdi_handle, ATARI)` in
+  `src/apps/terminal/main.c` — not a full Unicode-capable renderer.
+  Nerd Font/powerline glyphs (private-use-area Unicode code points) in
+  a normal shell prompt will not render; use a plain-ASCII prompt
+  fallback inside GEM's terminal rather than expecting a Nerd-Font-based
+  prompt to work there.
 
 ---
 

@@ -143,6 +143,13 @@ real newbus device).
   keyboard has been observed stuck in a raw/scancode mode (every
   keystroke prefixed with an ESC character) until switching to a
   different VT and back. Root cause not yet confirmed.
+- **`terminal`'s VDI text rendering only supports GEM's classic
+  bitmap/Atari charset**, confirmed via `vst_font(vdi_handle, ATARI)` in
+  `src/apps/terminal/main.c` -- not a full Unicode-capable renderer.
+  Nerd Font/powerline glyphs (private-use-area Unicode code points) in
+  a normal shell prompt will not render; use a plain-ASCII prompt
+  fallback inside GEM's terminal rather than expecting a Nerd-Font-based
+  prompt to work there.
 
 ## Launching: `gem-launch`
 
