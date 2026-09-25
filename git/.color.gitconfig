@@ -60,9 +60,9 @@
     commit = red bold
 
 [color "decorate"]
-    # ref names shown by --decorate (used by "lol"/"ll"). attribute-only is enough here —
-    # these aren't competing with diff content for attention the way added/removed lines are
-    HEAD = bold reverse
+    # ref names shown by --decorate. attribute-only is enough here — these aren't competing
+    # with diff content for attention the way added/removed lines are
+    HEAD = bold
     branch = bold
     remoteBranch = dim
     tag = italic
