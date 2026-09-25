@@ -964,6 +964,71 @@ convenience isn't worth the risk here.
 
 ---
 
+## 17. GEM Desktop — native FreeBSD backend
+
+[GEM](https://github.com/triglav-os/gem) is a from-scratch Atari GEM-
+compatible desktop, ported to a native FreeBSD DRM/KMS + evdev backend
+(`gem-freebsd-port`, `gem-freebsd-libseat`, `gem-freebsd-touchpad-relmode`,
+`gem-freebsd-touchpad-mtslots`) against a fork of `triglav-os/gem`
+(`marcos-quezada/gem`, branch `freebsd-platform-port`). The canonical,
+detailed reference lives in the fork itself:
+[`docs/guides/GEMIX_FREEBSD.md`](https://github.com/marcos-quezada/gem/blob/freebsd-platform-port/docs/guides/GEMIX_FREEBSD.md)
+— build instructions, every `GEM_FREEBSD_*` env var, the confirmed
+hardware-specific `devctl` power-cycle quirk, keyboard shortcuts, and
+known limitations. This section covers only what's specific to this
+machine/dotfiles setup.
+
+### Prerequisite — `seatd`
+
+```sh
+doas pkg install seatd
+doas sysrc seatd_enable=YES
+doas service seatd start
+```
+
+Non-root operation depends on this — confirmed: FreeBSD's `evdev(4)`
+hardcodes new `/dev/input/event*` nodes to `uid=root, gid=wheel,
+mode=0600` (group bits are all-zero, so `wheel` membership alone grants
+nothing), and `libseat`/`seatd` (not `devfs.rules`) is the real,
+Handbook-documented mechanism for non-root access.
+
+### Launching — `gem-launch`
+
+```sh
+gem-launch -r ~/git/gem --all
+```
+
+A POSIX `sh` script (`bin/.local/bin/gem-launch` in this repo) that
+starts `gemd`, polls for its RPC socket (rather than a fixed sleep,
+since startup time varies — the `devctl` power-cycle workaround alone
+can take several real seconds), launches one or more client apps
+(`--all` for the full bundled set: `desktop`, `calc`, `clock`,
+`terminal`), and stops `gemd` gracefully (`SIGTERM`, not `SIGKILL` — a
+forceful kill has been observed leaving the console keyboard stuck in a
+raw/scancode mode until switching VTs and back) when the primary app
+exits. Defaults `GEM_FREEBSD_TOUCHPAD_RELATIVE=1` and
+`GEM_FREEBSD_MOUSE_SCALE=1` — the confirmed-working touchpad
+configuration for this specific laptop's clickpad (a fingerprint reader
+embedded in the sensing surface makes absolute position mapping unable
+to reach part of the screen; the default relative-motion scale is too
+fast for this touchpad's raw coordinate density). Run `gem-launch
+--help` for the full option list.
+
+### Known limitations, specific to this machine
+
+- **Keyboard layout is fixed to US**, regardless of this console's
+  configured DE layout — a genuine, cross-platform limitation in GEM's
+  own `keymap.c` (hardcoded scancode-to-ASCII table, no OS-level layout
+  translation), not something this project's own setup can currently
+  fix. See `GEMIX_FREEBSD.md` for the confirmed root cause.
+- **A clickpad's physical button press registers as a second,
+  simultaneous touch** — real MT-slot tracking (already implemented)
+  keeps the cursor stable during a normal click+move gesture, but
+  deliberately unrealistic rapid multi-finger tapping can still produce
+  some erratic movement. Not encountered during normal use.
+
+---
+
 ## References
 
 - [FreeBSD Handbook — Graphics (DRM/KMS)](https://docs.freebsd.org/en/books/handbook/x11/)
