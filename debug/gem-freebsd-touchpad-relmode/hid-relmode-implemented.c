@@ -344,16 +344,27 @@ static int translate_button(freebsd_hid_device_t *device,
         return 0;
     }
     if (input->code == BTN_TOUCH) {
-        fprintf(stderr,
-                "[touchpad-relmode-debug] BTN_TOUCH %s\n",
-                input->value != 0 ? "PRESS (touch down)"
-                                  : "RELEASE (lift)");
         if (input->value == 0) {
             /* gem-freebsd-touchpad-relmode: a fresh touch-down after
              * this reset is treated as a new origin, not a jump against
              * a stale, pre-lift position -- see translate_pointer(). */
             device->have_raw_origin_x = 0;
             device->have_raw_origin_y = 0;
+        }
+        /*
+         * BTN_TOUCH doubles as "finger is on the pad" and, by tap-to-
+         * click convention, "left button pressed". That's fine in
+         * absolute mode (one touch-down = one intended click), but in
+         * relative mode a single cursor movement often needs multiple
+         * lift+reposition cycles, and each fresh touch-down would
+         * otherwise re-fire as a button press mid-gesture (confirmed on
+         * real hardware: touching down near a window border and moving
+         * away dragged the window unintentionally). Suppress tap-to-
+         * click specifically in relative mode -- physical buttons
+         * (BTN_LEFT etc., a separate evdev code) are unaffected.
+         */
+        if (option_enabled("GEM_FREEBSD_TOUCHPAD_RELATIVE")) {
+            return 0;
         }
     }
     if (input->value != 0) {
