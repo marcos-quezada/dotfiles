@@ -45,7 +45,7 @@ typedef struct freebsd_hid_device {
     struct input_absinfo abs_y;
     int has_abs_x;
     int has_abs_y;
-    /* gem-freebsd-touchpad-relmode: last raw ABS_*/ABS_MT_POSITION_*
+    /* gem-freebsd-touchpad-relmode: last raw ABS_X/Y or ABS_MT_POSITION_X/Y
      * reading and whether it's a valid tracking origin (reset on
      * BTN_TOUCH release) -- only used when GEM_FREEBSD_TOUCHPAD_RELATIVE
      * is set; independent per-axis, matching has_abs_x/has_abs_y already
