@@ -141,6 +141,10 @@ help_message() {
 	gemd's own output is redirected to \${TMPDIR:-/tmp}/gemd.log, and each
 	client app's to \${TMPDIR:-/tmp}/gem-launch-NAME.log, so all are
 	inspectable without needing a separate terminal.
+
+	Defaults GEM_FREEBSD_TOUCHPAD_RELATIVE=1 and GEM_FREEBSD_MOUSE_SCALE=1
+	(confirmed-working touchpad settings for this hardware) unless already
+	set in the environment.
 	_EOF_
 }
 
@@ -197,6 +201,16 @@ done
 
 GEM_RESOURCE_DIR="$repo/bin/resources"
 export GEM_RESOURCE_DIR
+
+# confirmed-working touchpad configuration for this hardware
+# (gem-freebsd-touchpad-relmode/-mtslots): absolute mapping can't reach
+# part of the screen (fingerprint reader on the sensing surface), and
+# the default relative-motion scale is too fast for this touchpad's raw
+# coordinate density. Defaults only -- respect an already-exported value
+# so this can still be overridden per-invocation.
+: "${GEM_FREEBSD_TOUCHPAD_RELATIVE:=1}"
+: "${GEM_FREEBSD_MOUSE_SCALE:=1}"
+export GEM_FREEBSD_TOUCHPAD_RELATIVE GEM_FREEBSD_MOUSE_SCALE
 
 sock="${GEMD_SOCKET:-/tmp/gemd.sock}"
 if [ -S "$sock" ]; then
