@@ -38,6 +38,7 @@ enum {
 typedef struct freebsd_hid_device {
     int fd;
     int device_id;
+    char path[256];
     int has_keyboard;
     int has_pointer;
     struct input_absinfo abs_x;
@@ -134,6 +135,7 @@ static int add_device(const char *path)
     memset(device, 0, sizeof(*device));
     device->fd = fd;
     device->device_id = device_id;
+    (void)snprintf(device->path, sizeof(device->path), "%s", path);
     device->has_keyboard = bit_is_set(event_bits, EV_KEY) &&
                            bit_is_set(key_bits, KEY_A) &&
                            bit_is_set(key_bits, KEY_ENTER);
@@ -402,6 +404,56 @@ static int translate_event(freebsd_hid_device_t *device, gem_hid_event_t *event,
     return 0;
 }
 
+/*
+ * gem-freebsd-libseat: narrower disable/enable pair used on
+ * disable_seat/enable_seat (e.g. a VT switch away/back). Unlike
+ * close_devices()/gem_hid_init(), this does NOT re-scan /dev/input or
+ * touch g_device_count/calibration state -- it closes and reopens
+ * exactly the same devices already discovered, using each device's own
+ * remembered path.
+ */
+static void freebsd_hid_seat_disable(void)
+{
+    size_t index;
+
+    for (index = 0u; index < g_device_count; ++index) {
+        if (g_devices[index].fd < 0) {
+            continue;
+        }
+        if (option_enabled("GEM_FREEBSD_GRAB")) {
+            (void)ioctl(g_devices[index].fd, EVIOCGRAB, 0);
+        }
+        gem_freebsd_seat_close_device(g_devices[index].device_id);
+        g_devices[index].fd = -1;
+        g_devices[index].device_id = -1;
+    }
+}
+
+static void freebsd_hid_seat_enable(void)
+{
+    size_t index;
+
+    for (index = 0u; index < g_device_count; ++index) {
+        int fd;
+        int device_id;
+
+        if (g_devices[index].fd >= 0 || g_devices[index].path[0] == '\0') {
+            continue; /* already open, or never had a real path (shouldn't
+                       * happen for anything counted in g_device_count) */
+        }
+        device_id = gem_freebsd_seat_open_device(g_devices[index].path, &fd);
+        if (device_id < 0) {
+            continue; /* leave fd=-1; gem_hid_poll's read loop tolerates a
+                       * closed fd (read() just fails, no crash) */
+        }
+        g_devices[index].fd = fd;
+        g_devices[index].device_id = device_id;
+        if (option_enabled("GEM_FREEBSD_GRAB")) {
+            (void)ioctl(fd, EVIOCGRAB, 1);
+        }
+    }
+}
+
 int gem_hid_init(void)
 {
     const char *paths = getenv("GEM_FREEBSD_INPUT");
@@ -464,6 +516,8 @@ int gem_hid_init(void)
     g_modifiers = 0u;
     g_caps_lock = 0;
     g_next_device = 0u;
+    gem_freebsd_seat_set_hid_hooks(freebsd_hid_seat_enable,
+                                  freebsd_hid_seat_disable);
     return g_device_count != 0u;
 }
 
