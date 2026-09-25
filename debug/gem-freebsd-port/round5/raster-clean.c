@@ -73,6 +73,22 @@ static int g_drm_fd = -1;
 static uint32_t g_connector_id;
 static drmModeCrtcPtr g_saved_crtc;
 static int g_power_cycled_after_first_content;
+static struct timespec g_init_time;
+static int g_have_init_time;
+
+static long elapsed_ms_since_init(void)
+{
+    struct timespec now;
+
+    if (!g_have_init_time) {
+        return 0;
+    }
+    if (clock_gettime(CLOCK_MONOTONIC, &now) != 0) {
+        return 0;
+    }
+    return (long)(now.tv_sec - g_init_time.tv_sec) * 1000L +
+           (now.tv_nsec - g_init_time.tv_nsec) / 1000000L;
+}
 
 static const char *drm_device_path(void)
 {
@@ -304,6 +320,7 @@ int gem_raster_init(uint16_t width, uint16_t height, gem_raster_format_t format)
     g_surface.pitch = (uint16_t)pitch;
     g_surface.format = format;
     ok = 1;
+    g_have_init_time = (clock_gettime(CLOCK_MONOTONIC, &g_init_time) == 0);
 
 fail:
     if (enc != NULL) {
@@ -334,6 +351,7 @@ void gem_raster_shutdown(void)
     memset(&g_surface, 0, sizeof(g_surface));
     g_dumb_pitch = 0u;
     g_power_cycled_after_first_content = 0;
+    g_have_init_time = 0;
 }
 
 gem_raster_surface_t *gem_raster_surface(void)
@@ -395,10 +413,22 @@ void gem_raster_present_rect(int x, int y, int width, int height)
      * Deferred, one-time power-cycle: confirmed only reliable once real
      * content has already been drawn and AES has had a chance to finish
      * its real startup drawing (call #1, or even the very first write,
-     * was confirmed NOT sufficient). Deferred to call #30 as an
-     * empirically-confirmed threshold.
+     * was confirmed NOT sufficient). Empirically confirmed via a
+     * `clock`-app test that call #30 is a safe, reliable trigger point
+     * -- but a bare `desktop` (no focused client app) was confirmed to
+     * never generate that much drawing activity on its own, so a
+     * call-count-only trigger would never fire at all in that case.
+     * Add a time-based fallback: once at least a handful of real writes
+     * have happened (so we know real content exists, not just the
+     * initial blank/background fill) AND a couple of seconds have
+     * passed since init, cycle anyway -- whichever condition is met
+     * first. Both thresholds are deliberately conservative, matching
+     * the empirically-confirmed "real content must already exist"
+     * requirement, not just "some time has passed".
      */
-    if (!g_power_cycled_after_first_content && call_count >= 30u) {
+    if (!g_power_cycled_after_first_content &&
+        (call_count >= 30u ||
+         (call_count >= 5u && elapsed_ms_since_init() >= 2000L))) {
         g_power_cycled_after_first_content = 1;
         power_cycle_gpu_device();
         gem_raster_present();
