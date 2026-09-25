@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <devctl.h>
@@ -174,7 +175,11 @@ static void power_cycle_gpu_device(void)
         if (devctl_suspend(device) != 0) {
             continue;
         }
-        usleep(300000);
+        {
+            struct timespec delay = {0, 300000000L};
+
+            nanosleep(&delay, NULL);
+        }
         if (devctl_resume(device) != 0) {
             continue;
         }

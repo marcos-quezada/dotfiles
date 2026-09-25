@@ -1,0 +1,5 @@
+--- a/src/apps/calculator/CMakeLists.txt
++++ b/src/apps/calculator/CMakeLists.txt
+@@
+-target_link_libraries(calc_gemd PRIVATE gem)
++target_link_libraries(calc_gemd PRIVATE gem m)
