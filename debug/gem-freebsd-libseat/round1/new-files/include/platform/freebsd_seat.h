@@ -37,6 +37,15 @@ int gem_freebsd_seat_open_device(const char *path, int *fd);
 void gem_freebsd_seat_close_device(int device_id);
 
 /*
+ * Requests a VT switch to the given session/VT number. Compositors using
+ * libseat are expected to recognize their own VT-switch hotkey (e.g.
+ * Ctrl+Alt+Fn) and call this explicitly -- the kernel/seatd do NOT
+ * intercept that combo on GEM's behalf the way old-style vt(4) console
+ * switching did. A no-op if the seat isn't open.
+ */
+int gem_freebsd_seat_switch_session(int session);
+
+/*
  * Registration hooks: raster.c/hid.c each register a pair of callbacks
  * called when the seat is enabled/disabled (typically: VT switch away
  * calls disable, back calls enable). Either pointer may be NULL if that

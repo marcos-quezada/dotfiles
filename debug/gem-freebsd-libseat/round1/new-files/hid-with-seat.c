@@ -278,6 +278,26 @@ static int translate_key(gem_hid_event_t *event,
         g_caps_lock = !g_caps_lock;
     }
 
+    /*
+     * VT-switch hotkey (gem-freebsd-libseat): under the real libseat
+     * architecture, seatd/the kernel do NOT intercept Ctrl+Alt+Fn on our
+     * behalf the way old-style vt(4) console switching did -- the
+     * compositor is expected to recognize the combo itself and request
+     * the switch explicitly via libseat_switch_session(). Confirmed via
+     * a real VT-switch test: without this, the keypress reached GEM's
+     * own keyboard translation as an ordinary keystroke and nothing else
+     * happened. Swallow the event here (don't dispatch it to AES as a
+     * normal keypress) once recognized.
+     */
+    if (pressed && input->code >= KEY_F1 && input->code <= KEY_F12 &&
+        (g_modifiers & (uint16_t)(gem_mod_ctrl | gem_mod_alt)) ==
+            (uint16_t)(gem_mod_ctrl | gem_mod_alt)) {
+        int vt = (int)(input->code - KEY_F1) + 1;
+
+        (void)gem_freebsd_seat_switch_session(vt);
+        return 0;
+    }
+
     memset(event, 0, sizeof(*event));
     event->type = GEM_HID_KEY;
     event->flags = (uint16_t)(pressed ? 1u : 0u);

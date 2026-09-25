@@ -109,6 +109,15 @@ void gem_freebsd_seat_close_device(int device_id)
     }
 }
 
+int gem_freebsd_seat_switch_session(int session)
+{
+    if (g_seat == NULL) {
+        errno = ENODEV;
+        return -1;
+    }
+    return libseat_switch_session(g_seat, session);
+}
+
 void gem_freebsd_seat_set_raster_hooks(void (*enable)(void),
                                        void (*disable)(void))
 {
