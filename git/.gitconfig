@@ -47,9 +47,9 @@
 	defaultBranch = main
 
 [alias]
-  lool = log --graph --color=always --date=short --pretty=tformat:"%C(red)%h%C(reset)%x20%s%C(bold)%d%C(reset)%x20[%an]"
-	lol = log --graph --date=short --all --pretty=format:"%C(red)%h%C(reset)%x20%s%C(bold)%d%C(reset)%x20[%an]" -1
-  ll = log --graph --date=short --all --pretty=format:"%C(red)%h%C(reset)%x20%s%C(bold)%d%C(reset)%x20[%an]" -10
+  lool = log --graph --color=always --date=short --pretty=tformat:"%C(brightred)%h%C(reset)%x20%s%C(bold)%d%C(reset)%x20[%an]"
+	lol = log --graph --date=short --all --pretty=format:"%C(brightred)%h%C(reset)%x20%s%C(bold)%d%C(reset)%x20[%an]" -1
+  ll = log --graph --date=short --all --pretty=format:"%C(brightred)%h%C(reset)%x20%s%C(bold)%d%C(reset)%x20[%an]" -10
   cfw = "!git-clone-bare-for-worktrees"
 
 [include]

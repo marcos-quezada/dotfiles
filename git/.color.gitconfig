@@ -7,8 +7,13 @@
 # genuinely distinct hue available at all — the "red" ANSI slot, deliberately set to a warm
 # brown (8b530f) specifically for this — every other slot (green/blue/magenta/cyan) maps to the
 # same medium-dark green (306230), and yellow is barely distinguishable from the background.
-# So: red is now used deliberately, exactly once per concern, wherever attributes alone weren't
-# enough — never as a general-purpose accent, since there's only the one real option.
+# So: brightred is now used deliberately, exactly once per concern, wherever attributes alone
+# weren't enough — never as a general-purpose accent, since there's only the one real option.
+# Confirmed via real screenshots on both terminals: plain "red" + bold rendered unreadably dark
+# on VT (VT apparently doesn't brighten bold-attributed colors the way some terminals do), so
+# brightred is used explicitly rather than relying on bold to reach the bright variant. foot's
+# own bright1/regular1 are identical (8b530f) in this custom palette, so this is a safe no-op
+# there.
 
 [color]
     ui = true
@@ -41,9 +46,9 @@
     frag = dim
     # context lines: plain, no decoration
     context = normal
-    # removed: red (the one reserved accent) + bold reverse — a brown block, unmistakably
-    # different from every other block in the diff, not just heavier
-    old = red bold reverse
+    # removed: brightred (the one reserved accent) + bold reverse — a brown block,
+    # unmistakably different from every other block in the diff, not just heavier
+    old = brightred bold reverse
     # added: bold reverse, no color — same visual weight/treatment as removed (a block, not
     # just bold text), differentiated from it by hue (green-toned block vs. brown block)
     # rather than by weight alone. confirmed via screenshot: bold-only was too close to
@@ -53,11 +58,11 @@
     func = italic
 
 [color "commit"]
-    # the commit hash itself: red bold. git's own default (yellow) is a shade very close
+    # the commit hash itself: brightred bold. git's own default (yellow) is a shade very close
     # to the gameboy background (8bac0f vs 9bbc0f, near-invisible) — confirmed unreadable
     # via screenshot on "lol"/"ll" (bare --decorate/--oneline, no custom format, so they
     # inherit this default rather than lool's own hardcoded %C tokens)
-    commit = red bold
+    commit = brightred bold
 
 [color "decorate"]
     # ref names shown by --decorate. attribute-only is enough here — these aren't competing
