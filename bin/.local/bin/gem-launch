@@ -1,23 +1,35 @@
 #!/bin/sh
 # ---------------------------------------------------------------------------
-# gem-launch - start gemd, wait for its RPC socket, then launch a GEM client
-#              (default: desktop), so gemd/desktop don't need to be started
-#              by hand in the right order every time (gem-freebsd-libseat)
+# gem-launch - start gemd, wait for its RPC socket, then launch one or more
+#              GEM client apps (default: desktop), so gemd/desktop don't
+#              need to be started by hand in the right order every time
+#              (gem-freebsd-libseat)
 #
 # Copyright 2026, Marcos Quezada Pérez <mquezada@auryn>
 # All rights reserved.
 #
-# Usage: gem-launch [-h|--help] [-r|--repo PATH] [-a|--app NAME] [-- ARGS...]
+# Usage: gem-launch [-h|--help] [-r|--repo PATH] [-a|--app NAME[,NAME...]]
+#                    [--all] [-- ARGS...]
 #
 # Revision history:
 # 2026-09-25  Created by new_script ver. 3.3-posix
+# 2026-09-26  Added multi-app / --all support, matching
+#             tools/scripts/sample_session.py's --apps flag
 # ---------------------------------------------------------------------------
 
 PROGNAME="${0##*/}"
-VERSION="0.2"
+VERSION="0.3"
+
+# bundled apps this project actually ships and expects to run standalone
+# (matches tools/scripts/sample_session.py's BUNDLED_APPS -- deliberately
+# NOT including its SAMPLE_APPS like gemscape/maestro/stout, which need
+# extra setup such as MSA extraction and aren't part of a normal desktop
+# session)
+BUNDLED_APPS="desktop calc clock terminal"
 
 GEMD_PID=""
 GEMD_BIRTH=""
+APP_PIDS=""
 
 # gem-launch polish: FreeBSD has no /proc by default, so unlike
 # tools/scripts/sample_session.py's /proc/{pid}/stat-based "birth
@@ -35,7 +47,16 @@ still_alive() {
     kill -0 "$pid" 2>/dev/null && [ "$(birth_of "$pid")" = "$expected_birth" ]
 }
 
+# terminate every still-running client app pid we launched, other than
+# the primary one (already exited by the time this is called)
+terminate_other_apps() {
+    for pid in $APP_PIDS; do
+        kill -0 "$pid" 2>/dev/null && kill -TERM "$pid" 2>/dev/null
+    done
+}
+
 clean_up() { # perform pre-exit housekeeping
+    terminate_other_apps
     if [ -n "$GEMD_PID" ] && still_alive "$GEMD_PID" "$GEMD_BIRTH"; then
         # graceful shutdown first -- gem-freebsd-libseat confirmed a
         # SIGKILL'd gemd can leave the console keyboard stuck in raw
@@ -80,13 +101,13 @@ signal_exit() { # handle trapped signals
 }
 
 usage() {
-    printf '%s\n' "gem-launch [-h|--help] [-r|--repo PATH] [-a|--app NAME] [-- ARGS...]"
+    printf '%s\n' "gem-launch [-h|--help] [-r|--repo PATH] [-a|--app NAME[,NAME...]] [--all] [-- ARGS...]"
 }
 
 help_message() {
     cat <<- _EOF_
 	$PROGNAME ver. $VERSION
-	start gemd, wait for its RPC socket, then launch a GEM client app
+	start gemd, wait for its RPC socket, then launch one or more GEM client apps
 
 	$(usage)
 
@@ -94,24 +115,31 @@ help_message() {
 
 	  -h, --help          Display this help message and exit.
 	  -r, --repo PATH      Path to the gem repo checkout (default: ~/git/gem).
-	  -a, --app NAME       Client app to launch after gemd is ready
-	                       (default: desktop). Must exist at
-	                       PATH/bin/apps/NAME.
+	  -a, --app NAME[,NAME...]
+	                       Client app(s) to launch after gemd is ready
+	                       (default: desktop). Repeatable, and/or
+	                       comma-separated. Each must exist at
+	                       PATH/bin/apps/NAME. The first one given is the
+	                       primary app -- once it exits, the others are
+	                       stopped and gemd shuts down.
+	  --all                Launch every bundled app ($BUNDLED_APPS).
+	                       Equivalent to -a with all of them listed.
 	  --                   Everything after this is passed through as
-	                       arguments to the client app.
+	                       arguments to the client app. Only valid when
+	                       exactly one app is being launched.
 
 	Sequencing only -- does NOT do anything seat/privilege-specific
 	itself. gemd is expected to already handle libseat_open_seat()
 	internally (gem-freebsd-libseat); this script's only job is making
-	sure gemd is actually listening before the client app tries to
+	sure gemd is actually listening before any client app tries to
 	connect, and stopping gemd gracefully (SIGTERM, not SIGKILL) on
 	exit.
 
 	Run as a normal, non-root user with seatd already running
 	(sysrc seatd_enable=YES; service seatd start).
 
-	gemd's own output is redirected to \${TMPDIR:-/tmp}/gemd.log, and the
-	client app's to \${TMPDIR:-/tmp}/gem-launch-NAME.log, so both are
+	gemd's own output is redirected to \${TMPDIR:-/tmp}/gemd.log, and each
+	client app's to \${TMPDIR:-/tmp}/gem-launch-NAME.log, so all are
 	inspectable without needing a separate terminal.
 	_EOF_
 }
@@ -124,12 +152,18 @@ trap "signal_exit INT"  INT
 
 # parse command-line
 repo="$HOME/git/gem"
-app="desktop"
+apps=""
 while [ -n "${1:-}" ]; do
     case "$1" in
         -h | --help) help_message; graceful_exit ;;
         -r | --repo) shift; repo="$1" ;;
-        -a | --app) shift; app="$1" ;;
+        -a | --app)
+            shift
+            for name in $(printf '%s' "$1" | tr ',' ' '); do
+                apps="$apps $name"
+            done
+            ;;
+        --all) apps="$apps $BUNDLED_APPS" ;;
         --) shift; break ;;
         -*)
             usage
@@ -140,14 +174,26 @@ while [ -n "${1:-}" ]; do
     esac
     shift
 done
+apps="${apps# }"
+[ -n "$apps" ] || apps="desktop"
+
+app_count=0
+for name in $apps; do
+    app_count=$((app_count + 1))
+done
+if [ "$app_count" -gt 1 ] && [ "$#" -gt 0 ]; then
+    error_exit "extra arguments after -- are ambiguous with multiple apps ($apps)"
+fi
 
 # main logic
 
 [ -d "$repo" ] || error_exit "repo not found: $repo (use -r/--repo)"
 gemd_bin="$repo/bin/core/gemd"
-app_bin="$repo/bin/apps/$app"
 [ -x "$gemd_bin" ] || error_exit "not found or not executable: $gemd_bin"
-[ -x "$app_bin" ] || error_exit "not found or not executable: $app_bin"
+for name in $apps; do
+    app_bin="$repo/bin/apps/$name"
+    [ -x "$app_bin" ] || error_exit "not found or not executable: $app_bin"
+done
 
 GEM_RESOURCE_DIR="$repo/bin/resources"
 export GEM_RESOURCE_DIR
@@ -160,7 +206,6 @@ fi
 
 log_dir="${TMPDIR:-/tmp}"
 gemd_log="$log_dir/gemd.log"
-app_log="$log_dir/gem-launch-$app.log"
 
 "$gemd_bin" > "$gemd_log" 2>&1 &
 GEMD_PID=$!
@@ -181,24 +226,45 @@ while [ ! -S "$sock" ]; do
 done
 GEMD_BIRTH=$(birth_of "$GEMD_PID")
 
-"$app_bin" "$@" > "$app_log" 2>&1 &
-app_pid=$!
+primary_pid=""
+primary_app=""
+for name in $apps; do
+    app_bin="$repo/bin/apps/$name"
+    app_log="$log_dir/gem-launch-$name.log"
+    if [ -z "$primary_pid" ]; then
+        "$app_bin" "$@" > "$app_log" 2>&1 &
+    else
+        "$app_bin" > "$app_log" 2>&1 &
+    fi
+    pid=$!
 
-# confirm the app actually stays up, rather than trusting a successful
-# fork/exec alone -- matches sample_session.py's own
-# "raise if the process already exited during startup" checks. This
-# script has no external, file-based way to confirm real rendered
-# content the way sample_session.py's framebuffer-byte-diversity check
-# does (our native DRM/KMS backend writes directly to the kernel, not a
-# file we can poll) -- a short liveness grace period is the closest
-# equivalent available here.
-sleep 0.5
-if ! kill -0 "$app_pid" 2>/dev/null; then
-    error_exit "$app exited immediately after starting -- check $app_log"
-fi
+    # confirm the app actually stays up, rather than trusting a
+    # successful fork/exec alone -- matches sample_session.py's own
+    # "raise if the process already exited during startup" checks. This
+    # script has no external, file-based way to confirm real rendered
+    # content the way sample_session.py's framebuffer-byte-diversity
+    # check does (our native DRM/KMS backend writes directly to the
+    # kernel, not a file we can poll) -- a short liveness grace period
+    # is the closest equivalent available here.
+    sleep 0.5
+    if ! kill -0 "$pid" 2>/dev/null; then
+        error_exit "$name exited immediately after starting -- check $app_log"
+    fi
 
-# wait on the client app, not gemd -- gemd is meant to keep running for
-# as long as any client might connect; this script's job ends once the
-# app it launched exits.
-wait "$app_pid"
+    if [ -z "$primary_pid" ]; then
+        primary_pid="$pid"
+        primary_app="$name"
+    else
+        APP_PIDS="$APP_PIDS $pid"
+    fi
+done
+
+printf '%s: primary app is %s (pid %s); waiting for it to exit\n' \
+    "$PROGNAME" "$primary_app" "$primary_pid" >&2
+
+# wait on the primary app (the first one given, or "desktop" by
+# default), not gemd -- gemd is meant to keep running for as long as any
+# client might connect. Once the primary app exits, clean_up() stops any
+# other launched apps and then gemd.
+wait "$primary_pid"
 graceful_exit
