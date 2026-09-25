@@ -409,7 +409,7 @@ static int translate_pointer(freebsd_hid_device_t *device, gem_hid_event_t *even
      * the clickpad button while moving genuinely introduces a second MT
      * slot (ABS_MT_SLOT/ABS_MT_TRACKING_ID), rather than assuming it.
      */
-    if (input->type == EV_ABS && mt_trace_count < 400u) {
+    if (input->type == EV_ABS && mt_trace_count < 4000u) {
         const char *name = "?";
 
         if (input->code == ABS_MT_SLOT) {
