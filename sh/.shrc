@@ -17,7 +17,17 @@ bind ^[[6~ ed-move-to-end
 # ── prompt ────────────────────────────────────────────────────────────────────
 # ♥ (U+2665) and › (U+203A) are in ttyp0's coverage — safe on both VT and foot.
 # U+2764 (❤ heavy black heart) and U+276F (❯ ornament) are dingbats — not covered.
-PS1="ℵ₀:\h:\w ♥ › \\$ "
+# GEM's terminal (gem-freebsd-port) only renders its own classic Atari
+# bitmap charset — no Unicode at all, confirmed via its own
+# vst_font(vdi_handle, ATARI) call. It spawns its shell with TERM=vt100
+# specifically (confirmed via lib/platform/rasta/pty.c), a value this
+# machine's real VT/SSH sessions never use — a safe, distinctive signal
+# for a plain-ASCII fallback prompt.
+if [ "$TERM" = "vt100" ]; then
+    PS1="\h:\w \\$ "
+else
+    PS1="ℵ₀:\h:\w ♥ › \\$ "
+fi
 
 # ── aliases ───────────────────────────────────────────────────────────────────
 alias h='fc -l'
