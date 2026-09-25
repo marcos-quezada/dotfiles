@@ -1,0 +1,152 @@
+#!/bin/sh
+# ---------------------------------------------------------------------------
+# gem-launch - start gemd, wait for its RPC socket, then launch a GEM client
+#              (default: desktop), so gemd/desktop don't need to be started
+#              by hand in the right order every time (gem-freebsd-libseat)
+#
+# Copyright 2026, Marcos Quezada Pérez <mquezada@auryn>
+# All rights reserved.
+#
+# Usage: gem-launch [-h|--help] [-r|--repo PATH] [-a|--app NAME] [-- ARGS...]
+#
+# Revision history:
+# 2026-09-25  Created by new_script ver. 3.3-posix
+# ---------------------------------------------------------------------------
+
+PROGNAME="${0##*/}"
+VERSION="0.1"
+
+GEMD_PID=""
+
+clean_up() { # perform pre-exit housekeeping
+    if [ -n "$GEMD_PID" ] && kill -0 "$GEMD_PID" 2>/dev/null; then
+        # graceful shutdown only -- gem-freebsd-libseat confirmed a
+        # SIGKILL'd gemd can leave the console keyboard stuck in raw
+        # mode (still under investigation); a plain TERM lets gemd_stop()
+        # run gemd_shutdown()/gem_freebsd_seat_shutdown() normally.
+        kill -TERM "$GEMD_PID" 2>/dev/null
+    fi
+    return
+}
+
+error_exit() {
+    printf '%s: %s\n' "$PROGNAME" "${1:-unknown error}" >&2
+    clean_up
+    exit 1
+}
+
+graceful_exit() {
+    clean_up
+    exit 0
+}
+
+# shellcheck disable=SC2329  # called via trap string, not directly
+signal_exit() { # handle trapped signals
+    case "$1" in
+        INT)  error_exit "program interrupted by user" ;;
+        TERM) printf '\n%s: program terminated\n' "$PROGNAME" >&2; graceful_exit ;;
+        *)    error_exit "terminating on unknown signal" ;;
+    esac
+}
+
+usage() {
+    printf '%s\n' "gem-launch [-h|--help] [-r|--repo PATH] [-a|--app NAME] [-- ARGS...]"
+}
+
+help_message() {
+    cat <<- _EOF_
+	$PROGNAME ver. $VERSION
+	start gemd, wait for its RPC socket, then launch a GEM client app
+
+	$(usage)
+
+	Options:
+
+	  -h, --help          Display this help message and exit.
+	  -r, --repo PATH      Path to the gem repo checkout (default: ~/git/gem).
+	  -a, --app NAME       Client app to launch after gemd is ready
+	                       (default: desktop). Must exist at
+	                       PATH/bin/apps/NAME.
+	  --                   Everything after this is passed through as
+	                       arguments to the client app.
+
+	Sequencing only -- does NOT do anything seat/privilege-specific
+	itself. gemd is expected to already handle libseat_open_seat()
+	internally (gem-freebsd-libseat); this script's only job is making
+	sure gemd is actually listening before the client app tries to
+	connect, and stopping gemd gracefully (SIGTERM, not SIGKILL) on
+	exit.
+
+	Run as a normal, non-root user with seatd already running
+	(sysrc seatd_enable=YES; service seatd start).
+	_EOF_
+}
+
+# trap signals
+trap "signal_exit TERM" TERM HUP
+trap "signal_exit INT"  INT
+
+
+
+# parse command-line
+repo="$HOME/git/gem"
+app="desktop"
+while [ -n "${1:-}" ]; do
+    case "$1" in
+        -h | --help) help_message; graceful_exit ;;
+        -r | --repo) shift; repo="$1" ;;
+        -a | --app) shift; app="$1" ;;
+        --) shift; break ;;
+        -*)
+            usage
+            error_exit "unknown option $1" ;;
+        *)
+            usage
+            error_exit "unexpected argument $1 (client args go after --)" ;;
+    esac
+    shift
+done
+
+# main logic
+
+[ -d "$repo" ] || error_exit "repo not found: $repo (use -r/--repo)"
+gemd_bin="$repo/bin/core/gemd"
+app_bin="$repo/bin/apps/$app"
+[ -x "$gemd_bin" ] || error_exit "not found or not executable: $gemd_bin"
+[ -x "$app_bin" ] || error_exit "not found or not executable: $app_bin"
+
+GEM_RESOURCE_DIR="$repo/bin/resources"
+export GEM_RESOURCE_DIR
+
+sock="${GEMD_SOCKET:-/tmp/gemd.sock}"
+if [ -S "$sock" ]; then
+    error_exit "$sock already exists -- is gemd already running? (rm it \
+first if you're sure it's stale)"
+fi
+
+"$gemd_bin" &
+GEMD_PID=$!
+
+# poll for the socket rather than a fixed sleep -- gemd's own startup
+# time can vary (e.g. the devctl power-cycle path in raster.c takes a
+# few real seconds on this hardware)
+waited=0
+while [ ! -S "$sock" ]; do
+    if ! kill -0 "$GEMD_PID" 2>/dev/null; then
+        error_exit "gemd exited before creating $sock -- check its output"
+    fi
+    if [ "$waited" -ge 100 ]; then
+        error_exit "timed out waiting for $sock after 10s"
+    fi
+    sleep 0.1
+    waited=$((waited + 1))
+done
+
+"$app_bin" "$@" &
+app_pid=$!
+
+# wait on the client app, not gemd -- gemd is meant to keep running for
+# as long as any client might connect; this script's job ends once the
+# app it launched exits.
+wait "$app_pid"
+graceful_exit
