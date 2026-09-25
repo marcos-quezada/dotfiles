@@ -79,6 +79,10 @@ help_message() {
 
 	Run as a normal, non-root user with seatd already running
 	(sysrc seatd_enable=YES; service seatd start).
+
+	gemd's own output is redirected to \${TMPDIR:-/tmp}/gemd.log, and the
+	client app's to \${TMPDIR:-/tmp}/gem-launch-NAME.log, so both are
+	inspectable without needing a separate terminal.
 	_EOF_
 }
 
@@ -124,7 +128,11 @@ if [ -S "$sock" ]; then
 first if you're sure it's stale)"
 fi
 
-"$gemd_bin" &
+log_dir="${TMPDIR:-/tmp}"
+gemd_log="$log_dir/gemd.log"
+app_log="$log_dir/gem-launch-$app.log"
+
+"$gemd_bin" > "$gemd_log" 2>&1 &
 GEMD_PID=$!
 
 # poll for the socket rather than a fixed sleep -- gemd's own startup
@@ -142,7 +150,7 @@ while [ ! -S "$sock" ]; do
     waited=$((waited + 1))
 done
 
-"$app_bin" "$@" &
+"$app_bin" "$@" > "$app_log" 2>&1 &
 app_pid=$!
 
 # wait on the client app, not gemd -- gemd is meant to keep running for
