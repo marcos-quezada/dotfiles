@@ -897,9 +897,15 @@ zig                 automount
 Root is ZFS (`zroot/ROOT/default`), so every package/OS upgrade has a real,
 cheap safety net via `bectl(8)` — confirmed available on this machine
 (`bectl list` returns a real table). This isn't optional insurance to skip
-when in a hurry: on package-based FreeBSD 15.x, `pkg upgrade` does **not**
-create a boot environment automatically the way 14's `freebsd-update` used
-to — it has to be a deliberate, remembered step every time.
+when in a hurry: a plain `pkg upgrade` does **not** create a boot
+environment automatically — it has to be a deliberate, remembered step
+every time. (Note: this machine's *base system* is managed via
+`freebsd-update`/Distribution Sets, confirmed via `pkg which
+/usr/bin/uname` reporting "not found in the database" — `pkg upgrade`
+here applies to ordinary packages and third-party kernel modules
+(`nvidia-kmod`, `drm-66-kmod`, etc.), not the base OS itself. See the
+point-release subsection below for the separate `freebsd-update` upgrade
+procedure.)
 
 ### Before any `pkg upgrade` (patch-level or point-release)
 
@@ -962,6 +968,44 @@ create` succeeds but `pkg upgrade` fails partway through? what if the
 reboot should NOT happen automatically because something looked wrong?) —
 same reasoning as this project's other boot-critical-file decisions:
 convenience isn't worth the risk here.
+
+### Point-release upgrades (`freebsd-update`) — validated 2026-09-27
+
+This machine's base system uses the **Distribution Sets** procedure (per
+[freebsd.org's official upgrading instructions](https://www.freebsd.org/releases/15.1R/upgrading/)),
+not the package-based one — confirmed via `pkg which /usr/bin/uname`
+reporting the binary isn't pkg-tracked. The official numbered steps:
+
+1. Apply all pending patches (`freebsd-update fetch && install`)
+2. Upgrade the kernel (`freebsd-update upgrade -r <version> && install`)
+3. Reboot into the new kernel
+4. Upgrade the userland (`freebsd-update install`, run again post-reboot)
+5. Remove old files (`freebsd-update install`, a **third**, separate run —
+   easy to forget since it looks identical to step 4)
+6. Upgrade the boot loader (UEFI on this hardware — confirmed via
+   `sysctl machdep.bootmethod`)
+
+**The real, non-obvious gotcha found during a real validation pass** (after
+the 15.1 upgrade): step 6's official instructions say to copy the new
+`/boot/loader.efi` to *both* `EFI/freebsd/loader.efi` and
+`EFI/BOOT/BOOTX64.EFI` on the ESP. But whether that actually matters
+depends on which one the firmware's NVRAM boot entry *actually* points to
+— checked via `efibootmgr -v`, not assumed from the doc's convention path.
+On this machine, the real active entry (`Boot0001*`, the current one) uses
+`EFI/BOOT/BOOTX64.EFI` specifically. That file was found stale (dated
+Jan 1 2018 — evidently untouched since original install) while
+`/boot/loader.efi` itself was current, confirmed via `cmp` before assuming
+either way. Fixed with a plain `doas cp /boot/loader.efi
+/boot/efi/EFI/BOOT/BOOTX64.EFI`, re-verified identical, then a normal
+reboot confirmed clean.
+
+**Lesson for next time**: `freebsd-update install`'s steps 4/5 are safely
+idempotent (running them again when already current just reports "No
+updates are available to install" — safe to always re-run if unsure), but
+step 6 is *not* self-verifying the same way. Always check the real active
+`efibootmgr -v` entry specifically, rather than assuming the doc's
+`EFI/freebsd/loader.efi` convention path is the one that matters on any
+given machine.
 
 ---
 
