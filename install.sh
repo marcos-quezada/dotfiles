@@ -350,6 +350,7 @@ if [ "$YES" = "0" ]; then
         prompt_yn "stow sh (.shrc + .profile)?" y && DO_SH=1 || DO_SH=0
         prompt_yn "stow foot (Wayland terminal emulator)?" y && DO_FOOT=1 || DO_FOOT=0
         prompt_yn "stow sway (window manager config)?" y && DO_SWAY=1 || DO_SWAY=0
+        prompt_yn "stow cursors (retrosmart win-ish XCursor themes)?" y && DO_CURSORS=1 || DO_CURSORS=0
         if prompt_yn "stow quickshell (sway statusbar — Wayland only)?" y; then
             DO_QUICKSHELL=1
         else
@@ -371,6 +372,7 @@ if [ "$YES" = "0" ]; then
         printf '\n  Linux packages:\n\n'
         prompt_yn "stow foot (Wayland terminal emulator)?" y && DO_FOOT=1 || DO_FOOT=0
         prompt_yn "stow sway (window manager config)?" y && DO_SWAY=1 || DO_SWAY=0
+        prompt_yn "stow cursors (retrosmart win-ish XCursor themes)?" y && DO_CURSORS=1 || DO_CURSORS=0
     else
         info "sh skipped — FreeBSD /bin/sh config only"
         info "foot skipped — Wayland terminal, FreeBSD/Linux only"
@@ -431,6 +433,7 @@ stow_root() {
 [ "$DO_SKETCHYBAR"  = "1" ] && stow_pkg sketchybar
 [ "$DO_FOOT"        = "1" ] && stow_pkg foot
 [ "$DO_SWAY"        = "1" ] && stow_pkg sway
+[ "$DO_CURSORS"     = "1" ] && stow_pkg cursors
 [ "$DO_THREATWATCH" = "1" ] && stow_pkg threatwatch
 [ "$DO_QUICKSHELL"  = "1" ] && stow_pkg quickshell
 [ "$DO_MPV"         = "1" ] && stow_pkg mpv

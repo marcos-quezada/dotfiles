@@ -1036,6 +1036,86 @@ fast for this touchpad's raw coordinate density). Run `gem-launch
 
 ---
 
+## 18. Cursor Theme — retrosmart win-ish (Win95-styled, retinted)
+
+Sway ships a native XCursor-theme directive; no `hyprcursor`-specific
+tooling is relevant here (that's Hyprland-only). Confirmed via sway's own
+docs (`sway-input.5.scd`):
+
+```
+seat <name> xcursor_theme <theme> [<size>]
+```
+
+This also auto-exports `XCURSOR_THEME`/`XCURSOR_SIZE` for XWayland apps —
+no separate env var wiring needed.
+
+### What's installed
+
+The `cursors` stow package (`cursors/.local/share/icons/retrosmart-*`)
+ships six real, pre-built XCursor themes based on
+[`useless-anvil/retrosmart-cursor`](https://github.com/useless-anvil/retrosmart-cursor)
+(GPLv3), `win-ish` style — flat-outlined Win95-shaped cursors (arrow, hand
+pointers, hourglass-slot shapes), chosen over the same project's heavier
+`win-3d` bevel-chrome style for a flatter, more modern-simplistic read
+while keeping the unmistakably Win95 cursor silhouettes.
+
+Each variant is retinted (real XCursor rebuild via `xcursorgen`, not a
+color filter) to match one of this project's palettes:
+
+| theme | outline | fill | source |
+|---|---|---|---|
+| `retrosmart-gameboy` | `#0f380f` | `#9bbc0f` | Game Boy DMG palette (matches `foot.ini`) |
+| `retrosmart-qs-default` | `#000000` | `#207874` | Quickshell `themeDefault` (`outline`/`accent`) |
+| `retrosmart-qs-yorha` | `#3d3d39` | `#626335` | Quickshell `themeYorha` |
+| `retrosmart-qs-cherry` | `#20091d` | `#c950bb` | Quickshell `themeCherry` |
+| `retrosmart-qs-indigo` | `#1a2135` | `#3e7c99` | Quickshell `themeIndigo` |
+| `retrosmart-qs-gleep` | `#21351a` | `#3e9949` | Quickshell `themeGleep` |
+
+Colors are pulled directly from each `ThemePalette` in
+`quickshell/.config/quickshell/Services/Config.qml` — the theme's own
+`outline` field for the cursor outline, `accent` for the fill — not
+invented separately. Only `retrosmart-qs-default` is wired into
+`sway/.config/sway/config` today (matching the currently active
+Quickshell theme, `default`); the other five sit ready for
+`quickshell-theme-picker`'s planned cursor-sync task (see that change's
+tasks.md section 4) to switch between automatically once built.
+
+All six were built directly with the upstream project's own `build.sh`
+(real `xcursorgen` binary output, not a mockup) — generation is
+independent of this dotfiles repo's own config, so these are committed
+as static assets, the same way `sway/walls/*.png` wallpapers are.
+
+### Enabling
+
+```sh
+stow --dir="$HOME/git/dotfiles" --target="$HOME" --restow cursors
+```
+
+(or answer "yes" to the `cursors` prompt in `install.sh`). Then in
+`sway/.config/sway/config`:
+
+```
+seat seat0 xcursor_theme retrosmart-qs-default 24
+```
+
+`swaymsg reload` picks it up immediately — confirmed working on real
+hardware, cursor renders as the retinted Win95-shaped pointer.
+
+### Known quirk
+
+Each theme's `index.theme` file lands as a real copy rather than a stow
+symlink (confirmed via `readlink` returning nothing, content verified
+byte-identical via `diff`) — the individual cursor binaries inside each
+theme's `cursors/` subdirectory *are* real stow symlinks. Root cause not
+fully chased down (likely GNU Stow's tree-fold/unfold heuristic reacting
+to `~/.local/share/icons/` already existing before this package was
+first stowed); functionally harmless, but means a future regenerated
+`index.theme` won't auto-update via `git pull` + `--restow` the way a
+true symlink would — delete the stale real file manually and re-stow if
+that ever comes up.
+
+---
+
 ## References
 
 - [FreeBSD Handbook — Graphics (DRM/KMS)](https://docs.freebsd.org/en/books/handbook/x11/)
