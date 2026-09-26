@@ -1146,18 +1146,40 @@ seat seat0 xcursor_theme retrosmart-qs-default 24
 `swaymsg reload` picks it up immediately — confirmed working on real
 hardware, cursor renders as the retinted Win95-shaped pointer.
 
-### Known quirk
+### Stow folding — resolved, was not actually a quirk
 
-Each theme's `index.theme` file lands as a real copy rather than a stow
-symlink (confirmed via `readlink` returning nothing, content verified
-byte-identical via `diff`) — the individual cursor binaries inside each
-theme's `cursors/` subdirectory *are* real stow symlinks. Root cause not
-fully chased down (likely GNU Stow's tree-fold/unfold heuristic reacting
-to `~/.local/share/icons/` already existing before this package was
-first stowed); functionally harmless, but means a future regenerated
-`index.theme` won't auto-update via `git pull` + `--restow` the way a
-true symlink would — delete the stale real file manually and re-stow if
-that ever comes up.
+Initially the first install showed each theme as a real (non-symlink)
+directory with real (non-symlink) `index.theme` files inside, rather than
+clean symlinks. Root-caused via direct reproduction (installed `stow`
+locally, rebuilt the exact scenario) rather than left as an assumption:
+GNU Stow's own documented behavior (`stow(1)`, "tree folding") only
+folds a whole subtree into one symlink when the target directory *does
+not already exist as a real directory* at stow-time. `~/.local/share/icons/`
+must have already existed as a real directory the first time this
+package was stowed (likely pre-created by something else, e.g. an XDG
+default or an earlier partial attempt), which forced Stow to "unfold":
+descend and symlink individual files/directories instead of the whole
+tree, per Stow's own rule that it never deletes or replaces a real,
+pre-existing directory it doesn't own.
+
+**Fixed** by removing the leftover real directories
+(`~/.local/share/icons/retrosmart-*`) and re-running
+`stow --restow cursors`. With `~/.local/share/icons/` no longer
+containing anything Stow didn't create, it correctly folded the *entire*
+`icons/` directory into a single symlink:
+
+```
+~/.local/share/icons -> ../../git/dotfiles/cursors/.local/share/icons
+```
+
+confirmed via `ls -la ~/.local/share/` showing the symlink directly (not
+by listing its contents, which — as a red herring during debugging —
+correctly shows the repo's own real files/timestamps once the symlink is
+followed, and can look confusingly like "real, unlinked directories" if
+you only check the contents rather than the symlink itself). No
+remaining functional or maintenance concern — a future regenerated theme
+file updates immediately via `git pull` alone, no restow needed, since
+the whole directory is one live symlink.
 
 ---
 
