@@ -1,0 +1,27 @@
+#!/bin/sh
+# ESP-IDF environment for embedded work on this FreeBSD machine.
+#
+# This must be SOURCED, not executed:
+#   . ~/.esp-idf-env
+#
+# Uses the native devel/xtensa-esp-elf FreeBSD port (GCC 13.2.0) --
+# no Linuxulator/Linux binary compatibility needed. See
+# openspec/changes/embedded-dev-environment (dotfiles repo) for the full
+# investigation and setup notes.
+
+export IDF_PATH="$HOME/git/tools/esp/esp-idf"
+export IDF_PYTHON_ENV_PATH="$HOME/.espressif/python_env/idf5.3_py3.12_env"
+export PATH="/usr/local/xtensa-esp-elf/bin:$PATH"
+
+# placeholder only -- satisfies a CMake argument-count check in
+# gdbinit.cmake that normally expects idf_tools.py's full install flow to
+# have populated this with downloaded ROM ELF debug-symbol files. safe to
+# leave as an empty placeholder unless doing real on-chip GDB debugging.
+export ESP_ROM_ELF_DIR="$HOME/.espressif/rom-elfs-placeholder"
+
+if [ -f "$IDF_PYTHON_ENV_PATH/bin/activate" ]; then
+    # shellcheck disable=SC1090
+    . "$IDF_PYTHON_ENV_PATH/bin/activate"
+else
+    echo "esp-idf-env: warning: python env not found at $IDF_PYTHON_ENV_PATH" >&2
+fi
