@@ -1,0 +1,163 @@
+#!/bin/sh
+# ---------------------------------------------------------------------------
+# esp-idf-setup - one-time bootstrap for native FreeBSD ESP-IDF development
+#
+# Copyright 2026
+# All rights reserved.
+#
+# Usage: esp-idf-setup [-h|--help]
+#
+# Idempotent -- safe to re-run. Sets up everything needed for the native
+# devel/xtensa-esp-elf FreeBSD toolchain (no Linuxulator): pkg deps, the
+# pinned esp-idf checkout, and a python venv with the one real FreeBSD
+# packaging workaround this needs (cryptography has no PyPI wheel for
+# FreeBSD -- uses the pkg-installed copy via --system-site-packages
+# instead). See openspec/changes/embedded-dev-environment (dotfiles repo,
+# gitignored) for the full investigation this was built from.
+#
+# After running this once, use `. ~/.esp-idf-env` each session.
+#
+# Revision history:
+# 2026-09-27  Created by new_script ver. 3.3-posix
+# ---------------------------------------------------------------------------
+
+PROGNAME="${0##*/}"
+VERSION="0.1"
+
+clean_up() { # perform pre-exit housekeeping
+    return
+}
+
+error_exit() {
+    printf '%s: %s\n' "$PROGNAME" "${1:-unknown error}" >&2
+    clean_up
+    exit 1
+}
+
+graceful_exit() {
+    clean_up
+    exit 0
+}
+
+# shellcheck disable=SC2329  # called via trap string, not directly
+signal_exit() { # handle trapped signals
+    case "$1" in
+        INT)  error_exit "program interrupted by user" ;;
+        TERM) printf '\n%s: program terminated\n' "$PROGNAME" >&2; graceful_exit ;;
+        *)    error_exit "terminating on unknown signal" ;;
+    esac
+}
+
+usage() {
+    printf '%s\n' "esp-idf-setup [-h|--help]"
+}
+
+help_message() {
+    cat <<- _EOF_
+	$PROGNAME ver. $VERSION
+	One-time bootstrap for native FreeBSD ESP-IDF development (no
+	Linuxulator). Idempotent -- safe to re-run.
+
+	$(usage)
+
+	Options:
+
+	  -h, --help  Display this help message and exit.
+
+	_EOF_
+}
+
+# trap signals
+trap "signal_exit TERM" TERM HUP
+trap "signal_exit INT"  INT
+
+
+
+# parse command-line
+while [ -n "${1:-}" ]; do
+    case "$1" in
+        -h | --help) help_message; graceful_exit ;;
+        -*)
+            usage
+            error_exit "unknown option $1" ;;
+        *)
+            # positional argument: $1
+            ;;
+    esac
+    shift
+done
+
+# main logic
+
+ESP_IDF_VERSION="v5.3.3"
+ESP_IDF_DIR="${ESP_IDF_DIR:-$HOME/git/tools/esp/esp-idf}"
+VENV_DIR="$HOME/.espressif/python_env/idf5.3_py3.12_env"
+ROM_ELF_PLACEHOLDER="$HOME/.espressif/rom-elfs-placeholder"
+
+printf '%s: [1/6] pkg dependencies\n' "$PROGNAME"
+doas pkg install -y xtensa-esp-elf py312-cryptography \
+    || error_exit "pkg install failed"
+
+printf '%s: [2/6] dialer group (serial port access)\n' "$PROGNAME"
+if id -Gn "$USER" | tr ' ' '\n' | grep -qx dialer; then
+    printf '%s: already in dialer group\n' "$PROGNAME"
+else
+    doas pw groupmod dialer -m "$USER" || error_exit "pw groupmod failed"
+    printf '%s: added to dialer group -- log out and back in for this to take effect\n' "$PROGNAME"
+fi
+
+printf '%s: [3/6] esp-idf checkout (%s)\n' "$PROGNAME" "$ESP_IDF_VERSION"
+if [ -d "$ESP_IDF_DIR/.git" ]; then
+    printf '%s: esp-idf already present at %s, skipping clone\n' "$PROGNAME" "$ESP_IDF_DIR"
+else
+    mkdir -p "$(dirname "$ESP_IDF_DIR")" || error_exit "could not create $(dirname "$ESP_IDF_DIR")"
+    git clone -b "$ESP_IDF_VERSION" --recursive \
+        https://github.com/espressif/esp-idf.git "$ESP_IDF_DIR" \
+        || error_exit "esp-idf clone failed"
+fi
+
+cd "$ESP_IDF_DIR" || error_exit "could not cd into $ESP_IDF_DIR"
+printf '%s: [4/6] submodules (this can take a while the first time)\n' "$PROGNAME"
+git submodule update --init --recursive || error_exit "submodule update failed"
+
+printf '%s: [5/6] python venv\n' "$PROGNAME"
+if [ ! -d "$VENV_DIR" ]; then
+    python3 -m venv --system-site-packages "$VENV_DIR" || error_exit "venv creation failed"
+fi
+# shellcheck disable=SC1091
+. "$VENV_DIR/bin/activate"
+
+# cryptography has no published wheel for FreeBSD and pip can't build it
+# from source here either -- rely on the pkg-installed copy instead
+# (system-site-packages above), and strip cryptography from both the
+# requirements list and the version-pin constraints file so pip never
+# tries to resolve/install its own copy.
+FILTERED_REQS="/tmp/esp-idf-requirements.core.$$.txt"
+FILTERED_CONSTRAINTS="/tmp/esp-idf-constraints.$$.txt"
+grep -v '^cryptography' tools/requirements/requirements.core.txt > "$FILTERED_REQS"
+grep -v '^cryptography' "$HOME/.espressif/espidf.constraints.v5.3.txt" > "$FILTERED_CONSTRAINTS" 2>/dev/null \
+    || true  # constraints file may not exist yet on first run
+
+pip install --no-warn-script-location -r "$FILTERED_REQS" \
+    --constraint "$FILTERED_CONSTRAINTS" \
+    --extra-index-url https://dl.espressif.com/pypi \
+    || error_exit "pip install failed"
+
+# idf.py re-checks the REAL constraints file (not our filtered temp copy)
+# on every invocation -- fix it in place too, once it exists
+if [ -f "$HOME/.espressif/espidf.constraints.v5.3.txt" ]; then
+    cp "$HOME/.espressif/espidf.constraints.v5.3.txt" \
+       "$HOME/.espressif/espidf.constraints.v5.3.txt.orig" 2>/dev/null || true
+    grep -v '^cryptography' "$HOME/.espressif/espidf.constraints.v5.3.txt.orig" \
+        > "$HOME/.espressif/espidf.constraints.v5.3.txt"
+fi
+rm -f "$FILTERED_REQS" "$FILTERED_CONSTRAINTS"
+deactivate
+
+printf '%s: [6/6] ROM ELF placeholder (satisfies a cmake check, harmless)\n' "$PROGNAME"
+mkdir -p "$ROM_ELF_PLACEHOLDER"
+
+printf '%s: done. start a new shell (or log out/in if the dialer group was just added),\n' "$PROGNAME"
+printf '  then run:  . ~/.esp-idf-env\n'
+
+graceful_exit

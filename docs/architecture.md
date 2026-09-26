@@ -1201,7 +1201,7 @@ manually.
 
 | package | stow target | platform | contents |
 |---|---|---|---|
-| `bin` | `$HOME` | all | `.local/bin/new_script`, `.local/bin/queue-track`, `.local/bin/switch-audio-output`, `.local/bin/sound-status`, `.local/share/applications/quickshell-add.desktop` — the canonical home for standalone tools not tightly coupled to another package's own files (`queue-track`/`switch-audio-output`/`sound-status` are used by `quickshell`'s `Playlist`/`Sound` services, but the scripts themselves have no quickshell-specific knowledge, so they stay here rather than moving to the `quickshell` package) |
+| `bin` | `$HOME` | all | `.local/bin/new_script`, `.local/bin/queue-track`, `.local/bin/switch-audio-output`, `.local/bin/sound-status`, `.local/bin/gem-launch`, `.local/bin/esp-idf-setup`, `.esp-idf-env`, `.local/share/applications/quickshell-add.desktop` — the canonical home for standalone tools not tightly coupled to another package's own files (`queue-track`/`switch-audio-output`/`sound-status` are used by `quickshell`'s `Playlist`/`Sound` services, but the scripts themselves have no quickshell-specific knowledge, so they stay here rather than moving to the `quickshell` package). `esp-idf-setup`/`.esp-idf-env` are a one-time-bootstrap + per-session-activation pair for native FreeBSD ESP-IDF development — see `docs/embedded-dev/esp-idf-freebsd.md` |
 | `cheatsheets` | `$HOME` | all | `.config/cheatsheets/` |
 | `curl` | `$HOME` | all | `.curlrc` — silent, follow redirects, fail-on-error, 30s timeout |
 | `foot` | `$HOME` | FreeBSD + Linux | `.config/foot/` |
