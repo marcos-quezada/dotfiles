@@ -1,13 +1,62 @@
 #!/bin/sh
-# ESP-IDF environment for embedded work on this FreeBSD machine.
+# ---------------------------------------------------------------------------
+# esp-idf-env - ESP-IDF environment for embedded work on this FreeBSD machine
 #
-# This must be SOURCED, not executed:
-#   . ~/.esp-idf-env
+# Copyright 2026
+# All rights reserved.
 #
-# Uses the native devel/xtensa-esp-elf FreeBSD port (GCC 13.2.0) --
-# no Linuxulator/Linux binary compatibility needed. See
+# Usage: . ~/.esp-idf-env
+#
+# This file must be SOURCED, not executed -- it sets environment variables
+# and activates a Python venv in the CURRENT shell. Running it as a
+# subprocess would have no effect on your interactive session.
+#
+# Uses the native devel/xtensa-esp-elf FreeBSD port (GCC 13.2.0) -- no
+# Linuxulator/Linux binary compatibility needed. See
 # openspec/changes/embedded-dev-environment (dotfiles repo) for the full
 # investigation and setup notes.
+#
+# Revision history:
+# 2026-09-27  Created by new_script ver. 3.3-posix (adapted for sourcing:
+#             the generated template's trap/exit boilerplate is unsafe to
+#             source verbatim -- exit would kill the calling shell, traps
+#             would silently override the caller's own signal handling)
+# ---------------------------------------------------------------------------
+
+PROGNAME="esp-idf-env"
+
+usage() {
+    printf '%s\n' "Usage: . ~/.esp-idf-env"
+}
+
+help_message() {
+    cat <<- _EOF_
+	$PROGNAME
+	ESP-IDF environment for embedded work on this FreeBSD machine.
+
+	$(usage)
+
+	Sets IDF_PATH, IDF_PYTHON_ENV_PATH, PATH, and ESP_ROM_ELF_DIR, and
+	activates the ESP-IDF Python venv, all in the current shell.
+
+	_EOF_
+}
+
+# refuse to run as a subprocess -- sourcing is required for the exports
+# below to affect the calling shell at all.
+case "$0" in
+    *esp-idf-env)
+        printf '%s: this file must be sourced, not executed.\n' "$PROGNAME" >&2
+        printf '  try: . %s\n' "$0" >&2
+        exit 1
+        ;;
+esac
+
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+    help_message
+fi
+
+# ── main logic ────────────────────────────────────────────────────────────────
 
 export IDF_PATH="$HOME/git/tools/esp/esp-idf"
 export IDF_PYTHON_ENV_PATH="$HOME/.espressif/python_env/idf5.3_py3.12_env"
@@ -23,5 +72,5 @@ if [ -f "$IDF_PYTHON_ENV_PATH/bin/activate" ]; then
     # shellcheck disable=SC1090
     . "$IDF_PYTHON_ENV_PATH/bin/activate"
 else
-    echo "esp-idf-env: warning: python env not found at $IDF_PYTHON_ENV_PATH" >&2
+    printf '%s: warning: python env not found at %s\n' "$PROGNAME" "$IDF_PYTHON_ENV_PATH" >&2
 fi
