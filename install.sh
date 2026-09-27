@@ -444,14 +444,14 @@ stow_root() {
 
 # ── vt font install  ──────────────────────────────────────────────────────────
 if [ "$DO_VT" = "1" ]; then
-  SUDO = ""
+  SUDO=""
   command -v doas >/dev/null 2>&1 && SUDO=doas
-  command -v sudo >/dev/null [ -z "$SUDO" ] && SUDO=sudo
+  command -v sudo >/dev/null 2>&1 && [ -z "$SUDO" ] && SUDO=sudo
   if [ -z "$SUDO" ]; then
     die "doas or sudo required to install the vt console font"
   fi
-  ${SUDO} cp "$REPO_DIR/vt/bootfonts/12x22.fnt.gz" /boot/fonts/12x22.fnt.gz \
-    && ${SUDO} cp "$REPO_DIR/vt/boot/fonts.INDEX.fonts" /boot/fonts/INDEX.fonts \
+  ${SUDO} cp "$REPO_DIR/vt/boot/fonts/12x22.fnt.gz" /boot/fonts/12x22.fnt.gz \
+    && ${SUDO} cp "$REPO_DIR/vt/boot/fonts/INDEX.fonts" /boot/fonts/INDEX.fonts \
     && ok "vt console font copied to /boot/fonts/" \
     || die "vt console font copy failed"
 fi
