@@ -295,7 +295,9 @@ DO_VT=0
 [ "$PLATFORM" = "freebsd" ] && DO_SWAY=1
 [ "$PLATFORM" = "linux" ]   && DO_FOOT=1
 [ "$PLATFORM" = "linux" ]   && DO_SWAY=1
-# vt console font — FreeBSD only; stows to /boot/fonts/ (root-owned)
+# vt console font — FreeBSD only; one time copy to /boot/fonts/ (root-owned,
+# not stow managed - a simlink here would fail at boot, see
+# doscs/architecture.md's "why early boot system config files aren't stowed")
 [ "$PLATFORM" = "freebsd" ] && DO_VT=1
 # ly display manager config — FreeBSD only; stows to /usr/local/etc/ly/ (root-owned)
 DO_LY=0
@@ -356,7 +358,7 @@ if [ "$YES" = "0" ]; then
         else
             DO_QUICKSHELL=0
         fi
-        if prompt_yn "install vt console font to /boot/fonts/ (requires doas/sudo)?" y; then
+        if prompt_yn "copy vt console font to /boot/fonts/ (one time, requires doas/sudo)?" y; then
             DO_VT=1
         else
             DO_VT=0
@@ -438,8 +440,21 @@ stow_root() {
 [ "$DO_QUICKSHELL"  = "1" ] && stow_pkg quickshell
 [ "$DO_MPV"         = "1" ] && stow_pkg mpv
 [ "$DO_PULSEAUDIO"  = "1" ] && stow_pkg pulseaudio
-[ "$DO_VT"          = "1" ] && stow_root vt
 [ "$DO_LY"          = "1" ] && stow_root ly
+
+# ── vt font install  ──────────────────────────────────────────────────────────
+if [ "$DO_VT" = "1" ]; then
+  SUDO = ""
+  command -v doas >/dev/null 2>&1 && SUDO=doas
+  command -v sudo >/dev/null [ -z "$SUDO" ] && SUDO=sudo
+  if [ -z "$SUDO" ]; then
+    die "doas or sudo required to install the vt console font"
+  fi
+  ${SUDO} cp "$REPO_DIR/vt/bootfonts/12x22.fnt.gz" /boot/fonts/12x22.fnt.gz \
+    && ${SUDO} cp "$REPO_DIR/vt/boot/fonts.INDEX.fonts" /boot/fonts/INDEX.fonts \
+    && ok "vt console font copied to /boot/fonts/" \
+    || die "vt console font copy failed"
+fi
 
 # ── config template ───────────────────────────────────────────────────────────
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/threatwatch"
