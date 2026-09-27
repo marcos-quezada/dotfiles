@@ -1218,7 +1218,9 @@ manually.
 | `threatwatch` | `$HOME` | all | `.local/bin/threatwatch`, `.config/threatwatch/config.env.template` |
 | `tmux` | `$HOME` | all | `.tmux.conf` — C-a prefix, vim keys, true colour, split/nav bindings |
 | `vim` | `$HOME` | all | `.vimrc`, `.config/vim/` |
-| `vt` | `/` | FreeBSD | `boot/fonts/12x22.fnt.gz`, `boot/fonts/INDEX.fonts` |
+| `vt` | `/` | FreeBSD | `boot/fonts/12x22.fnt.gz`, `boot/fonts/INDEX.fonts` -- **kept as a
+  tracked reference copy, not stow-managed** (see "why early-boot system
+  config files aren't stowed" below) |
 | `zsh` | `$HOME` | macOS | `.zshrc`, `.git-worktree-functions.zsh` |
 
 `vt` is the only package with a non-`$HOME` target. `install.sh` runs
@@ -1227,10 +1229,22 @@ manually.
 
 ### why early-boot system config files aren't stowed
 
-`/boot/loader.conf`, `/etc/rc.conf`, `/etc/sysctl.conf`, `/etc/fstab`, and
-`/usr/local/etc/devd/automount_devd.conf` are all tracked as plain reference
-copies under `docs/freebsd-setup/` — not stow-managed symlinks. this wasn't
-the original plan; it's a correction made after a real, disruptive failure.
+`vt`'s console-font files were the one package still listed above as if
+they were stow-managed. **They aren't, and shouldn't be** -- confirmed the
+same boot-ordering hazard applies, one stage earlier and worse: `/boot/fonts/`
+is read by the FreeBSD loader itself, before the kernel even starts --
+before `/etc/rc` exists as a process at all. If `/etc/rc.conf` (read *after*
+the loader stage, by `/etc/rc`) already failed crossing the
+`zroot/home/mquezada` dataset boundary (the failure below), `/boot/fonts/`
+would fail at least as badly. `install.sh`/this doc's package table were
+simply never corrected when that lesson was learned -- fixed now, not a
+new finding.
+
+`/boot/loader.conf`, `/etc/rc.conf`, `/etc/sysctl.conf`, `/etc/fstab`,
+`/usr/local/etc/devd/automount_devd.conf`, and now `vt`'s
+`boot/fonts/{12x22.fnt.gz,INDEX.fonts}` are all tracked as plain reference
+copies under `docs/freebsd-setup/`/`vt/boot/fonts/` -- not stow-managed
+symlinks. this wasn't the original plan; it's a correction made after a real, disruptive failure.
 
 the first attempt symlinked `/etc/rc.conf` via `stow --adopt`, reasoning
 (wrongly) that it was "read well after full multi-dataset mount, unlike
@@ -1272,6 +1286,8 @@ doas cp ~/git/dotfiles/docs/freebsd-setup/rc.conf        /etc/rc.conf
 doas cp ~/git/dotfiles/docs/freebsd-setup/sysctl.conf    /etc/sysctl.conf
 doas cp ~/git/dotfiles/docs/freebsd-setup/fstab          /etc/fstab
 doas cp ~/git/dotfiles/docs/freebsd-setup/automount_devd.conf /usr/local/etc/devd/automount_devd.conf
+doas cp ~/git/dotfiles/vt/boot/fonts/12x22.fnt.gz       /boot/fonts/12x22.fnt.gz
+doas cp ~/git/dotfiles/vt/boot/fonts/INDEX.fonts        /boot/fonts/INDEX.fonts
 ```
 
 this is genuinely less convenient than a live symlink, but a stale userspace
