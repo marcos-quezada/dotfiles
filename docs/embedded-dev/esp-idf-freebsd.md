@@ -114,6 +114,38 @@ Linux's `/dev/ttyUSB0` convention. The callout device is owned
 `uucp:dialer`; `esp-idf-setup` adds the current user to that group.
 Needs a fresh login session to take effect.
 
+**The `U0` here is not guaranteed — confirm it every time, don't
+assume it.** It's just the first USB-serial device FreeBSD happened to
+enumerate during initial testing. If any other USB-serial device is
+plugged in (a second badge, a different microcontroller, a USB-to-
+serial adapter for something else entirely), or if the badge gets
+plugged into a different port after other devices, the actual number
+can easily be `cuaU1`, `cuaU2`, etc. instead.
+
+**How to actually identify it, every time you plug the badge in:**
+
+```sh
+dmesg | tail -5
+```
+
+Look for a line naming the badge specifically:
+
+```
+umodem0: <Espressif USB JTAG/serial debug unit, class 239/2, rev 2.00/1.01, addr 4> on usbus0
+```
+
+The `umodemN` number here (`0` in this example) maps directly to
+`/dev/cuaUN` (`/dev/cuaU0`). If multiple `umodem*` devices are present
+and it's unclear which is the badge, `grep` `dmesg` for the vendor
+string directly:
+
+```sh
+dmesg | grep -i espressif
+```
+
+Use whatever number that actually shows, not a hardcoded assumption
+from a previous session.
+
 ## The manual BOOT+RESET flashing quirk — and why it doesn't happen on macOS
 
 Auto-reset into download mode reliably fails on FreeBSD with:
@@ -154,7 +186,12 @@ cd ~/git/tools/esp/had-badge-mod   # or wherever your checkout lives
 # build
 python "$IDF_PATH/tools/idf.py" build
 
-# hold BOOT, tap RESET, release BOOT -- then immediately:
+# confirm the actual device node first -- don't assume cuaU0
+# (see "Serial port access" above)
+dmesg | grep -i espressif
+
+# hold BOOT, tap RESET, release BOOT -- then immediately, using whatever
+# device number the check above actually showed:
 python "$IDF_PATH/tools/idf.py" -p /dev/cuaU0 erase-flash   # first flash of a stock badge only
 
 # hold BOOT, tap RESET, release BOOT again -- then immediately:
