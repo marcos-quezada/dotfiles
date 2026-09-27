@@ -145,6 +145,26 @@ needed every time on this machine, not a one-off): hold **BOOT**, tap
 Needs repeating before every flash/erase invocation specifically (not
 just once per session).
 
+### Quick reference — the actual commands
+
+```sh
+. ~/.esp-idf-env
+cd ~/git/tools/esp/had-badge-mod   # or wherever your checkout lives
+
+# build
+python "$IDF_PATH/tools/idf.py" build
+
+# hold BOOT, tap RESET, release BOOT -- then immediately:
+python "$IDF_PATH/tools/idf.py" -p /dev/cuaU0 erase-flash   # first flash of a stock badge only
+
+# hold BOOT, tap RESET, release BOOT again -- then immediately:
+python "$IDF_PATH/tools/idf.py" -p /dev/cuaU0 flash monitor
+```
+
+`monitor` opens the serial console right after flashing so you can
+watch it actually boot -- exit with `Ctrl+]`, or `Ctrl+T` then `Ctrl+X`
+if that doesn't register (see below).
+
 ## Monitor exit key
 
 `idf_monitor`'s default exit key (`Ctrl+]`) didn't register in the
