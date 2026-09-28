@@ -46,6 +46,7 @@ set listchars=tab:▸\ ,trail:-,extends:>,precedes:<,nbsp:+
                                        " symbols for invisible characters (active with :set list)
 
 " ── filetypes ─────────────────────────────────────────────────────────────────
+set runtimepath^=~/.config/vim,~/.config/vim/after
 filetype on                            " enable filetype detection
 filetype indent on                     " filetype-specific indentation rules
 filetype plugin on                     " filetype-specific plugins
