@@ -1217,7 +1217,7 @@ manually.
 | `sway` | `$HOME` | FreeBSD + Linux | `.config/sway/config`, `walls/freebsd-kilmynda-wide.png`, `walls/metropolis.png` |
 | `threatwatch` | `$HOME` | all | `.local/bin/threatwatch`, `.config/threatwatch/config.env.template` |
 | `tmux` | `$HOME` | all | `.tmux.conf` — C-a prefix, vim keys, true colour, split/nav bindings |
-| `vim` | `$HOME` | all | `.vimrc`, `.config/vim/` |
+| `vim` | `$HOME` | all | `.vimrc`, `.config/vim/` -- see "vim ftplugin structure" below |
 | `vt` | `/` | FreeBSD | `boot/fonts/12x22.fnt.gz`, `boot/fonts/INDEX.fonts` -- **kept as a
   tracked reference copy, not stow-managed** (see "why early-boot system
   config files aren't stowed" below) |
@@ -1294,6 +1294,34 @@ this is genuinely less convenient than a live symlink, but a stale userspace
 dotfile is a minor annoyance; a boot-time config file that silently fails to
 read is a machine that won't come up correctly — not a trade worth making
 for convenience alone.
+
+### vim ftplugin structure
+
+Per-language LSP registration (`g:LspAddServer`) lives in
+`~/.config/vim/ftplugin/<filetype>.vim` -- vim's own native mechanism
+for per-filetype configuration, auto-sourced only when a buffer of that
+type opens, not a custom loader. `lsp.vim` holds only the one-time
+`packadd lsp` call and global keymaps/diagnostics bindings that apply
+regardless of filetype.
+
+Two things confirmed directly, not assumed, while setting this up:
+
+- **`~/.config/vim` is not on this vim build's default `'runtimepath'`**
+  (checked directly on both a macOS Homebrew build and the FreeBSD
+  build -- neither includes it by default, despite general vim docs
+  describing an XDG-aware default as *a* default). `.vimrc` explicitly
+  prepends it: `set runtimepath^=~/.config/vim,~/.config/vim/after`.
+- **Custom `ftplugin/<filetype>.vim` files use a uniquely-named
+  duplicate-load guard** (e.g. `b:loaded_qml_ftplugin`), not vim's own
+  generic `b:did_ftplugin` -- confirmed vim ships its own bundled
+  ftplugin files for common filetypes (including `qml`), which use that
+  generic name; reusing it in a custom file risks colliding with vim's
+  own bundled one for the same filetype.
+
+Adding a new language: create `~/.config/vim/ftplugin/<filetype>.vim`
+following the guard pattern above, then register the language server
+with `g:LspAddServer` inside it -- `ftplugin/qml.vim` and
+`ftplugin/c.vim` are the reference examples.
 
 ### manual stow
 
