@@ -1,17 +1,11 @@
 " ── lsp ──────────────────────────────────────────────────────────────────────
 " yegappan/lsp is managed via vim's native package system (~/.vim/pack/).
 " run ~/.config/vim/install.sh to fetch it on a new machine.
+" 
+" per language LspAddServer registration lives in ftplugin/<filetype>.vim,
+" not here -- see ftplugin/qml.vim for the first example. this file is onlyfor
+" the plugin load itself and keymaps that apply regardles of filetype.
 packadd lsp
-
-" register qmlls as the language server for QML files.
-" no --build-dir: pure-QML projects use .qmlls.ini instead, which quickshell
-" auto-populates with its module import paths on first run.
-call LspAddServer([#{
-    \   name:     'qmlls',
-    \   filetype: 'qml',
-    \   path:     'qmlls6',
-    \   args:     []
-    \ }])
 
 " ── keymaps ───────────────────────────────────────────────────────────────────
 nnoremap <leader>gd :LspGotoDefinition<CR>     " go to definition
