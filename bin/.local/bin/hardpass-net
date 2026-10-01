@@ -75,12 +75,34 @@ while [ -n "${1:-}" ]; do
             usage
             error_exit "unknown option $1" ;;
         *)
-            # positional argument: $1
+            action="$1"
             ;;
     esac
     shift
 done
 
-# main logic
+case "$action" in
+  attach|detach) ;;
+  *) usage; error_exit "expected 'attach' or 'detach', got '${action:-nothing}'" ;;
+esac
+
+IFACE="ue0"
+PI_ADDR="10.18.1.19"
+
+case "$action" in
+  attach)
+    ifconfig "$IFACE" up
+    sleep 2
+    dhclient "$IFACE" || error_exit "dhclient failed on $IFACE"
+    # dhclient invoked this way skips its normal resolvconf hook --
+    # feed it manually
+    echo "nameserver $PI_ADDR" | resolvconf -a "$IFACE"
+    logger -t "$PROGNAME" "$IFACE attached, resolvconf fed $PI_ADDR"
+    ;;
+  detach)
+    resolvconf -d "$IFACE"
+    logger -t "$PROGNAME" "$IFACE detached, resolvconf entry removed"
+    ;;
+esac
 
 graceful_exit
