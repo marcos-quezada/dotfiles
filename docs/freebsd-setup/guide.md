@@ -1183,6 +1183,155 @@ the whole directory is one live symlink.
 
 ---
 
+## 19. HardPass -- Self-Hosted Password Manager (Pi Zero W, USB RNDIS Gadget)
+
+A self-hosted Vaultwarden instance (adapted from the "BYOPM" guide) running
+on a Raspberry Pi Zero W, connected directly over USB as an RNDIS ethernet
+gadget -- not a general network device, just a direct point-to-point link to
+this one laptop. The Pi itself is already built and configured (DietPi,
+Vaultwarden, nginx, `dnsmasq`, a self-signed cert); this section covers only
+what's needed on the FreeBSD side to actually use it.
+
+### Driver / interface
+
+Gadget mode is **RNDIS**, not CDC-ECM/NCM -- FreeBSD's `urndis` driver
+attaches it, creating a generic `ue0` (`usb_ether(4)` family):
+
+```
+ugen0.5: <Linux ... RNDIS/Ethernet Gadget> at usbus0
+urndis0 on uhub0
+ue0: <USB Ethernet> on urndis0
+```
+
+### Connecting -- manual steps (until the devd rule below is deployed)
+
+`ue0` does not come up automatically. Bring it up and get a lease from the
+Pi's own `dnsmasq`:
+
+```sh
+doas ifconfig ue0 up
+doas dhclient ue0
+```
+
+**Real gap**: `dhclient` invoked this way skips the `resolvconf` hook a
+normal `rc.d`/`devd`-triggered invocation would use, so the Pi's own DNS
+server (correctly offered via DHCP option 6) never makes it into
+`/etc/resolv.conf` on its own. Feed it manually:
+
+```sh
+echo "nameserver 10.18.1.19" | doas resolvconf -a ue0
+```
+
+### Hostname resolution -- not real mDNS
+
+The device answers as `hardpass.local`, but this is **not genuine
+multicast mDNS** -- confirmed via `avahi-resolve -n hardpass.local` timing
+out even with `avahi-daemon` running and no interface restrictions. The
+Pi's `dnsmasq` just serves a plain static unicast DNS mapping
+(`address=/hardpass.local/10.18.1.19` in its own `/etc/dnsmasq.d/
+hardpass.conf`) to whichever client asks it directly -- it only resolves
+because `/etc/resolv.conf` now has the Pi's own DNS server listed (see
+above).
+
+A second, separate gap was found here: FreeBSD's standard recommended
+`nss_mdns` config actively breaks this case. The usual example
+(`hosts: files mdns4_minimal [NOTFOUND=return] dns`) has
+`mdns4_minimal` correctly claim the `.local` TLD -- but since genuine
+multicast mDNS resolution fails for this hostname, `[NOTFOUND=return]`
+stops resolution right there, before `dns` (which has the real, working
+answer) is ever tried. Fixed in `/etc/nsswitch.conf` by dropping the
+modifier:
+
+```
+hosts: files mdns4_minimal dns
+```
+
+### Browser / Bitwarden extension trust
+
+A per-tab "accept the risk" exception (from just navigating to
+`https://hardpass.local` in Firefox) is **not enough** -- the Bitwarden
+extension's own network layer doesn't honor that. The self-signed cert
+needs to be genuinely imported into Firefox's trusted **Authorities**
+store:
+
+```sh
+echo | openssl s_client -connect hardpass.local:443 -servername hardpass.local 2>/dev/null \
+    | openssl x509 > /tmp/hardpass.pem
+```
+
+Then in Firefox: `about:preferences#privacy` -> **Certificates** ->
+**View Certificates** -> **Authorities** -> **Import** -> select the
+file -> check "Trust this CA to identify websites".
+
+If the extension still fails after that with a vague "unexpected error",
+check the actual network request via `about:debugging#/runtime/this-
+firefox` -> find the extension -> **Inspect** -> **Console**, rather than
+guessing further. A 404 specifically on
+`POST /identity/accounts/prelogin/password` means the Vaultwarden version
+is simply too old -- that endpoint was added in Vaultwarden 1.36.0 (PR
+#7156). See `embedded-dev-environment` task 2.8 (openspec, local only)
+for the validated update runbook -- upgrading without needing internet
+access on the Pi itself.
+
+### Automating the reconnect ritual -- devd rule
+
+The manual steps above have to be repeated on every reconnect. A devd
+rule automates this, matching this project's own USB-automount pattern
+(Section 9):
+
+```text
+# HARDPASS (Pi Zero W / RNDIS gadget) attach
+notify 100 {
+	match "system"		"IFNET";
+	match "subsystem"	"ue0";
+	match "type"		"ATTACH";
+	action "/usr/local/sbin/hardpass-net attach &";
+};
+
+# HARDPASS (Pi Zero W / RNDIS gadget) detach
+notify 100 {
+	match "system"		"IFNET";
+	match "subsystem"	"ue0";
+	match "type"		"DETACH";
+	action "/usr/local/sbin/hardpass-net detach &";
+};
+```
+
+This hardcodes `ue0` specifically -- a conscious, documented choice, not
+an oversight: this is the one dedicated USB ethernet gadget this laptop
+ever sees, confirmed to consistently land as `ue0` across multiple
+plug-ins, unlike the automount rule's own generic device-class regex. If
+a second USB ethernet gadget ever enters the picture, this will need
+revisiting.
+
+The companion script (`bin/.local/bin/hardpass-net` in this repo) does
+exactly the manual steps above -- `ifconfig up`, `dhclient`, then
+manually feeding `resolvconf` on attach; removing the stale `resolvconf`
+entry on detach (the interface itself disappears on unplug, there's
+nothing else to tear down).
+
+**Deployment -- not stow-managed**, same reasoning as the VT console font
+(Section 6) and `/etc/rc.conf`: `devd` runs its actions as root, with a
+minimal environment, and calling a path inside a regular user's
+stow-managed home directory would mean anything able to write there (the
+user themselves, by definition) could get arbitrary code run as root on
+the next device attach. The rule and script are deliberately copied into
+place once, not symlinked:
+
+```sh
+doas cp ~/.local/bin/hardpass-net /usr/local/sbin/hardpass-net
+doas chown root:wheel /usr/local/sbin/hardpass-net
+doas chmod 755 /usr/local/sbin/hardpass-net
+doas cp ~/git/dotfiles/main/docs/freebsd-setup/hardpass_devd.conf \
+    /usr/local/etc/devd/hardpass_devd.conf
+doas service devd restart
+```
+
+Re-run this copy step any time `hardpass-net` or the devd rule changes in
+the repo -- there is no automatic sync.
+
+---
+
 ## References
 
 - [FreeBSD Handbook — Graphics (DRM/KMS)](https://docs.freebsd.org/en/books/handbook/x11/)
