@@ -1,47 +1,124 @@
 #!/bin/sh
-# git-clone-bare-for-worktrees — clone a repo as a bare for worktree use.
+# ---------------------------------------------------------------------------
+# git-clone-bare-for-worktrees - clone a repo as a bare repository for worktree-based development
 #
-# Usage:
-#   git-clone-bare-for-worktrees <url> [name]
+# Copyright 2026, Marcos Quezada Pérez <mquezada@auryn>
+# All rights reserved.
+#
+# Usage: git-clone-bare-for-worktrees [-h|--help] <url> [name]
 #
 # Examples:
 #   git-clone-bare-for-worktrees git@github.com:name/repo.git
 #   => clones to ./repo/
-#   git-clone-bare-for-worktrees git@github.com:name/repo.git my-repo
+#   git-clone-bare-for-worktrees gitlgithub.com:name/repo.git my-repo
 #   => clones to ./my-repo/
 #
 # Layout created:
-#   <name>/.bare    — bare git object store ($GIT_DIR)
-#   <name>/.git     — text redirect so porcelain commands find the bare dir
-#   <name>/main     — (after git fetch) worktrees sit here as siblings of .bare
+#   <name>/.bare    - bare git objexts store ($GIT_DIR)
+#   <name>/.git     - text redirect so porcelain commands find the bare dir
+#   <name>/main     - (after git fetch) worktrees sit here as sibilings of .bare
+#
+# Revision history:
+# 2026-10-06  Created by new_script ver. 3.3-posix
+# ---------------------------------------------------------------------------
 
 PROGNAME="${0##*/}"
+VERSION="0.1"
+
+clean_up() { # perform pre-exit housekeeping
+    return
+}
 
 error_exit() {
     printf '%s: %s\n' "$PROGNAME" "${1:-unknown error}" >&2
+    clean_up
     exit 1
 }
 
-url="${1:-}"
-[ -z "$url" ] && error_exit "usage: $PROGNAME <url> [name]"
+graceful_exit() {
+    clean_up
+    exit 0
+}
+
+# shellcheck disable=SC2329  # called via trap string, not directly
+signal_exit() { # handle trapped signals
+    case "$1" in
+        INT)  error_exit "program interrupted by user" ;;
+        TERM) printf '\n%s: program terminated\n' "$PROGNAME" >&2; graceful_exit ;;
+        *)    error_exit "terminating on unknown signal" ;;
+    esac
+}
+
+usage() {
+    printf '%s\n' "git-clone-bare-for-worktrees [-h|--help]"
+}
+
+help_message() {
+    cat <<- _EOF_
+	$PROGNAME ver. $VERSION
+	clone a repo as a bare repository for worktree-based development
+
+	$(usage)
+
+	Options:
+
+	  -h, --help  Display this help message and exit.
+
+  Arguments:
+
+    url   the repository to clone
+    name  optional target directory name (defaults to the repo's
+          basename, derived from url)
+
+	_EOF_
+}
+
+# trap signals
+trap "signal_exit TERM" TERM HUP
+trap "signal_exit INT"  INT
+
+# parse command-line
+while [ -n "${1:-}" ]; do
+    case "$1" in
+        -h | --help) help_message; graceful_exit ;;
+        -*)
+            usage
+            error_exit "unknown option $1" ;;
+        *)
+            if [ -z "$url" ]; then
+              url="$1"
+            elif [ -z "$name" ]; then
+              name="$1"
+            else
+              usage
+              error_exit "unexpected argument $1"
+            fi
+            ;;
+    esac
+    shift
+done
+
+[ -z "$url" ] && { usage; error_exit "missing required argument: url"; }
 
 basename="${url##*/}"
-name="${2:-${basename%.*}}"
+name="${name:-${basename%.*}}"
 
-mkdir "$name"  || error_exit "could not create directory: $name"
-cd "$name"     || error_exit "could not enter directory: $name"
+mkdir "$name" || error_exit "could not create directory: $name"
+cd "$name"    || error_exit "could not enter directory: $name"
 
-# .bare holds the object store; worktrees live as siblings
+# .bare holds the object store; worktrees live as sibilings
 git clone --bare "$url" .bare \
-    || error_exit "git clone --bare failed for: $url"
+  || error_exit "git clone --bare failed for: $url"
 
 # text redirect so git porcelain commands work from the repo root
 printf 'gitdir: ./.bare\n' > .git \
-    || error_exit "could not write .git redirect"
+  || error_exit "could not write .git redirect"
 
 # without this, git fetch won't populate refs/remotes/origin/*
 git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*" \
-    || error_exit "git config failed"
+  || error_exit "git config failed"
 
 git fetch origin \
-    || error_exit "git fetch origin failed"
+  || error_exit "git fetch origin failed"
+
+graceful_exit
