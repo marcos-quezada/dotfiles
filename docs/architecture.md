@@ -1193,6 +1193,47 @@ nothing to do with git, it just historically landed there.
 
 ---
 
+## script modularization
+
+when a single script grows into a multi-concern monolith (several hundred
+lines, multiple genuinely distinct jobs stitched together), split it rather
+than keep piling more onto one file. pattern confirmed from a real, working
+project rather than invented from scratch: `bahamas10/ysap`'s `website/`
+directory (found via `ysap.sh`'s own bash style guide).
+
+- **small, single-purpose module files**, one per logical concern,
+  independently runnable/testable in isolation — not one script branching
+  internally to handle every concern inline
+- **one shared common-functions file**, sourced by every module (`. ./common.sh
+  || exit` — same "must be sourced, checked with `|| exit`" shape as this
+  project's own `.esp-idf-env`) — shared helpers live here once, not
+  duplicated or scattered across modules
+- **a dedicated pre-flight/dependency-check phase**, separated out as its own
+  concern rather than interleaved into every module
+- **a thin orchestrator** (the top-level script users actually invoke) that
+  sources common + modules and calls each module's entry point in sequence —
+  it contains no real logic of its own
+- deliberately not borrowed: `ysap`'s `Makefile` orchestrator (a sequential
+  bootstrap/dispatch script doesn't have a real dependency graph a build
+  system would help with, and FreeBSD `bmake` vs. GNU `make` dialect
+  differences aren't worth taking on for this) — a plain POSIX sh
+  orchestrator fits better
+- modules stay POSIX `/bin/sh`, matching `new_script`'s own convention —
+  `ysap`'s own scripts are bash and use real bashisms, not applicable here
+
+**the orchestrator is a deliberate `new_script` exception**, same reasoning as
+`install.sh`: `new_script`'s template targets a standalone single-file CLI
+tool with `getopts` parsing, not a multi-file system with shared sourced
+library functions. a modularized script's thin wrapper doesn't get retrofitted
+into that template — it's a structurally different kind of tool, exempt for
+the same reason `install.sh` is exempt. module files themselves are sourced-
+only, so they're exempt too, same category as `.esp-idf-env`/`gwt.sh`.
+
+first applied to `install.sh` (`install-sh-modularization`), later applied to
+`threatwatch` (`threatwatch-modularization`) once the pattern was proven out.
+
+---
+
 ## stow layout
 
 every top-level directory (except `docs/`) is a stow package. `install.sh`
