@@ -9,7 +9,7 @@ REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/.." && pwd)"
 }
 
 @test "new_script: shellcheck clean" {
-    run shellcheck "$REPO_ROOT/git/.local/bin/new_script"
+    run shellcheck "$REPO_ROOT/bin/.local/bin/new_script"
     [ "$status" -eq 0 ]
 }
 

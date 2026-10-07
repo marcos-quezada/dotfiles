@@ -450,10 +450,12 @@ if [ "$DO_VT" = "1" ]; then
   if [ -z "$SUDO" ]; then
     die "doas or sudo required to install the vt console font"
   fi
-  ${SUDO} cp "$REPO_DIR/vt/boot/fonts/12x22.fnt.gz" /boot/fonts/12x22.fnt.gz \
-    && ${SUDO} cp "$REPO_DIR/vt/boot/fonts/INDEX.fonts" /boot/fonts/INDEX.fonts \
-    && ok "vt console font copied to /boot/fonts/" \
-    || die "vt console font copy failed"
+  if ${SUDO} cp "$REPO_DIR/vt/boot/fonts/12x22.fnt.gz" /boot/fonts/12x22.fnt.gz \
+      && ${SUDO} cp "$REPO_DIR/vt/boot/fonts/INDEX.fonts" /boot/fonts/INDEX.fonts; then
+    ok "vt console font copied to /boot/fonts/"
+  else
+    die "vt console font copy failed"
+  fi
 fi
 
 # ── config template ───────────────────────────────────────────────────────────
