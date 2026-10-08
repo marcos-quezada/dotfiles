@@ -15,7 +15,10 @@ case "$OS" in
 esac
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+# install.d/ modules — order matters: common.sh must come first (defines
+# ok/warn/die/prompt_yn/etc. that every other module depends on).
 . "$REPO_DIR/install.d/common.sh"
+. "$REPO_DIR/install.d/check-deps.sh"
 YES=0
 [ "${1:-}" = "--yes" ] && YES=1
 
@@ -27,16 +30,7 @@ printf '  repo:     %s\n' "$REPO_DIR"
 printf '\n'
 
 # ── stow check ────────────────────────────────────────────────────────────────
-if ! command -v stow >/dev/null 2>&1; then
-    warn "stow not found"
-    if prompt_yn "install stow now?" y; then
-        install_pkg "$(pkg_name stow stow stow)"
-    else
-        die "stow is required — install it and re-run"
-    fi
-else
-    ok "stow found"
-fi
+check_deps_main
 
 # ── doas (FreeBSD) ────────────────────────────────────────────────────────────
 # doas is the privilege escalation tool used on FreeBSD. install.sh itself uses
@@ -94,113 +88,6 @@ if [ "$PLATFORM" = "freebsd" ]; then
       fi
     fi
   done
-fi
-
-# yt-dlp deliberately NOT pkg-managed - installed per official wiki instructions
-# specifically so it can self update (yt-dlp -U) independent of pkg's release
-# cadence. check presence, don't try to install/manage it here.
-if ! command -v yt-dlp >/dev/null 2>&1; then
-  warn "yt-dlp not found - install per https://github.com/yt-dlp/yt-dlp/wiki/Installation"
-fi
-
-# ── core deps ─────────────────────────────────────────────────────────────────
-printf '\n  checking core dependencies...\n\n'
-MISSING_CORE=""
-
-check_cmd curl "$(pkg_name curl curl curl)" || MISSING_CORE="$MISSING_CORE curl"
-check_cmd jq   "$(pkg_name jq jq jq)"       || MISSING_CORE="$MISSING_CORE jq"
-check_cmd awk  "built into base system"
-
-# bat is required on FreeBSD (powers the clue alias); optional elsewhere
-if [ "$PLATFORM" = "freebsd" ]; then
-    check_cmd bat "bat" || MISSING_CORE="$MISSING_CORE bat"
-fi
-
-# w3m is required on FreeBSD (powers the handbook alias)
-if [ "$PLATFORM" = "freebsd" ]; then
-    check_cmd w3m "w3m" || MISSING_CORE="$MISSING_CORE w3m"
-fi
-
-if [ -n "$MISSING_CORE" ]; then
-    printf '\n'
-    warn "missing required tools:$MISSING_CORE"
-    if prompt_yn "install them now?" y; then
-        # shellcheck disable=SC2086
-        install_pkg $MISSING_CORE
-    else
-        warn "some features will not work correctly without the above tools"
-    fi
-fi
-
-# ── font deps (FreeBSD) ───────────────────────────────────────────────────────
-# foot.ini uses Spleen 8x16 and Symbols Nerd Font Mono; check via fc-list.
-if [ "$PLATFORM" = "freebsd" ]; then
-    printf '\n  checking fonts...\n\n'
-    MISSING_FONTS=""
-
-    if command -v fc-list >/dev/null 2>&1; then
-        if fc-list | grep -qi "spleen"; then
-            ok "Spleen found"
-        else
-            warn "Spleen not found — required by foot.ini"
-            MISSING_FONTS="$MISSING_FONTS spleen"
-        fi
-
-        if fc-list | grep -qi "symbols nerd font"; then
-            ok "Symbols Nerd Font Mono found"
-        else
-            warn "Symbols Nerd Font Mono not found — required by foot.ini"
-            # nerd-fonts is the FreeBSD port; covers all Nerd Font families
-            MISSING_FONTS="$MISSING_FONTS nerd-fonts"
-        fi
-    else
-        warn "fc-list not available — skipping font check (install fontconfig)"
-    fi
-
-    if [ -n "$MISSING_FONTS" ]; then
-        printf '\n'
-        if prompt_yn "install missing fonts now?" y; then
-            # shellcheck disable=SC2086
-            install_pkg $MISSING_FONTS
-        else
-            warn "foot terminal will not render correctly without the above fonts"
-        fi
-    fi
-fi
-
-# ── optional deps ─────────────────────────────────────────────────────────────
-printf '\n  checking optional dependencies...\n\n'
-
-if ! check_cmd notify-send "$(pkg_name terminal-notifier libnotify libnotify-bin) — desktop notifications"; then
-    warn "desktop notifications will fall back to stdout"
-fi
-
-if ! check_cmd magick "" && ! check_cmd convert ""; then
-    warn "ImageMagick not found — map overlays will be skipped"
-    info "to install: $(pkg_name 'brew install imagemagick' 'pkg install ImageMagick7' 'apt-get install imagemagick')"
-fi
-
-# bat on non-FreeBSD is optional; clue falls back to cat
-if [ "$PLATFORM" != "freebsd" ]; then
-    if ! check_cmd bat "$(pkg_name bat bat bat) — syntax-highlighted cheatsheet viewer"; then
-        warn "clue alias will fall back to cat"
-    fi
-fi
-
-# ── dev tools (optional) ─────────────────────────────────────────────────────
-# these tools are only needed when hacking on the shell scripts themselves.
-# not required for normal dotfiles use.
-if prompt_yn "install shell dev tools (shellcheck, shfmt, bats-core)?" n; then
-    printf '\n  checking shell dev tools...\n\n'
-    MISSING_DEV=""
-    check_cmd shellcheck "$(pkg_name shellcheck hs-ShellCheck shellcheck)" || MISSING_DEV="$MISSING_DEV $(pkg_name shellcheck hs-ShellCheck shellcheck)"
-    check_cmd shfmt      "$(pkg_name shfmt shfmt shfmt)"                   || MISSING_DEV="$MISSING_DEV $(pkg_name shfmt shfmt shfmt)"
-    check_cmd bats       "$(pkg_name bats-core bats-core bats-core)"       || MISSING_DEV="$MISSING_DEV $(pkg_name bats-core bats-core bats-core)"
-    if [ -n "$MISSING_DEV" ]; then
-        printf '\n'
-        # shellcheck disable=SC2086  # word-split is intentional — space-delimited pkg list
-        install_pkg $MISSING_DEV
-    fi
 fi
 
 # ── select packages to stow ───────────────────────────────────────────────────
