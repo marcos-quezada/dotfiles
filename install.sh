@@ -19,6 +19,7 @@ REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 # ok/warn/die/prompt_yn/etc. that every other module depends on).
 . "$REPO_DIR/install.d/common.sh"
 . "$REPO_DIR/install.d/check-deps.sh"
+. "$REPO_DIR/install.d/freebsd.sh"
 YES=0
 [ "${1:-}" = "--yes" ] && YES=1
 
@@ -32,63 +33,8 @@ printf '\n'
 # ── stow check ────────────────────────────────────────────────────────────────
 check_deps_main
 
-# ── doas (FreeBSD) ────────────────────────────────────────────────────────────
-# doas is the privilege escalation tool used on FreeBSD. install.sh itself uses
-# it for stow_vt and any pkg installs. check early so the rest of the script
-# can rely on it being present.
-if [ "$PLATFORM" = "freebsd" ]; then
-    printf '\n  checking doas...\n\n'
-    if command -v doas >/dev/null 2>&1; then
-        ok "doas found"
-        # confirm /usr/local/etc/doas.conf exists — without it doas blocks everything
-        if [ -f /usr/local/etc/doas.conf ]; then
-            ok "doas.conf found"
-        else
-            warn "doas is installed but /usr/local/etc/doas.conf does not exist"
-            info "minimal config to allow wheel group: permit persist :wheel"
-            if prompt_yn "write a minimal doas.conf now? (requires sudo)" n; then
-                printf 'permit persist :wheel\n' | sudo tee /usr/local/etc/doas.conf >/dev/null
-                chmod 640 /usr/local/etc/doas.conf
-                ok "wrote /usr/local/etc/doas.conf"
-            else
-                warn "doas will not work until doas.conf is created — run as root:"
-                info "  printf 'permit persist :wheel\\n' > /usr/local/etc/doas.conf"
-                info "  chmod 640 /usr/local/etc/doas.conf"
-            fi
-        fi
-    else
-        warn "doas not found"
-        if prompt_yn "install doas via pkg? (requires sudo)" y; then
-            sudo pkg install -y doas
-            ok "doas installed"
-            if [ ! -f /usr/local/etc/doas.conf ]; then
-                printf 'permit persist :wheel\n' | sudo tee /usr/local/etc/doas.conf >/dev/null
-                chmod 640 /usr/local/etc/doas.conf
-                ok "wrote /usr/local/etc/doas.conf"
-            fi
-        else
-            warn "doas is required for vt font install and pkg operations — install it manually"
-        fi
-    fi
-fi
-
-if [ "$PLATFORM" = "freebsd" ]; then
-    if ! pkg info -e keychain > /dev/null 2>&1; then
-        if prompt_yn "Install keychain (persistent ssh-agent)?" y; then
-            doas pkg install -y keychain
-        fi
-    fi
-fi
-
-if [ "$PLATFORM" = "freebsd" ]; then
-  for pkg in mpv mpv-mpris python3; do
-    if ! pkg info -e "$pkg" >/dev/null 2>&1; then
-      if prompt_yn "install $pkg (required for music playback)?" y; then
-        doas pkg install -y "$pkg"
-      fi
-    fi
-  done
-fi
+# ── FreeBSD setup ─────────────────────────────────────────────────────────────
+[ "$PLATFORM" = "freebsd" ] && freebsd_setup_main
 
 # ── select packages to stow ───────────────────────────────────────────────────
 printf '\n  packages available:\n\n'
