@@ -865,7 +865,7 @@ noto-emoji          nss_mdns            nvidia-drm-66-kmod
 pkg                 pkgconf             qt6-base
 qt6-declarative     qt6-shadertools     qt6-wayland
 quickshell          rust                sakura
-seatd               slurp               spleen-font
+seatd               slurp               cozette
 stow                sway                swayidle
 swaylock-effects    u2f-devd            vim
 w3m                 webcamd             wifi-firmware-iwlwifi-kmod
