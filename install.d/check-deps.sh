@@ -54,7 +54,7 @@ check_deps_main() {
     fi
 
     # ── font deps (FreeBSD) ───────────────────────────────────────────────────
-    # foot.ini uses Spleen 8x16 and Symbols NerdFont Mono; check via fc-list.
+    # foot.ini uses Cozette and Symbols NerdFont Mono; check via fc-list.
     if [ "$PLATFORM" = "freebsd" ]; then
       printf '\n  checking fonts...\n\n'
       MISSING_FONTS=""
@@ -69,7 +69,7 @@ check_deps_main() {
             MISSING_FONTS="$MISSING_FONTS $3"
           fi
         }
-        check_font "spleen" "Spleen" spleen
+        check_font "cozette" "Cozette" cozette
         # nerd-fonts is the FreeBSD port; covers all Nerd Font families
         check_font "symbols nerd font" "Symbols Nerd Font Mono" nerd-fonts
       else
