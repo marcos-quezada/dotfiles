@@ -1268,6 +1268,66 @@ manually.
 `stow --target=/ vt` under `doas`/`sudo` — console font files must land in
 `/boot/fonts/` for the FreeBSD loader to find them.
 
+### install.sh structure
+
+`install.sh` is itself a thin orchestrator, not a monolith -- following
+the pattern described above in "script modularization" (`install-sh-
+modularization`, the first application of that pattern). It handles
+only platform detection, sourcing every `install.d/*.sh` module, and
+calling each module's entry point in a fixed sequence -- 48 lines total:
+
+```
+install.sh                      orchestrator -- platform detection,
+                                 sources install.d/*.sh, calls each
+                                 entry point in sequence
+install.d/
+  common.sh                     shared helpers: ok/warn/die/prompt_yn/
+                                 check_cmd/install_pkg/pkg_name/
+                                 stow_pkg/stow_root/detect_sudo --
+                                 sourced first, every other module
+                                 depends on it
+  check-deps.sh    check_deps_main()       stow presence, core/font/
+                                           optional deps, dev-tools
+                                           prompt, yt-dlp check
+  freebsd.sh       freebsd_setup_main()    doas/doas.conf, keychain,
+                                           mpv/mpv-mpris/python3
+                                           (FreeBSD only)
+  desktop.sh       desktop_select_main()   foot/sway/quickshell/
+                                           cursors/mpv/pulseaudio, the
+                                           FreeBSD-only vt console font
+                                           and ly display manager
+                                           config, and the FreeBSD-only
+                                           sh package -- prompts and
+                                           stow calls together
+  base.sh          base_select_main()      core cross-platform
+                   base_post_config_main() packages, macOS-only
+                                           packages, post-stow config
+                                           templates, cache dir, PATH
+                                           reminder, final summary
+```
+
+call order in `install.sh`: `check_deps_main` → `freebsd_setup_main`
+(FreeBSD only) → `base_select_main` → `desktop_select_main` →
+`base_post_config_main`. Two deliberate departures from the pre-
+modularization script's exact on-screen sequence, both confirmed via
+real `--yes` runs to change nothing except ordering:
+
+- `check-deps.sh`'s checks now all run together, before
+  `freebsd.sh`'s doas/keychain/mpv setup -- the original interleaved
+  the two
+- `desktop_select_main` runs *after* `base_select_main`'s own stow
+  calls, not before -- `desktop_select_main` includes the `ly` stow
+  call, which can fail on a real, pre-existing conflict; calling it
+  first would let that one failure (via `set -e` + `die()`) wipe out
+  every other package's install, a real regression from the original
+  script (where `ly` was always stowed last)
+
+each module owns its own prompts and stow calls end to end, rather
+than all prompts running first and all stow calls running together
+afterward -- a deliberate trade-off for clean, independently
+testable/reusable module boundaries, confirmed working via standalone
+functional tests of each module before ever wiring it into `install.sh`.
+
 ### why early-boot system config files aren't stowed
 
 `vt`'s console-font files were the one package still listed above as if
