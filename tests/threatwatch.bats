@@ -26,9 +26,15 @@ setup() {
 
     # stripped script — function definitions only, no main dispatcher.
     # sourcing the full script runs tobar (the default case), which pollutes stdout.
-    # awk stops at the sentinel comment that precedes the case dispatcher.
+    # concatenates every threatwatch.d/*.sh module plus the orchestrator's own
+    # remaining content (update()), filtering out its sourcing lines (which
+    # would fail here without $SCRIPT_DIR set) -- awk stops at the sentinel 
+    # comment that precedes the case dispatcher.
     TW_FUNCS="$XDG_CACHE_HOME/tw_funcs.sh"
-    awk '/^# ── main/{exit} {print}' "$TW" > "$TW_FUNCS"
+    TW_DIR="$(dirname "$TW")/threatwatch.d"
+    cat "$TW_DIR/common.sh" "$TW_DIR/fetch.sh" "$TW_DIR/summary.sh" \
+        "$TW_DIR/map-overlay.sh" "$TW_DIR/report.sh" > "$TW_FUNCS"
+    awk '/^# ── main/{exit} /SCRIPT_DIR/{next} {print}' "$TW" >> "$TW_FUNCS"
 }
 
 teardown() {
