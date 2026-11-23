@@ -414,6 +414,42 @@ on .updated change (FileView):
 auto-refresh timer and any future manual trigger. it always runs the full sequence:
 fetch → summary → overlay → pins.
 
+### threatwatch structure
+
+`threatwatch` is itself a thin orchestrator, not a monolith -- following
+the same pattern as `install.sh` (`threatwatch-modularization`, the
+second application of the pattern, after `install-sh-modularization`
+proved it out on a simpler case). Unlike `install.d/`, which lives at
+the repo root, `threatwatch.d/` lives *inside* the stow package itself
+(`threatwatch/.local/bin/threatwatch.d/`) -- `threatwatch` is
+stow-managed to `$HOME`, `install.sh` is not, so its modules need to
+land alongside it after stowing, not at the repo root:
+
+```
+threatwatch/.local/bin/
+  threatwatch                   orchestrator -- sources threatwatch.d/*.sh,
+                                 defines update() (coordinates calls across
+                                 every module), case dispatch -- 66 lines total
+  threatwatch.d/
+    common.sh                   shared config/constants, _resolve_theme,
+                                 signal handling (clean_up/signal_exit/trap),
+                                 small helpers (has_cmd/_find_magick/
+                                 _find_font/level_rank/upgrade_level) --
+                                 sourced first, every other module depends on it
+    fetch.sh                    fetch_earthquakes/fetch_gdacs/fetch_flights/
+                                 fetch_polymarket/fetch_map, mapbox usage
+                                 counter helpers
+    summary.sh                  build_summary/build_pins_json
+    map-overlay.sh               _map_overlay/apply_map_overlay/map_only/
+                                 overlay_only
+    report.sh                   tobar/notify/data/flights/mapbox_usage
+```
+
+`update()` itself stays in the orchestrator, not in any single module --
+it coordinates calls across all of them, the same reasoning that keeps
+`install.sh`'s own call-order sequencing in the orchestrator rather than
+any one `install.d/*.sh` file.
+
 ### tobar format
 
 `tobar()` emits a single line consumed by `ThreatWatchModel` as `barText`:
